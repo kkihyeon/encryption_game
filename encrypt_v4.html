@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P2P 암호 대전: 컬러 가디언즈</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Noto+Sans+KR:wght@300;500;700&display=swap');
+        :root {
+            --primary: #00f2ff;
+            --secondary: #ff00ea;
+            --bg: #0a0a12;
+        }
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: var(--bg);
+            color: white;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 50% 50%, rgba(0, 242, 255, 0.05) 0%, transparent 50%),
+                linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
+                linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+            background-size: 100% 100%, 100% 2px, 3px 100%;
+        }
+        .cyber-font { font-family: 'Orbitron', sans-serif; }
+        .glass {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .timer-bar {
+            height: 6px;
+            background: var(--primary);
+            box-shadow: 0 0 15px var(--primary);
+            transition: width 0.1s linear;
+        }
+        .pulse { animation: pulse 2s infinite; }
+        @keyframes pulse {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.02); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        .method-dot {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 8px currentColor;
+        }
+        .color-1 { background-color: #ef4444; color: #ef4444; } /* Red */
+        .color-2 { background-color: #3b82f6; color: #3b82f6; } /* Blue */
+        .color-3 { background-color: #22c55e; color: #22c55e; } /* Green */
+        .color-4 { background-color: #eab308; color: #eab308; } /* Yellow */
+        
+        .selected-method {
+            border: 2px solid white !important;
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <div id="app" class="min-h-screen flex flex-col items-center justify-center p-4">
+        
+        <div id="status-bar" class="fixed top-4 right-4 flex items-center space-x-2 text-xs opacity-50">
+            <span id="status-dot" class="w-2 h-2 rounded-full bg-red-500"></span>
+            <span id="status-text">Disconnected</span>
+        </div>
+
+        <!-- Lobby Screen -->
+        <div id="lobby" class="w-full max-w-md space-y-6">
+            <div class="text-center">
+                <h1 class="text-5xl font-bold cyber-font tracking-tighter text-cyan-400 italic">COLOR CRYPTO</h1>
+                <p class="text-gray-400 mt-2">P2P 컬러 조합 암호 대전</p>
+            </div>
+            
+            <div class="glass p-8 rounded-2xl space-y-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-400 mb-2">방 번호 입력</label>
+                    <input id="room-id" type="text" placeholder="예: 1234" class="w-full bg-black/50 border border-white/20 rounded-xl p-4 focus:outline-none focus:border-cyan-500 text-center text-2xl tracking-widest cyber-font uppercase">
+                </div>
+                <button id="btn-enter" class="w-full py-4 bg-cyan-500 text-black font-bold rounded-xl hover:bg-cyan-400 transition-all text-lg">입장 / 생성</button>
+            </div>
+        </div>
+
+        <!-- Team Selection Screen -->
+        <div id="team-select" class="hidden w-full max-w-3xl space-y-6">
+            <div class="text-center">
+                <h2 class="text-3xl font-bold cyber-font">SELECT SIDE</h2>
+                <p id="room-display" class="text-cyan-500 cyber-font text-sm mt-1"></p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="glass p-8 rounded-3xl flex flex-col items-center space-y-4 border-t-4 border-red-500">
+                    <h3 class="text-2xl font-bold text-red-500 cyber-font">ATTACKER</h3>
+                    <div id="attack-players" class="flex flex-wrap justify-center gap-2 min-h-[40px]"></div>
+                    <button onclick="pickTeam('attacker')" id="btn-pick-attacker" class="w-full py-3 bg-red-600 rounded-xl font-bold uppercase">Join Attack</button>
+                </div>
+                <div class="glass p-8 rounded-3xl flex flex-col items-center space-y-4 border-t-4 border-blue-500">
+                    <h3 class="text-2xl font-bold text-blue-500 cyber-font">DEFENDER</h3>
+                    <div id="defense-players" class="flex flex-wrap justify-center gap-2 min-h-[40px]"></div>
+                    <button onclick="pickTeam('defender')" id="btn-pick-defender" class="w-full py-3 bg-blue-600 rounded-xl font-bold uppercase">Join Defense</button>
+                </div>
+            </div>
+            <div class="text-center py-6 glass rounded-2xl">
+                <button id="btn-start-game" class="hidden px-12 py-3 bg-green-500 text-black font-black rounded-full hover:bg-green-400 pulse">Game Start</button>
+            </div>
+        </div>
+
+        <!-- Main Game Screen -->
+        <div id="game-main" class="hidden w-full max-w-5xl space-y-4">
+            <div class="flex justify-between items-center glass p-4 rounded-2xl border-b-2 border-cyan-500/30">
+                <div class="text-center px-4">
+                    <div class="text-[10px] text-gray-500 cyber-font">TOTAL TIME</div>
+                    <div id="total-timer" class="text-2xl font-bold cyber-font">05:00</div>
+                </div>
+                <div class="flex items-center space-x-8">
+                    <div class="text-center">
+                        <div class="text-[10px] text-red-500 font-bold cyber-font">ATTACK</div>
+                        <div id="score-attack" class="text-4xl font-bold cyber-font">0</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-[10px] text-blue-500 font-bold cyber-font">DEFENSE</div>
+                        <div id="score-defense" class="text-4xl font-bold cyber-font">0</div>
+                    </div>
+                </div>
+                <div id="my-role-badge" class="font-bold text-xs px-3 py-1 rounded-full bg-white/10 uppercase">ROLE</div>
+            </div>
+
+            <div class="w-full bg-white/5 h-2 rounded-full">
+                <div id="round-timer-bar" class="timer-bar w-full"></div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="glass p-6 rounded-2xl text-center">
+                    <div id="turn-team" class="text-xl font-bold cyber-font mb-2">---</div>
+                    <div id="round-timer-text" class="text-5xl font-bold cyber-font text-cyan-400">30</div>
+                </div>
+                
+                <div class="md:col-span-3 glass p-10 rounded-2xl flex flex-col justify-center items-center min-h-[250px] relative">
+                    <div id="clue-area" class="mb-4 flex space-x-3">
+                        <!-- Clue dots will appear here for defender -->
+                    </div>
+                    <div id="game-display-text" class="text-3xl font-bold text-center z-10">대기 중...</div>
+                    <div id="feedback-msg" class="mt-4 font-bold text-sm h-6"></div>
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div id="game-controls" class="glass p-8 rounded-2xl">
+                <!-- Attacker Panel -->
+                <div id="panel-attacker" class="hidden space-y-6">
+                    <input id="attacker-input" type="text" placeholder="암호화할 메시지 입력" class="w-full bg-black/50 border border-white/20 p-4 rounded-xl text-xl">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="attacker-buttons">
+                        <button onclick="toggleMethod(1)" id="btn-m-1" class="py-4 bg-red-600/30 border-2 border-red-500 rounded-xl font-bold cyber-font">보기 1 (Red)</button>
+                        <button onclick="toggleMethod(2)" id="btn-m-2" class="py-4 bg-blue-600/30 border-2 border-blue-500 rounded-xl font-bold cyber-font">보기 2 (Blue)</button>
+                        <button onclick="toggleMethod(3)" id="btn-m-3" class="py-4 bg-green-600/30 border-2 border-green-500 rounded-xl font-bold cyber-font">보기 3 (Green)</button>
+                        <button onclick="toggleMethod(4)" id="btn-m-4" class="py-4 bg-yellow-600/30 border-2 border-yellow-500 rounded-xl font-bold cyber-font">보기 4 (Yellow)</button>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <div id="selected-sequence" class="text-sm text-gray-400 uppercase tracking-widest">선택: 없음</div>
+                        <button onclick="sendAttack()" class="px-10 py-3 bg-white text-black font-bold rounded-xl hover:bg-cyan-400">공격 전송</button>
+                    </div>
+                </div>
+
+                <!-- Defender Panel -->
+                <div id="panel-defender" class="hidden space-y-6">
+                    <p class="text-center text-blue-400 font-bold cyber-font">GUESS THE SEQUENCE</p>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <button onclick="guessMethod(1)" class="py-4 bg-red-600/30 border-2 border-red-500 rounded-xl font-bold">보기 1</button>
+                        <button onclick="guessMethod(2)" class="py-4 bg-blue-600/30 border-2 border-blue-500 rounded-xl font-bold">보기 2</button>
+                        <button onclick="guessMethod(3)" class="py-4 bg-green-600/30 border-2 border-green-500 rounded-xl font-bold">보기 3</button>
+                        <button onclick="guessMethod(4)" class="py-4 bg-yellow-600/30 border-2 border-yellow-500 rounded-xl font-bold">보기 4</button>
+                    </div>
+                    <div id="defender-guess-progress" class="flex justify-center space-x-2 h-4">
+                        <!-- Progress indicator -->
+                    </div>
+                </div>
+
+                <div id="panel-wait" class="text-center py-6 italic text-gray-500 animate-pulse">상대방의 턴을 기다리고 있습니다...</div>
+            </div>
+        </div>
+
+        <!-- GameOver Screen -->
+        <div id="game-over" class="hidden fixed inset-0 bg-black/95 z-50 flex items-center justify-center p-6">
+            <div class="glass max-w-lg w-full p-10 rounded-[40px] text-center space-y-8">
+                <h2 class="text-4xl font-bold cyber-font text-cyan-400">GAME OVER</h2>
+                <div class="flex justify-around py-6 bg-white/5 rounded-3xl">
+                    <div><p class="text-red-500 text-xs font-bold">ATTACK</p><p id="final-score-attack" class="text-3xl font-bold">0</p></div>
+                    <div><p class="text-blue-500 text-xs font-bold">DEFENSE</p><p id="final-score-defense" class="text-3xl font-bold">0</p></div>
+                </div>
+                <div id="winner-banner" class="text-2xl font-bold cyber-font text-yellow-400">--- DRAW ---</div>
+                <button onclick="location.reload()" class="w-full py-4 bg-white text-black font-bold rounded-2xl">Lobby</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let peer = null, conn = null, connections = {}, myId = "", isHost = false, roomId = "";
+        let selectedMethods = []; // For attacker
+        let currentGuess = [];    // For defender
+        
+        let gameState = {
+            status: 'lobby',
+            phase: 'attacker_turn',
+            players: {},
+            scores: { attacker: 0, defender: 0 },
+            currentMsg: "",
+            correctMethods: [], // Array of method IDs
+            clueColors: [],     // Shuffled method IDs for clue
+            totalTimeLeft: 300,
+            roundStartTime: 0
+        };
+
+        let myTeam = "";
+        const UI = {
+            lobby: document.getElementById('lobby'),
+            teamSelect: document.getElementById('team-select'),
+            gameMain: document.getElementById('game-main'),
+            gameOver: document.getElementById('game-over')
+        };
+
+        document.getElementById('btn-enter').addEventListener('click', () => {
+            const val = document.getElementById('room-id').value.trim();
+            if(!val) return;
+            roomId = "CRYPTO-" + val.toLowerCase();
+            initPeer();
+        });
+
+        function initPeer() {
+            peer = new Peer();
+            peer.on('open', id => {
+                myId = id;
+                const c = peer.connect(roomId);
+                c.on('open', () => { conn = c; isHost = false; setupClient(); showScreen('teamSelect'); });
+                c.on('error', () => { becomeHost(); });
+                setTimeout(() => { if(!isHost && (!conn || !conn.open)) becomeHost(); }, 1500);
+            });
+        }
+
+        function becomeHost() {
+            if(peer) peer.destroy();
+            peer = new Peer(roomId);
+            peer.on('open', id => {
+                isHost = true; myId = id; showScreen('teamSelect');
+                document.getElementById('room-display').innerText = "ROOM: " + roomId.replace("CRYPTO-", "").toUpperCase();
+                peer.on('connection', c => {
+                    connections[c.peer] = c;
+                    c.on('data', data => handleMessage(data, c.peer));
+                    c.send({ type: 'sync', state: gameState });
+                });
+            });
+            peer.on('error', () => { alert("방 접속 실패. 다시 시도하세요."); location.reload(); });
+        }
+
+        function setupClient() {
+            conn.on('data', data => {
+                if(data.type === 'sync') { gameState = data.state; renderUI(); }
+                if(data.type === 'feedback') showFeedback(data.msg, data.isSuccess);
+            });
+        }
+
+        function handleMessage(data, sid) {
+            if(!isHost) return;
+            switch(data.type) {
+                case 'join_team':
+                    gameState.players[sid] = { team: data.team };
+                    broadcast(); break;
+                case 'start_game':
+                    gameState.status = 'playing'; gameState.roundStartTime = Date.now();
+                    startClock(); broadcast(); break;
+                case 'attack':
+                    gameState.currentMsg = data.msg;
+                    gameState.correctMethods = data.methods;
+                    gameState.clueColors = [...data.methods].sort(() => Math.random() - 0.5);
+                    gameState.phase = 'defender_turn';
+                    gameState.roundStartTime = Date.now();
+                    // Speed bonus for attack
+                    const bonus = Math.max(0, 30 - Math.floor((Date.now() - gameState.roundStartTime)/1000));
+                    gameState.scores.attacker += (10 + bonus);
+                    broadcast(); break;
+                case 'defense_result':
+                    if(data.isSuccess) {
+                        const bonus = Math.max(0, 30 - Math.floor((Date.now() - gameState.roundStartTime)/1000));
+                        gameState.scores.defender += (100 + bonus);
+                        gameState.currentMsg = "수비 성공! 모든 암호를 해독했습니다.";
+                    } else {
+                        gameState.scores.defender = Math.max(0, gameState.scores.defender - 30); // Penalty
+                        gameState.scores.attacker += 50;
+                        gameState.currentMsg = "수비 실패! 암호 체계가 무너졌습니다.";
+                    }
+                    gameState.phase = 'attacker_turn';
+                    gameState.roundStartTime = Date.now();
+                    broadcast(); break;
+            }
+        }
+
+        function broadcast() { 
+            const p = { type: 'sync', state: gameState };
+            Object.values(connections).forEach(c => c.send(p)); 
+            renderUI(); 
+        }
+
+        function showScreen(k) {
+            Object.keys(UI).forEach(s => UI[s].classList.add('hidden'));
+            UI[k].classList.remove('hidden');
+        }
+
+        function pickTeam(t) {
+            myTeam = t;
+            if(isHost) { gameState.players[myId] = { team: t }; broadcast(); }
+            else conn.send({ type: 'join_team', team: t });
+            document.getElementById('btn-pick-attacker').disabled = true;
+            document.getElementById('btn-pick-defender').disabled = true;
+        }
+
+        // Attacker Logic
+        function toggleMethod(id) {
+            const idx = selectedMethods.indexOf(id);
+            if(idx > -1) selectedMethods.splice(idx, 1);
+            else if(selectedMethods.length < 2) selectedMethods.push(id);
+            
+            // Update UI
+            [1,2,3,4].forEach(m => document.getElementById(`btn-m-${m}`).classList.remove('selected-method'));
+            selectedMethods.forEach(m => document.getElementById(`btn-m-${m}`).classList.add('selected-method'));
+            document.getElementById('selected-sequence').innerText = "순서: " + (selectedMethods.length > 0 ? selectedMethods.join(" → ") : "없음");
+        }
+
+        function sendAttack() {
+            const msg = document.getElementById('attacker-input').value.trim();
+            if(!msg || selectedMethods.length === 0) return alert("메시지와 암호화 방식(최소 1개)을 선택하세요.");
+            const payload = { type: 'attack', msg: msg, methods: [...selectedMethods] };
+            if(isHost) handleMessage(payload, myId); else conn.send(payload);
+            selectedMethods = [];
+            document.getElementById('attacker-input').value = "";
+            toggleMethod(0); // Reset UI
+        }
+
+        // Defender Logic
+        function guessMethod(id) {
+            currentGuess.push(id);
+            const step = currentGuess.length;
+            const target = gameState.correctMethods;
+
+            if(currentGuess[step-1] !== target[step-1]) {
+                // Wrong guess immediately
+                const payload = { type: 'defense_result', isSuccess: false };
+                if(isHost) handleMessage(payload, myId); else conn.send(payload);
+                currentGuess = [];
+                return;
+            }
+
+            if(currentGuess.length === target.length) {
+                // All correct
+                const payload = { type: 'defense_result', isSuccess: true };
+                if(isHost) handleMessage(payload, myId); else conn.send(payload);
+                currentGuess = [];
+            }
+        }
+
+        function startClock() {
+            setInterval(() => {
+                if(gameState.status === 'playing') {
+                    gameState.totalTimeLeft--;
+                    if(gameState.totalTimeLeft <= 0) { gameState.status = 'finished'; }
+                    if(isHost) broadcast();
+                }
+            }, 1000);
+        }
+
+        function renderUI() {
+            if(gameState.status === 'playing') showScreen('gameMain');
+            if(gameState.status === 'finished') showScreen('gameOver');
+
+            // Team Badges
+            ['attack', 'defense'].forEach(t => {
+                const container = document.getElementById(`${t}-players`);
+                container.innerHTML = "";
+                Object.entries(gameState.players).forEach(([pid, p]) => {
+                    if((t === 'attack' && p.team === 'attacker') || (t === 'defense' && p.team === 'defender')) {
+                        const s = document.createElement('span');
+                        s.className = "px-2 py-1 bg-white/10 rounded text-[10px]";
+                        s.innerText = pid === myId ? "YOU" : pid.substring(0,4);
+                        container.appendChild(s);
+                    }
+                });
+            });
+
+            if(isHost && Object.keys(gameState.players).length >= 2 && gameState.status === 'lobby') {
+                document.getElementById('btn-start-game').classList.remove('hidden');
+                document.getElementById('btn-start-game').onclick = () => handleMessage({type:'start_game'});
+            }
+
+            // HUD
+            document.getElementById('score-attack').innerText = gameState.scores.attacker;
+            document.getElementById('score-defense').innerText = gameState.scores.defender;
+            document.getElementById('total-timer').innerText = `${Math.floor(gameState.totalTimeLeft/60).toString().padStart(2,'0')}:${(gameState.totalTimeLeft%60).toString().padStart(2,'0')}`;
+            const badge = document.getElementById('my-role-badge');
+            badge.innerText = myTeam; badge.className = `font-bold text-xs px-3 py-1 rounded-full uppercase ${myTeam==='attacker'?'bg-red-500':'bg-blue-500'}`;
+
+            // Phase UI
+            const isAttackerPhase = gameState.phase === 'attacker_turn';
+            document.getElementById('turn-team').innerText = isAttackerPhase ? "ATTACK" : "DEFEND";
+            document.getElementById('turn-team').className = `text-xl font-bold cyber-font mb-2 ${isAttackerPhase?'text-red-500':'text-blue-500'}`;
+            
+            document.getElementById('panel-attacker').classList.toggle('hidden', !(isAttackerPhase && myTeam === 'attacker'));
+            document.getElementById('panel-defender').classList.toggle('hidden', !(gameState.phase === 'defender_turn' && myTeam === 'defender'));
+            document.getElementById('panel-wait').classList.toggle('hidden', (isAttackerPhase && myTeam === 'attacker') || (gameState.phase === 'defender_turn' && myTeam === 'defender'));
+
+            // Display & Clues
+            const display = document.getElementById('game-display-text');
+            const clueArea = document.getElementById('clue-area');
+            clueArea.innerHTML = "";
+
+            if(isAttackerPhase) {
+                display.innerText = gameState.currentMsg || "공격 대기중...";
+                display.className = "text-3xl font-bold text-center z-10 text-white opacity-50";
+            } else {
+                display.innerText = gameState.currentMsg;
+                display.className = "text-3xl font-bold text-center z-10 text-cyan-400";
+                // Show random order color clues
+                gameState.clueColors.forEach(cid => {
+                    const dot = document.createElement('span');
+                    dot.className = `method-dot color-${cid}`;
+                    clueArea.appendChild(dot);
+                });
+            }
+
+            // Game Over
+            if(gameState.status === 'finished') {
+                document.getElementById('final-score-attack').innerText = gameState.scores.attacker;
+                document.getElementById('final-score-defense').innerText = gameState.scores.defender;
+                const b = document.getElementById('winner-banner');
+                if(gameState.scores.attacker > gameState.scores.defender) b.innerText = "ATTACK WIN";
+                else if(gameState.scores.attacker < gameState.scores.defender) b.innerText = "DEFENSE WIN";
+            }
+
+            tickRoundTimer();
+        }
+
+        function tickRoundTimer() {
+            const elapsed = Math.floor((Date.now() - gameState.roundStartTime)/1000);
+            let left = Math.max(0, 30 - elapsed);
+            document.getElementById('round-timer-text').innerText = left;
+            document.getElementById('round-timer-bar').style.width = (left/30*100) + "%";
+            
+            if(isHost && left <= 0 && gameState.status === 'playing') {
+                if(gameState.phase === 'attacker_turn') gameState.scores.defender += 50;
+                else gameState.scores.attacker += 50;
+                gameState.phase = 'attacker_turn';
+                gameState.roundStartTime = Date.now();
+                broadcast();
+            }
+        }
+
+        setInterval(() => { if(gameState.status === 'playing') tickRoundTimer(); }, 1000);
+
+    </script>
+</body>
+</html>
