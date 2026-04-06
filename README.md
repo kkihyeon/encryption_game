@@ -1,7 +1,7 @@
 # encryption_game
 game for study encryption principle
 
-<release v4>(2026.04.06)
+[release v4](2026.04.06)
 추측상 앞의 것이 무조건 검정색으로 보임. (색상 불일치 및 순서 불일치 문제) (방어자 입장의 화면에서)
 순서 새로고침이 안됨.
 수비자 입장에서 전송이 제대로 안된건지 수비가 제대로 안됨 (순서대로 눌렀음에도 실패함).
