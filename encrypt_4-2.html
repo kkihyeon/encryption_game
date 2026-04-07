@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P2P 암호 대전: 컬러 가디언즈 v2</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Noto+Sans+KR:wght@300;500;700&display=swap');
+        
+        :root {
+            --bg-main: #0a4d68;
+            --bg-dark: #083344;
+            --score-green: #4ade80;
+            --attack-red: #ff0000;
+            --defend-blue: #38bdf8;
+            --panel-bg: #1e293b;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #0f172a;
+            color: white;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        .cyber-font { font-family: 'Orbitron', sans-serif; }
+
+        /* Mockup Layout Components */
+        .player-slot {
+            background-color: white;
+            color: #333;
+            height: 100px;
+            display: flex;
+            border: 2px solid #000;
+            margin-bottom: 8px;
+        }
+        .player-info {
+            background-color: #083344;
+            color: white;
+            width: 80px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 12px;
+            font-weight: bold;
+            border-right: 2px solid #000;
+        }
+        .player-score-bar {
+            background-color: #43a047;
+            width: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            writing-mode: vertical-lr;
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            border-right: 2px solid #000;
+        }
+        .player-msg {
+            flex: 1;
+            padding: 8px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+        }
+
+        .main-board {
+            background-color: var(--bg-main);
+            border: 4px solid #000;
+            position: relative;
+        }
+
+        .timer-header {
+            display: flex;
+            height: 60px;
+            border: 4px solid #000;
+            margin-bottom: 10px;
+        }
+        .team-label {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            font-weight: 900;
+        }
+        .timer-display {
+            background-color: #083344;
+            width: 150px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 32px;
+            font-family: 'Orbitron';
+            border-left: 4px solid #000;
+            border-right: 4px solid #000;
+        }
+
+        .control-btn {
+            background-color: #083344;
+            border: 2px solid #000;
+            padding: 10px;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        .control-btn:hover { background-color: #1e293b; }
+        .control-btn.active { background-color: #f97316; color: white; }
+
+        .method-btn {
+            background-color: #0e7490;
+            border: 2px solid #000;
+            color: white;
+            font-weight: bold;
+            height: 50px;
+        }
+        .method-btn.selected {
+            outline: 4px solid #fde047;
+            z-index: 10;
+        }
+
+        #shared-canvas {
+            background-color: transparent;
+            touch-action: none;
+            cursor: crosshair;
+        }
+
+        .input-label {
+            background-color: #083344;
+            width: 80px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            border: 2px solid #000;
+        }
+        .input-field {
+            background-color: white;
+            color: black;
+            padding: 0 15px;
+            border: 2px solid #000;
+            outline: none;
+        }
+        .big-submit {
+            background-color: #083344;
+            border: 4px solid #000;
+            font-size: 24px;
+            font-weight: 900;
+        }
+        .big-submit:active { transform: scale(0.95); }
+
+        /* Team Colors */
+        .color-1 { border-bottom: 6px solid #ef4444; }
+        .color-2 { border-bottom: 6px solid #3b82f6; }
+        .color-3 { border-bottom: 6px solid #22c55e; }
+        .color-4 { border-bottom: 6px solid #eab308; }
+
+        .clue-dot { width: 20px; height: 20px; border-radius: 50%; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
+    </style>
+</head>
+<body class="p-6">
+
+    <div id="lobby" class="fixed inset-0 z-[100] bg-slate-900 flex items-center justify-center p-4">
+        <div class="bg-white p-8 rounded-lg shadow-2xl text-black w-full max-w-md space-y-4">
+            <h1 class="text-3xl font-black text-center mb-6">암호 대전 접속</h1>
+            <input id="user-nick" type="text" placeholder="닉네임 (예: 10203 홍길동)" class="w-full border-4 border-black p-3 text-lg font-bold">
+            <input id="room-id" type="text" placeholder="방 코드" class="w-full border-4 border-black p-3 text-lg font-bold uppercase">
+            <button id="btn-enter" class="w-full bg-cyan-700 text-white py-4 text-xl font-black border-4 border-black hover:bg-cyan-800">시스템 접속</button>
+        </div>
+    </div>
+
+    <div id="game-ui" class="hidden h-screen flex flex-col">
+        <!-- Header: Teams & Timer -->
+        <div class="timer-header">
+            <div class="team-label bg-red-600">공격자 <span id="score-attack" class="ml-4">0</span></div>
+            <div id="total-timer" class="timer-display text-cyan-400">00:00</div>
+            <div class="team-label bg-sky-500">방어자 <span id="score-defense" class="ml-4">0</span></div>
+        </div>
+
+        <div class="flex flex-1 gap-4 overflow-hidden">
+            <!-- Left Side: Players 1-4 -->
+            <div class="w-1/4 flex flex-col" id="player-list-left">
+                <!-- Template Player Slot -->
+                <div class="player-slot opacity-20">
+                    <div class="player-info">대기 중</div>
+                    <div class="player-score-bar">점수</div>
+                    <div class="player-msg">...</div>
+                </div>
+                <!-- 3 more... -->
+            </div>
+
+            <!-- Center: Memo Board -->
+            <div class="flex-1 flex flex-col gap-3">
+                <!-- Memo Tools -->
+                <div class="flex justify-center gap-2">
+                    <button onclick="setMode('draw')" id="btn-mode-draw" class="control-btn px-8 text-orange-500 active">그리기</button>
+                    <button onclick="setMode('text')" id="btn-mode-text" class="control-btn px-8 text-orange-500">타이핑</button>
+                </div>
+
+                <!-- Main Canvas Area -->
+                <div class="main-board flex-1 flex items-center justify-center overflow-hidden">
+                    <canvas id="shared-canvas" class="absolute inset-0 w-full h-full"></canvas>
+                    <div id="memo-text-display" class="z-10 text-4xl font-bold text-center pointer-events-none break-all p-10 uppercase">
+                        <!-- Encryption Text Here -->
+                        시스템 대기 중...
+                    </div>
+                    <div id="clue-area" class="absolute top-4 right-4 flex gap-2"></div>
+                    <button onclick="clearCanvas()" class="absolute bottom-4 right-4 bg-orange-600 border-2 border-black px-4 py-2 font-bold hover:bg-orange-700">지우개</button>
+                </div>
+
+                <!-- Encryption Methods -->
+                <div class="grid grid-cols-4 gap-4">
+                    <button onclick="toggleMethod(1)" id="m1" class="method-btn color-1">암호화방법 1</button>
+                    <button onclick="toggleMethod(2)" id="m2" class="method-btn color-2">암호화방법 2</button>
+                    <button onclick="toggleMethod(3)" id="m3" class="method-btn color-3">암호화방법 3</button>
+                    <button onclick="toggleMethod(4)" id="m4" class="method-btn color-4">암호화방법 4</button>
+                </div>
+
+                <!-- Input Area -->
+                <div class="flex gap-4 h-32">
+                    <div class="flex-1 flex flex-col gap-2">
+                        <div class="flex flex-1">
+                            <div class="input-label">원본</div>
+                            <input id="attacker-input" type="text" class="input-field flex-1 text-xl font-bold" placeholder="메시지 입력">
+                        </div>
+                        <div class="flex flex-1">
+                            <div class="input-label">암호화</div>
+                            <div id="encrypted-preview" class="input-field flex-1 flex items-center text-xl font-mono text-blue-800">...</div>
+                        </div>
+                    </div>
+                    <button id="btn-action" class="w-40 big-submit bg-cyan-900">입력!</button>
+                </div>
+            </div>
+
+            <!-- Right Side: Players 5-8 -->
+            <div class="w-1/4 flex flex-col" id="player-list-right">
+                <div class="player-slot opacity-20">
+                    <div class="player-info">대기 중</div>
+                    <div class="player-score-bar">점수</div>
+                    <div class="player-msg">...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Over Modal -->
+    <div id="game-over" class="hidden fixed inset-0 z-[200] bg-black/90 flex items-center justify-center">
+        <div class="bg-white p-12 border-8 border-black text-black text-center space-y-6">
+            <h2 class="text-6xl font-black italic">OPERATION END</h2>
+            <div class="flex justify-center gap-20 text-4xl font-bold">
+                <div class="text-red-600">ATTACK: <span id="final-attack">0</span></div>
+                <div class="text-blue-600">DEFEND: <span id="final-defense">0</span></div>
+            </div>
+            <button onclick="location.reload()" class="px-12 py-4 bg-black text-white text-2xl font-bold">새 게임 시작</button>
+        </div>
+    </div>
+
+    <script>
+        let peer, conn, connections = {}, myId, isHost = false, roomId = "";
+        let myNick = "", myTeam = "", currentMode = 'draw';
+        let selectedMethods = [];
+        let defenseGuesses = [];
+
+        let gameState = {
+            status: 'lobby',
+            phase: 'attacker_turn',
+            players: {},
+            scores: { attacker: 0, defender: 0 },
+            currentMsg: "메모장",
+            usedMethods: [],
+            clueColors: [],
+            timeLeft: 300,
+            roundStartTime: 0
+        };
+
+        const canvas = document.getElementById('shared-canvas');
+        const ctx = canvas.getContext('2d');
+        let drawing = false;
+
+        // --- Logic Start ---
+
+        document.getElementById('btn-enter').onclick = () => {
+            myNick = document.getElementById('user-nick').value.trim();
+            const val = document.getElementById('room-id').value.trim();
+            if(!myNick || !val) return alert("정보를 모두 입력하세요.");
+            roomId = "MOCKUP-" + val.toUpperCase();
+            initPeer();
+        };
+
+        function initPeer() {
+            peer = new Peer();
+            peer.on('open', id => {
+                myId = id;
+                const c = peer.connect(roomId);
+                c.on('open', () => { conn = c; setupClient(); });
+                c.on('error', () => { becomeHost(); });
+                setTimeout(() => { if(!isHost && (!conn || !conn.open)) becomeHost(); }, 1500);
+            });
+        }
+
+        function becomeHost() {
+            if(peer) peer.destroy();
+            peer = new Peer(roomId);
+            peer.on('open', () => {
+                isHost = true;
+                gameState.players[myId] = { nick: myNick, team: 'attacker', score: 0 };
+                showUI();
+                peer.on('connection', c => {
+                    connections[c.peer] = c;
+                    c.on('data', data => handleData(data, c.peer));
+                    c.on('open', () => c.send({ type: 'sync', state: gameState }));
+                });
+                startMainClock();
+            });
+        }
+
+        function setupClient() {
+            conn.on('data', data => handleData(data, 'host'));
+            conn.send({ type: 'join', nick: myNick });
+            showUI();
+        }
+
+        function handleData(data, sid) {
+            if(data.type === 'sync') {
+                gameState = data.state;
+                render();
+            } else if(data.type === 'join' && isHost) {
+                const team = Object.keys(gameState.players).length % 2 === 0 ? 'attacker' : 'defender';
+                gameState.players[sid] = { nick: myNick, team: team, score: 0 };
+                broadcast();
+            } else if(data.type === 'draw') {
+                drawOnCanvas(data.x, data.y, data.color, false);
+            } else if(data.type === 'clear') {
+                ctx.clearRect(0,0,canvas.width,canvas.height);
+            } else if(data.type === 'attack_submit' && isHost) {
+                gameState.currentMsg = data.msg;
+                gameState.usedMethods = data.methods;
+                gameState.clueColors = [...data.methods].sort(() => 0.5 - Math.random());
+                gameState.phase = 'defender_turn';
+                gameState.roundStartTime = Date.now();
+                broadcast();
+            } else if(data.type === 'defense_result' && isHost) {
+                if(data.success) {
+                    gameState.scores.defender += 100;
+                    gameState.players[sid].score += 100;
+                    gameState.currentMsg = "방어 성공!";
+                } else {
+                    gameState.scores.defender = Math.max(0, gameState.scores.defender - 30);
+                    gameState.scores.attacker += 50;
+                    gameState.currentMsg = "방어 실패!";
+                }
+                gameState.phase = 'attacker_turn';
+                gameState.roundStartTime = Date.now();
+                broadcast();
+            }
+        }
+
+        function broadcast() {
+            if(!isHost) return;
+            const p = { type: 'sync', state: gameState };
+            Object.values(connections).forEach(c => c.send(p));
+            render();
+        }
+
+        function showUI() {
+            document.getElementById('lobby').classList.add('hidden');
+            document.getElementById('game-ui').classList.remove('hidden');
+            resizeCanvas();
+            initCanvasEvents();
+        }
+
+        // --- Interaction ---
+
+        function toggleMethod(id) {
+            if(gameState.phase !== 'attacker_turn') return;
+            const idx = selectedMethods.indexOf(id);
+            if(idx > -1) selectedMethods.splice(idx, 1);
+            else if(selectedMethods.length < 2) selectedMethods.push(id);
+            
+            [1,2,3,4].forEach(n => document.getElementById(`m${n}`).classList.remove('selected'));
+            selectedMethods.forEach(n => document.getElementById(`m${n}`).classList.add('selected'));
+            
+            const raw = document.getElementById('attacker-input').value;
+            document.getElementById('encrypted-preview').innerText = raw ? `ENC(${selectedMethods.join('+')}): ${raw}` : "...";
+        }
+
+        document.getElementById('btn-action').onclick = () => {
+            if(gameState.phase === 'attacker_turn') {
+                if(myTeam !== 'attacker') return;
+                const msg = document.getElementById('attacker-input').value.trim();
+                if(!msg || selectedMethods.length === 0) return alert("원본 입력 및 암호화 방식을 선택하세요.");
+                const payload = { type: 'attack_submit', msg, methods: selectedMethods };
+                if(isHost) handleData(payload, myId); else conn.send(payload);
+                selectedMethods = [];
+                document.getElementById('attacker-input').value = "";
+                toggleMethod(0);
+            } else {
+                // Defender mode is handled by clicking methods directly as guesses in this game's logic
+                alert("방어자는 아래 암호화 방법 버튼을 순서대로 클릭하여 해독하세요!");
+            }
+        };
+
+        function guessMethod(id) {
+            if(gameState.phase !== 'defender_turn' || myTeam !== 'defender') return;
+            defenseGuesses.push(id);
+            const step = defenseGuesses.length;
+            const target = gameState.usedMethods;
+
+            if(defenseGuesses[step-1] !== target[step-1]) {
+                const payload = { type: 'defense_result', success: false };
+                if(isHost) handleData(payload, myId); else conn.send(payload);
+                defenseGuesses = [];
+                return;
+            }
+
+            if(defenseGuesses.length === target.length) {
+                const payload = { type: 'defense_result', success: true };
+                if(isHost) handleData(payload, myId); else conn.send(payload);
+                defenseGuesses = [];
+            }
+        }
+
+        // Override the method buttons for defense turn
+        [1,2,3,4].forEach(n => {
+            const btn = document.getElementById(`m${n}`);
+            const oldClick = btn.onclick;
+            btn.onclick = () => {
+                if(gameState.phase === 'attacker_turn') toggleMethod(n);
+                else guessMethod(n);
+            };
+        });
+
+        // --- Canvas ---
+
+        function resizeCanvas() {
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+        }
+
+        function initCanvasEvents() {
+            const getPos = e => {
+                const rect = canvas.getBoundingClientRect();
+                return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+            };
+            canvas.onmousedown = e => { if(currentMode === 'draw') drawing = true; };
+            canvas.onmousemove = e => {
+                if(!drawing) return;
+                const pos = getPos(e);
+                const color = myTeam === 'attacker' ? '#ff0000' : '#38bdf8';
+                drawOnCanvas(pos.x, pos.y, color, true);
+            };
+            window.onmouseup = () => drawing = false;
+        }
+
+        function drawOnCanvas(x, y, color, shouldSync) {
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(x, y, 3, 0, Math.PI * 2);
+            ctx.fill();
+            if(shouldSync) {
+                const payload = { type: 'draw', x, y, color };
+                if(isHost) Object.values(connections).forEach(c => c.send(payload));
+                else conn.send(payload);
+            }
+        }
+
+        function clearCanvas() {
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            const payload = { type: 'clear' };
+            if(isHost) Object.values(connections).forEach(c => c.send(payload));
+            else conn.send(payload);
+        }
+
+        function setMode(m) {
+            currentMode = m;
+            document.getElementById('btn-mode-draw').classList.toggle('active', m === 'draw');
+            document.getElementById('btn-mode-text').classList.toggle('active', m === 'text');
+        }
+
+        // --- Rendering ---
+
+        function startMainClock() {
+            setInterval(() => {
+                if(gameState.status === 'playing' || gameState.status === 'lobby') {
+                    if(isHost) {
+                        gameState.timeLeft--;
+                        if(gameState.timeLeft <= 0) gameState.status = 'finished';
+                        broadcast();
+                    }
+                }
+            }, 1000);
+        }
+
+        function render() {
+            document.getElementById('score-attack').innerText = gameState.scores.attacker;
+            document.getElementById('score-defense').innerText = gameState.scores.defender;
+            const min = Math.floor(gameState.timeLeft / 60);
+            const sec = gameState.timeLeft % 60;
+            document.getElementById('total-timer').innerText = `${min.toString().padStart(2,'0')}:${sec.toString().padStart(2,'0')}`;
+
+            const me = gameState.players[myId];
+            if(me) {
+                myTeam = me.team;
+                document.getElementById('my-role-badge').innerText = myTeam.toUpperCase();
+                document.getElementById('btn-action').innerText = (gameState.phase === 'attacker_turn' && myTeam === 'attacker') ? "공격!" : (gameState.phase === 'defender_turn' && myTeam === 'defender' ? "해독 중" : "대기");
+            }
+
+            // Players Dashboard
+            const leftList = document.getElementById('player-list-left');
+            const rightList = document.getElementById('player-list-right');
+            leftList.innerHTML = "";
+            rightList.innerHTML = "";
+
+            const allPlayers = Object.entries(gameState.players);
+            for(let i=0; i<8; i++) {
+                const target = i < 4 ? leftList : rightList;
+                const pData = allPlayers[i];
+                const slot = document.createElement('div');
+                slot.className = "player-slot" + (pData ? "" : " opacity-20");
+                
+                if(pData) {
+                    const [id, p] = pData;
+                    slot.innerHTML = `
+                        <div class="player-info ${p.team === 'attacker' ? 'border-l-4 border-red-600' : 'border-l-4 border-sky-500'}">
+                            ${p.nick.split(' ')[0]}<br>${p.nick.split(' ')[1] || ''}
+                        </div>
+                        <div class="player-score-bar">점수 ${p.score}</div>
+                        <div class="player-msg">${id === myId ? "연결 됨" : "Online"}</div>
+                    `;
+                } else {
+                    slot.innerHTML = `<div class="player-info">대기 중</div><div class="player-score-bar">점수</div><div class="player-msg">...</div>`;
+                }
+                target.appendChild(slot);
+            }
+
+            // Main Display
+            document.getElementById('memo-text-display').innerText = gameState.currentMsg;
+            const clueArea = document.getElementById('clue-area');
+            clueArea.innerHTML = "";
+            if(gameState.phase === 'defender_turn') {
+                gameState.clueColors.forEach(cid => {
+                    const dot = document.createElement('div');
+                    dot.className = `clue-dot bg-m${cid}`;
+                    clueArea.appendChild(dot);
+                });
+            }
+
+            if(gameState.status === 'finished') {
+                document.getElementById('game-over').classList.remove('hidden');
+                document.getElementById('final-attack').innerText = gameState.scores.attacker;
+                document.getElementById('final-defense').innerText = gameState.scores.defender;
+            }
+        }
+
+    </script>
+</body>
+</html>
