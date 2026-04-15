@@ -585,6 +585,105 @@ body::before {
   font-family: 'Space Mono', monospace;
   margin-top: 6px;
 }
+
+/* Memo textarea */
+#memo-area {
+  display: none;
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  border: none; outline: none; resize: none;
+  padding: 20px 24px;
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 15px; line-height: 1.8;
+}
+#memo-area::placeholder { color: var(--text3); }
+
+/* ── GUIDE OVERLAY ── */
+#guide-overlay {
+  display: none; position: fixed; inset: 0; z-index: 300;
+  background: rgba(10,14,26,0.97);
+  flex-direction: column;
+}
+#guide-overlay.visible { display: flex; }
+.guide-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 32px; height: 60px; flex-shrink: 0;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+.guide-header-title {
+  font-family: 'Space Mono', monospace;
+  font-size: 16px; letter-spacing: 4px; color: var(--accent);
+}
+.guide-tabs {
+  display: flex; gap: 0;
+  border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden;
+}
+.guide-tab {
+  padding: 8px 20px; font-size: 13px; font-weight: 700; letter-spacing: 1px;
+  cursor: pointer; color: var(--text2); background: transparent;
+  border: none; transition: all 0.15s;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+.guide-tab:first-child { border-right: 1px solid var(--border); }
+.guide-tab.active { background: var(--active-bg); color: var(--active); }
+.guide-close-btn {
+  background: rgba(255,255,255,0.06); border: 1px solid var(--border);
+  border-radius: var(--radius); color: var(--text2);
+  padding: 8px 16px; font-size: 16px; cursor: pointer;
+  transition: all 0.15s; line-height: 1;
+}
+.guide-close-btn:hover { background: rgba(255,90,90,0.15); border-color: #ff5a5a; color: #ff8080; }
+.guide-body { flex: 1; overflow-y: auto; padding: 32px; }
+
+/* Game preview */
+.game-preview {
+  display: none; flex-direction: column; gap: 20px;
+}
+.game-preview.active { display: flex; }
+.preview-section {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 20px 24px;
+}
+.preview-section-title {
+  font-size: 11px; font-weight: 700; letter-spacing: 3px; color: var(--accent);
+  margin-bottom: 14px; text-transform: uppercase;
+}
+.preview-section p { font-size: 14px; color: var(--text2); line-height: 1.7; }
+.preview-section .callout-list { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; }
+.callout-item {
+  display: flex; gap: 12px; align-items: flex-start;
+  padding: 10px 14px; background: rgba(255,255,255,0.03);
+  border-radius: var(--radius); border-left: 3px solid var(--accent);
+}
+.callout-item-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+.callout-item-desc { font-size: 13px; color: var(--text2); line-height: 1.6; }
+.callout-item-desc strong { color: var(--text); }
+
+/* Cipher guide */
+.cipher-guide { display: none; flex-direction: column; gap: 20px; }
+.cipher-guide.active { display: flex; }
+.cipher-card {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 22px 26px;
+}
+.cipher-card-header { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+.cipher-card-badge {
+  padding: 4px 14px; border-radius: 20px;
+  font-size: 12px; font-weight: 700; letter-spacing: 2px;
+}
+.cipher-card-name { font-size: 18px; font-weight: 700; color: var(--text); }
+.cipher-card-desc { font-size: 14px; color: var(--text2); line-height: 1.7; margin-bottom: 12px; }
+.cipher-card-key { font-size: 13px; color: var(--text3); margin-bottom: 12px; }
+.cipher-card-key span { font-family: 'Space Mono', monospace; color: var(--accent2); }
+.cipher-example {
+  background: rgba(255,255,255,0.03); border-radius: var(--radius);
+  padding: 12px 16px; font-family: 'Space Mono', monospace;
+  font-size: 13px; color: var(--text2); line-height: 1.8;
+}
+.cipher-example .arrow { color: var(--text3); }
 </style>
 </head>
 <body>
@@ -595,6 +694,10 @@ body::before {
     <div class="lobby-title">
       <h1>CIPHER GUARDIANS</h1>
       <p>암호 대전 시스템 v4.0</p>
+    </div>
+
+    <div style="text-align:center;margin-bottom:20px">
+      <button onclick="openGuide()" style="background:rgba(77,166,255,0.08);border:1px solid var(--border);border-radius:var(--radius);color:var(--text2);padding:8px 20px;font-size:13px;font-weight:700;letter-spacing:2px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text2)'">📖 게임 가이드</button>
     </div>
 
     <div class="role-tabs">
@@ -675,21 +778,24 @@ body::before {
 
       <!-- Toolbar -->
       <div class="toolbar">
-        <span style="font-size:11px;color:var(--text3);letter-spacing:2px;font-weight:700">메모장</span>
-        <button class="tool-btn active" id="btn-draw" onclick="setMode('draw')">✏ 그리기</button>
+        <button class="tool-btn active" id="btn-mode-draw" onclick="setBoardMode('draw')">🎨 그리기</button>
+        <button class="tool-btn" id="btn-mode-memo" onclick="setBoardMode('memo')">📝 메모장</button>
+        <div style="width:1px;height:20px;background:var(--border);margin:0 4px;flex-shrink:0"></div>
+        <button class="tool-btn active" id="btn-draw" onclick="setMode('draw')">✏ 펜</button>
         <button class="tool-btn" id="btn-erase" onclick="setMode('erase')">◻ 지우기</button>
         <div class="color-dot selected" style="background:#fff" data-color="#ffffff" onclick="setColor(this)"></div>
         <div class="color-dot" style="background:#ff6b35" data-color="#ff6b35" onclick="setColor(this)"></div>
         <div class="color-dot" style="background:#a855f7" data-color="#a855f7" onclick="setColor(this)"></div>
         <div class="color-dot" style="background:#22c55e" data-color="#22c55e" onclick="setColor(this)"></div>
         <div class="color-dot" style="background:#4da6ff" data-color="#4da6ff" onclick="setColor(this)"></div>
-        <button class="tool-btn" onclick="clearCanvas()">🗑 전체 삭제</button>
+        <button class="tool-btn" id="btn-clear-draw" onclick="clearCanvas()">🗑 전체 삭제</button>
         <div class="spacer"></div>
       </div>
 
       <!-- Canvas + Cipher overlay -->
       <div class="canvas-wrapper">
         <canvas id="shared-canvas"></canvas>
+        <textarea id="memo-area" placeholder="메모장 — 개인 메모를 자유롭게 입력하세요"></textarea>
         <div class="cipher-overlay" id="cipher-overlay">
           <div class="cipher-box" id="cipher-box-main">
             <label id="cipher-label-main">ENCODED MESSAGE</label>
@@ -736,7 +842,7 @@ body::before {
 
         <!-- GUESSING UI (추측자들) -->
         <div class="guess-ui" id="guess-ui">
-          <div class="section-label">복호화 순서 추측 및 원본 입력</div>
+          <div class="section-label" id="guess-ui-label">복호화 순서 추측 및 원본 입력</div>
           <div class="guess-steps" id="guess-steps"></div>
           <div style="display:flex;gap:10px;align-items:center">
             <input class="enc-input" id="guess-answer" type="text" placeholder="복호화된 원본 메시지를 입력하세요" style="flex:1">
@@ -777,6 +883,162 @@ body::before {
   </div>
 </div>
 
+<!-- ══ GUIDE OVERLAY ══ -->
+<div id="guide-overlay">
+  <div class="guide-header">
+    <span class="guide-header-title">GUIDE</span>
+    <div class="guide-tabs">
+      <button class="guide-tab active" id="gtab-game" onclick="switchGuideTab('game')">🎮 게임 가이드</button>
+      <button class="guide-tab" id="gtab-cipher" onclick="switchGuideTab('cipher')">🔐 암호화 가이드</button>
+    </div>
+    <button class="guide-close-btn" onclick="closeGuide()">✕</button>
+  </div>
+  <div class="guide-body">
+
+    <!-- 게임 가이드 탭 -->
+    <div class="game-preview active" id="gpanel-game">
+      <div class="preview-section">
+        <div class="preview-section-title">🎯 게임 개요</div>
+        <p>CIPHER GUARDIANS는 <strong>출제자</strong>가 암호화 방식을 선택해 메시지를 암호화하고, 나머지 <strong>해독자</strong>들이 원본 메시지를 추측하는 팀전 암호 게임입니다.</p>
+      </div>
+
+      <div class="preview-section">
+        <div class="preview-section-title">🖥 화면 구성</div>
+        <div class="callout-list">
+          <div class="callout-item">
+            <div class="callout-item-icon">⏱</div>
+            <div class="callout-item-desc"><strong>상단 헤더</strong> — 현재 페이즈(출제/해독), 남은 시간 타이머, 라운드 진행 상황을 표시합니다.</div>
+          </div>
+          <div class="callout-item">
+            <div class="callout-item-icon">👥</div>
+            <div class="callout-item-desc"><strong>좌측 패널</strong> — 참가자 목록과 실시간 순위를 보여줍니다. 현재 출제자는 파란 테두리, 해독 중인 플레이어는 골드 테두리로 표시됩니다.</div>
+          </div>
+          <div class="callout-item">
+            <div class="callout-item-icon">🖼</div>
+            <div class="callout-item-desc"><strong>중앙 영역</strong> — 암호문이 표시되며, 툴바를 통해 <strong>그리기 모드</strong>와 <strong>메모장 모드</strong>를 전환할 수 있습니다. 그리기는 모든 참가자에게 실시간 공유됩니다.</div>
+          </div>
+          <div class="callout-item">
+            <div class="callout-item-icon">⚔</div>
+            <div class="callout-item-desc"><strong>하단 액션 영역</strong> — 출제자는 암호화 방식·키·메시지를 입력하고, 해독자는 복호화 순서와 원본 메시지를 입력합니다.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="preview-section">
+        <div class="preview-section-title">📋 게임 흐름</div>
+        <div class="callout-list">
+          <div class="callout-item">
+            <div class="callout-item-icon">1️⃣</div>
+            <div class="callout-item-desc"><strong>출제 단계 (90초)</strong>: 순서가 된 플레이어가 암호화 방식(최대 2가지)과 키값을 선택하고, 메시지를 암호화하여 제출합니다.</div>
+          </div>
+          <div class="callout-item">
+            <div class="callout-item-icon">2️⃣</div>
+            <div class="callout-item-desc"><strong>해독 단계 (120초)</strong>: 나머지 플레이어들이 암호문을 보고 원본 메시지를 추측합니다. 암호화가 2가지라면 사용된 방식 종류(순서 제외)가 힌트로 표시됩니다.</div>
+          </div>
+          <div class="callout-item">
+            <div class="callout-item-icon">3️⃣</div>
+            <div class="callout-item-desc"><strong>결과 공개</strong>: 라운드 종료 시 원본 메시지가 공개되고, 정답자에게는 사용된 키값도 함께 공개됩니다.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="preview-section">
+        <div class="preview-section-title">🏆 점수 규칙</div>
+        <div class="callout-list">
+          <div class="callout-item">
+            <div class="callout-item-icon">✅</div>
+            <div class="callout-item-desc"><strong>정답 시</strong>: 기본 100점 + 남은 시간 보너스 (남은 초 × 0.4점)</div>
+          </div>
+          <div class="callout-item">
+            <div class="callout-item-icon">❌</div>
+            <div class="callout-item-desc"><strong>오답 시</strong>: 점수 없음. 음수 점수는 발생하지 않습니다.</div>
+          </div>
+          <div class="callout-item">
+            <div class="callout-item-icon">⚔</div>
+            <div class="callout-item-desc"><strong>출제자 보너스</strong>: 해독자가 틀릴 때마다 출제자에게 50점 추가 지급.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="preview-section">
+        <div class="preview-section-title">🎨 그리기 / 📝 메모장</div>
+        <div class="callout-list">
+          <div class="callout-item">
+            <div class="callout-item-icon">🎨</div>
+            <div class="callout-item-desc"><strong>그리기 모드</strong>: 캔버스에 자유롭게 그림을 그릴 수 있습니다. 모든 참가자에게 실시간 공유됩니다. 색상 선택, 지우기, 전체 삭제를 지원합니다.</div>
+          </div>
+          <div class="callout-item">
+            <div class="callout-item-icon">📝</div>
+            <div class="callout-item-desc"><strong>메모장 모드</strong>: 개인 텍스트 메모를 작성할 수 있습니다. 내용은 다른 플레이어와 공유되지 않는 나만의 메모입니다.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 암호화 가이드 탭 -->
+    <div class="cipher-guide" id="gpanel-cipher">
+      <div class="cipher-card">
+        <div class="cipher-card-header">
+          <div class="cipher-card-badge" style="background:#ff6b3522;border:1.5px solid #ff6b35;color:#ff6b35">KEY</div>
+          <div class="cipher-card-name">키 순서 암호화</div>
+        </div>
+        <div class="cipher-card-desc">각 문자의 위치(인덱스)에 따라 ASCII 값을 변환하는 방식입니다. 각 문자에 <code style="color:var(--accent2)">(인덱스 % 키값) + 1</code>만큼을 더합니다.</div>
+        <div class="cipher-card-key">키 입력: 정수 (모드값, 권장 범위 1–20) — <span>예: 키=5 → 각 문자에 1~5씩 순환하여 더함</span></div>
+        <div class="cipher-example">
+          원본: <span style="color:var(--accent2)">ABC</span><br>
+          키=5: A(+1)→B, B(+2)→D, C(+3)→F<br>
+          <span class="arrow">→</span> 암호문: <span style="color:#ff6b35">BDF</span>
+        </div>
+      </div>
+
+      <div class="cipher-card">
+        <div class="cipher-card-header">
+          <div class="cipher-card-badge" style="background:#a855f722;border:1.5px solid #a855f7;color:#a855f7">ANA</div>
+          <div class="cipher-card-name">애너그램 암호화</div>
+        </div>
+        <div class="cipher-card-desc">문자열을 역순으로 뒤집는 단순한 암호화입니다. 별도의 키값이 필요 없습니다.</div>
+        <div class="cipher-card-key">키 입력: 없음</div>
+        <div class="cipher-example">
+          원본: <span style="color:var(--accent2)">HELLO</span><br>
+          <span class="arrow">→</span> 역순: <span style="color:#a855f7">OLLEH</span>
+        </div>
+      </div>
+
+      <div class="cipher-card">
+        <div class="cipher-card-header">
+          <div class="cipher-card-badge" style="background:#22c55e22;border:1.5px solid #22c55e;color:#22c55e">CAE</div>
+          <div class="cipher-card-name">카이사르 암호화</div>
+        </div>
+        <div class="cipher-card-desc">알파벳을 일정 칸수만큼 시프트(이동)하는 고전 암호입니다. 키로 지정한 숫자만큼 알파벳 순서를 이동합니다. 영문자에만 적용됩니다.</div>
+        <div class="cipher-card-key">키 입력: 시프트 숫자 (1–25) — <span>예: 키=3 → A→D, B→E, Z→C</span></div>
+        <div class="cipher-example">
+          원본: <span style="color:var(--accent2)">ATTACK</span><br>
+          키=3: A→D, T→W, T→W, A→D, C→F, K→N<br>
+          <span class="arrow">→</span> 암호문: <span style="color:#22c55e">DWWDFN</span>
+        </div>
+      </div>
+
+      <div class="cipher-card">
+        <div class="cipher-card-header">
+          <div class="cipher-card-badge" style="background:#4da6ff22;border:1.5px solid #4da6ff;color:#4da6ff">SKY</div>
+          <div class="cipher-card-name">스키테일 암호화</div>
+        </div>
+        <div class="cipher-card-desc">고대 그리스의 전쟁 암호 도구에서 유래한 방식입니다. 메시지를 키값(레일 수) 행의 격자에 행 방향으로 채운 뒤, 열 방향으로 읽어 암호문을 만듭니다.</div>
+        <div class="cipher-card-key">키 입력: 레일(행) 수 (2–10) — <span>예: 키=3 → 3행 격자 사용</span></div>
+        <div class="cipher-example">
+          원본: <span style="color:var(--accent2)">HELLOWORLD</span> (레일=3)<br>
+          격자 배치:<br>
+          &nbsp;&nbsp;H E L L<br>
+          &nbsp;&nbsp;O W O R<br>
+          &nbsp;&nbsp;L D _ _<br>
+          열 방향으로 읽기:<span class="arrow"> →</span> <span style="color:#4da6ff">HOLWELDOR</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
 <script>
 // ════════════════════════════════════════
 //  CIPHER METHODS
@@ -788,36 +1050,43 @@ const METHODS = {
   4: { name: '스키테일', color: '#4da6ff', short: 'SKY' }
 };
 
-// Caesar (shift 3)
-function caesarEnc(s) {
+// Caesar (variable shift)
+function caesarEnc(s, shift) {
+  shift = ((shift % 26) + 26) % 26;
   return s.split('').map(c => {
-    if (c >= 'a' && c <= 'z') return String.fromCharCode((c.charCodeAt(0)-97+3)%26+97);
-    if (c >= 'A' && c <= 'Z') return String.fromCharCode((c.charCodeAt(0)-65+3)%26+65);
+    if (c >= 'a' && c <= 'z') return String.fromCharCode((c.charCodeAt(0)-97+shift)%26+97);
+    if (c >= 'A' && c <= 'Z') return String.fromCharCode((c.charCodeAt(0)-65+shift)%26+65);
     return c;
   }).join('');
 }
-function caesarDec(s) {
+function caesarDec(s, shift) {
+  shift = ((shift % 26) + 26) % 26;
   return s.split('').map(c => {
-    if (c >= 'a' && c <= 'z') return String.fromCharCode((c.charCodeAt(0)-97+23)%26+97);
-    if (c >= 'A' && c <= 'Z') return String.fromCharCode((c.charCodeAt(0)-65+23)%26+65);
+    if (c >= 'a' && c <= 'z') return String.fromCharCode((c.charCodeAt(0)-97+(26-shift))%26+97);
+    if (c >= 'A' && c <= 'Z') return String.fromCharCode((c.charCodeAt(0)-65+(26-shift))%26+65);
     return c;
   }).join('');
 }
 
-// Anagram (reverse)
+// Anagram (reverse) — 키 없음
 function anagramEnc(s) { return s.split('').reverse().join(''); }
 function anagramDec(s) { return s.split('').reverse().join(''); }
 
-// Key order
-function keyEnc(s) { return s.split('').map((c,i) => String.fromCharCode(c.charCodeAt(0)+(i%5)+1)).join(''); }
-function keyDec(s) { return s.split('').map((c,i) => String.fromCharCode(c.charCodeAt(0)-(i%5)-1)).join(''); }
+// Key order (variable mod value)
+function keyEnc(s, mod) {
+  mod = Math.max(1, mod || 5);
+  return s.split('').map((c,i) => String.fromCharCode(c.charCodeAt(0)+(i%mod)+1)).join('');
+}
+function keyDec(s, mod) {
+  mod = Math.max(1, mod || 5);
+  return s.split('').map((c,i) => String.fromCharCode(c.charCodeAt(0)-(i%mod)-1)).join('');
+}
 
-// Scytale (rail = 3): write row-by-row, read col-by-col
-function scytaleEnc(s) {
-  const rails = 3;
+// Scytale (variable rails)
+function scytaleEnc(s, rails) {
+  rails = Math.max(2, rails || 3);
   const len = s.length;
   const cols = Math.ceil(len / rails);
-  // Pad to fill
   const padded = s.padEnd(rails * cols, '_');
   let result = '';
   for (let col = 0; col < cols; col++) {
@@ -826,16 +1095,14 @@ function scytaleEnc(s) {
       if (idx < rails * cols) result += padded[idx];
     }
   }
-  // Remove trailing padding underscores (keep only up to original length)
   return result.slice(0, len + (result.slice(len).replace(/_/g,'').length));
 }
-function scytaleDec(s) {
-  const rails = 3;
+function scytaleDec(s, rails) {
+  rails = Math.max(2, rails || 3);
   const len = s.length;
   const cols = Math.ceil(len / rails);
   const fullLen = rails * cols;
   const extra = fullLen - len;
-  // Reconstruct: some columns have rails chars, last `extra` columns have rails-1
   const colLengths = [];
   for (let col = 0; col < cols; col++) {
     colLengths.push(col < cols - extra ? rails : rails - 1);
@@ -855,18 +1122,18 @@ function scytaleDec(s) {
   return result.replace(/_+$/, '');
 }
 
-function applyEnc(s, m) {
-  if (m===1) return keyEnc(s);
+function applyEnc(s, m, key) {
+  if (m===1) return keyEnc(s, key);
   if (m===2) return anagramEnc(s);
-  if (m===3) return caesarEnc(s);
-  if (m===4) return scytaleEnc(s);
+  if (m===3) return caesarEnc(s, key);
+  if (m===4) return scytaleEnc(s, key);
   return s;
 }
-function applyDec(s, m) {
-  if (m===1) return keyDec(s);
+function applyDec(s, m, key) {
+  if (m===1) return keyDec(s, key);
   if (m===2) return anagramDec(s);
-  if (m===3) return caesarDec(s);
-  if (m===4) return scytaleDec(s);
+  if (m===3) return caesarDec(s, key);
+  if (m===4) return scytaleDec(s, key);
   return s;
 }
 
@@ -893,6 +1160,7 @@ let gameState = {
   currentRaw: '',
   currentMethods: [],
   currentEncSteps: [],
+  currentKeys: {},   // methodId -> keyValue
   lastEncResult: '',
   clueSet: [],
   totalRounds: 1,
@@ -905,6 +1173,23 @@ let gameState = {
 const ENC_TIME = 90;
 const GUESS_TIME = 120;
 let timerInterval = null;
+
+// ════════════════════════════════════════
+//  GUIDE
+// ════════════════════════════════════════
+function openGuide() {
+  document.getElementById('guide-overlay').classList.add('visible');
+  switchGuideTab('game');
+}
+function closeGuide() {
+  document.getElementById('guide-overlay').classList.remove('visible');
+}
+function switchGuideTab(tab) {
+  ['game','cipher'].forEach(t => {
+    document.getElementById(`gtab-${t}`).classList.toggle('active', t===tab);
+    document.getElementById(`gpanel-${t}`).classList.toggle('active', t===tab);
+  });
+}
 
 // ════════════════════════════════════════
 //  LOBBY
@@ -1016,7 +1301,11 @@ function handleData(data, fromId) {
     gameState.currentMethods = data.methods;
     gameState.currentEncSteps = data.steps;
     gameState.lastEncResult = data.finalResult;
-    gameState.clueSet = [...data.methods].sort(() => Math.random() - 0.5);
+    gameState.currentKeys = data.keys || {};
+    // 2개 이상일 때만 힌트 제공 (순서 제외)
+    gameState.clueSet = data.methods.length >= 2
+      ? [...data.methods].sort(() => Math.random() - 0.5)
+      : [];
     gameState.guessResults = {};
     gameState.phase = 'guessing';
     gameState.turnTimerStart = Date.now();
@@ -1031,7 +1320,9 @@ function handleData(data, fromId) {
     if (gameState.guessResults[fromId]) return; // already submitted
     const elapsed = Math.floor((Date.now() - gameState.turnTimerStart) / 1000);
     const timeLeft = Math.max(0, GUESS_TIME - elapsed);
-    const orderOK = JSON.stringify(data.methodOrder) === JSON.stringify(gameState.currentMethods);
+    // 1개 방식일 때는 방식 순서 추측 없이 정답만 체크
+    const isSingleMethod = gameState.currentMethods.length === 1;
+    const orderOK = isSingleMethod ? true : JSON.stringify(data.methodOrder) === JSON.stringify(gameState.currentMethods);
     const answerOK = data.answer.trim().toLowerCase() === gameState.currentRaw.trim().toLowerCase();
     const success = orderOK && answerOK;
     const timeBonus = Math.floor(timeLeft * 0.4);
@@ -1172,6 +1463,7 @@ function nextTurn() {
   gameState.currentRaw = '';
   gameState.currentMethods = [];
   gameState.currentEncSteps = [];
+  gameState.currentKeys = {};
   gameState.lastEncResult = '';
   gameState.clueSet = [];
   gameState.guessResults = {};
@@ -1195,9 +1487,7 @@ function initMethodSelector() {
     const btn = document.createElement('button');
     btn.className = `method-btn m${id}`;
     btn.dataset.id = id;
-    btn.innerHTML = id===4
-      ? `${m.name} <span style="font-size:10px;opacity:0.7">(레일3)</span>`
-      : m.name;
+    btn.textContent = m.name;
     btn.onclick = () => addEncStep(id);
     el.appendChild(btn);
   });
@@ -1213,6 +1503,11 @@ function addEncStep(methodId) {
 
 function removeEncStep(idx) {
   encStepMethods.splice(idx, 1);
+  // 제거된 단계의 키 입력도 정리
+  const ki0 = document.getElementById('key-input-0');
+  const ki1 = document.getElementById('key-input-1');
+  if (ki0) ki0.remove();
+  if (ki1) ki1.remove();
   renderEncSteps();
   autoFillEnc();
 }
@@ -1227,23 +1522,59 @@ function renderEncSteps() {
     document.getElementById('step1-method-name').textContent = `✕ ${m.name}`;
     document.getElementById('step1-method-name').style.color = m.color;
     document.getElementById('enc-input-1').placeholder = `${m.name} 암호화 결과`;
+    renderKeyInput(0, encStepMethods[0]);
   }
   if (encStepMethods[1]) {
     const m = METHODS[encStepMethods[1]];
     document.getElementById('step2-method-name').textContent = `✕ ${m.name}`;
     document.getElementById('step2-method-name').style.color = m.color;
     document.getElementById('enc-input-2').placeholder = `${m.name} 암호화 결과`;
+    renderKeyInput(1, encStepMethods[1]);
   }
+}
+
+// 키 입력 필드를 각 단계 행 옆에 동적 렌더링
+function renderKeyInput(stepIdx, methodId) {
+  const rowId = stepIdx === 0 ? 'step1-row' : 'step2-row';
+  const keyInputId = `key-input-${stepIdx}`;
+  const row = document.getElementById(rowId);
+  // 기존 키 입력 제거
+  const old = document.getElementById(keyInputId);
+  if (old) old.remove();
+  // 애너그램은 키 없음
+  if (methodId === 2) return;
+  const keyInput = document.createElement('input');
+  keyInput.className = 'enc-input';
+  keyInput.id = keyInputId;
+  keyInput.type = 'number';
+  keyInput.min = '1';
+  keyInput.style.cssText = 'width:80px;flex:none;';
+  if (methodId === 3) { keyInput.placeholder = '시프트'; keyInput.value = '3'; keyInput.max = '25'; }
+  else if (methodId === 4) { keyInput.placeholder = '레일'; keyInput.value = '3'; keyInput.min = '2'; keyInput.max = '10'; }
+  else if (methodId === 1) { keyInput.placeholder = '모드값'; keyInput.value = '5'; keyInput.max = '20'; }
+  keyInput.oninput = () => { delete document.getElementById(`enc-input-${stepIdx+1}`)?.dataset.manual; autoFillEnc(); };
+  // enc-input 앞에 삽입
+  const encInput = document.getElementById(`enc-input-${stepIdx+1}`);
+  row.insertBefore(keyInput, encInput);
+}
+
+function getEncKey(stepIdx) {
+  const ki = document.getElementById(`key-input-${stepIdx}`);
+  if (!ki) return undefined;
+  const v = parseInt(ki.value, 10);
+  return isNaN(v) ? undefined : v;
 }
 
 function autoFillEnc() {
   const raw = document.getElementById('raw-input').value;
   if (!raw || !encStepMethods[0]) return;
-  const r1 = applyEnc(raw, encStepMethods[0]);
+  const k0 = getEncKey(0);
+  const r1 = applyEnc(raw, encStepMethods[0], k0);
   const el1 = document.getElementById('enc-input-1');
   if (!el1.dataset.manual) el1.value = r1;
   if (encStepMethods[1]) {
-    const r2 = applyEnc(el1.value || r1, encStepMethods[1]);
+    const k1 = getEncKey(1);
+    const r2 = applyEnc(el1.value || r1, encStepMethods[1], k1);
     const el2 = document.getElementById('enc-input-2');
     if (!el2.dataset.manual) el2.value = r2;
   }
@@ -1268,16 +1599,29 @@ function submitEncoding() {
   const raw = document.getElementById('raw-input').value.trim();
   if (!raw || encStepMethods.length===0) return;
   const steps = [];
-  if (encStepMethods[0]) steps.push({ methodId: encStepMethods[0], result: document.getElementById('enc-input-1').value.trim() });
-  if (encStepMethods[1]) steps.push({ methodId: encStepMethods[1], result: document.getElementById('enc-input-2').value.trim() });
+  const keys = {};
+  if (encStepMethods[0]) {
+    steps.push({ methodId: encStepMethods[0], result: document.getElementById('enc-input-1').value.trim() });
+    const k0 = getEncKey(0);
+    if (k0 !== undefined) keys[encStepMethods[0]] = k0;
+  }
+  if (encStepMethods[1]) {
+    steps.push({ methodId: encStepMethods[1], result: document.getElementById('enc-input-2').value.trim() });
+    const k1 = getEncKey(1);
+    if (k1 !== undefined) keys[encStepMethods[1]] = k1;
+  }
   const finalResult = steps[steps.length-1].result;
-  send({ type: 'enc_submit', raw, methods: [...encStepMethods], steps, finalResult });
+  send({ type: 'enc_submit', raw, methods: [...encStepMethods], steps, finalResult, keys });
   // Reset
   document.getElementById('raw-input').value = '';
   document.getElementById('enc-input-1').value = '';
   document.getElementById('enc-input-2').value = '';
   delete document.getElementById('enc-input-1').dataset.manual;
   delete document.getElementById('enc-input-2').dataset.manual;
+  const ki0 = document.getElementById('key-input-0');
+  const ki1 = document.getElementById('key-input-1');
+  if (ki0) ki0.remove();
+  if (ki1) ki1.remove();
   encStepMethods = [];
   renderEncSteps();
   checkEncReady();
@@ -1291,38 +1635,46 @@ let guessMethodOrder = [];
 function renderGuessUI() {
   const steps = document.getElementById('guess-steps');
   steps.innerHTML = '';
+  const isSingle = gameState.currentMethods.length === 1;
+  // 1개 방식이면 라벨 변경, 순서 선택 UI 불필요
+  const label = document.getElementById('guess-ui-label');
+  if (label) label.textContent = isSingle ? '원본 메시지 입력' : '복호화 순서 추측 및 원본 입력';
   const num = gameState.clueSet.length;
-  guessMethodOrder = new Array(num).fill(null);
-  for (let i=0; i<num; i++) {
-    const div = document.createElement('div');
-    div.className = 'guess-step';
-    const sn = document.createElement('div');
-    sn.className = 'step-num'; sn.textContent = i+1;
-    const row = document.createElement('div');
-    row.className = 'guess-method-row';
-    gameState.clueSet.forEach(mId => {
-      const m = METHODS[mId];
-      const btn = document.createElement('button');
-      btn.className = `guess-m-btn m${mId}`;
-      btn.dataset.mid = mId; btn.dataset.step = i;
-      btn.textContent = m.name;
-      btn.onclick = () => {
-        document.querySelectorAll(`.guess-m-btn[data-step="${i}"]`).forEach(b => b.classList.remove('sel'));
-        btn.classList.add('sel');
-        guessMethodOrder[i] = mId;
-      };
-      row.appendChild(btn);
-    });
-    div.appendChild(sn); div.appendChild(row);
-    steps.appendChild(div);
+  guessMethodOrder = [];
+  if (!isSingle) {
+    guessMethodOrder = new Array(num).fill(null);
+    for (let i=0; i<num; i++) {
+      const div = document.createElement('div');
+      div.className = 'guess-step';
+      const sn = document.createElement('div');
+      sn.className = 'step-num'; sn.textContent = i+1;
+      const row = document.createElement('div');
+      row.className = 'guess-method-row';
+      gameState.clueSet.forEach(mId => {
+        const m = METHODS[mId];
+        const btn = document.createElement('button');
+        btn.className = `guess-m-btn m${mId}`;
+        btn.dataset.mid = mId; btn.dataset.step = i;
+        btn.textContent = m.name;
+        btn.onclick = () => {
+          document.querySelectorAll(`.guess-m-btn[data-step="${i}"]`).forEach(b => b.classList.remove('sel'));
+          btn.classList.add('sel');
+          guessMethodOrder[i] = mId;
+        };
+        row.appendChild(btn);
+      });
+      div.appendChild(sn); div.appendChild(row);
+      steps.appendChild(div);
+    }
   }
 }
 
 function submitGuess() {
   const answer = document.getElementById('guess-answer').value.trim();
   if (!answer) { showToast('원본 메시지를 입력하세요', 'error'); return; }
-  if (guessMethodOrder.some(v => v===null)) { showToast('모든 단계의 방식을 선택하세요', 'error'); return; }
-  send({ type: 'guess_submit', methodOrder: guessMethodOrder, answer });
+  const isSingle = gameState.currentMethods.length === 1;
+  if (!isSingle && guessMethodOrder.some(v => v===null)) { showToast('모든 단계의 방식을 선택하세요', 'error'); return; }
+  send({ type: 'guess_submit', methodOrder: isSingle ? [] : guessMethodOrder, answer });
   document.getElementById('btn-guess-submit').disabled = true;
   document.getElementById('btn-guess-submit').textContent = '제출 완료 ✓';
 }
@@ -1388,6 +1740,22 @@ function setMode(m) {
   document.getElementById('btn-draw').classList.toggle('active', m==='draw');
   document.getElementById('btn-erase').classList.toggle('active', m==='erase');
   canvas.style.cursor = m==='erase' ? 'cell' : 'crosshair';
+}
+
+let boardMode = 'draw';
+function setBoardMode(mode) {
+  boardMode = mode;
+  const isDraw = mode === 'draw';
+  document.getElementById('btn-mode-draw').classList.toggle('active', isDraw);
+  document.getElementById('btn-mode-memo').classList.toggle('active', !isDraw);
+  canvas.style.display = isDraw ? '' : 'none';
+  document.getElementById('memo-area').style.display = isDraw ? 'none' : 'block';
+  // 그리기 도구 버튼들 표시/숨김
+  ['btn-draw','btn-erase','btn-clear-draw'].forEach(id => {
+    document.getElementById(id).style.display = isDraw ? '' : 'none';
+  });
+  document.querySelectorAll('.color-dot').forEach(d => { d.style.display = isDraw ? '' : 'none'; });
+  document.querySelector('.toolbar .divider-draw')?.style && (document.querySelector('.toolbar div[style*="1px"]').style.display = isDraw ? '' : 'none');
 }
 
 function setColor(el) {
@@ -1576,14 +1944,17 @@ function renderCenter() {
     cText.className = 'cipher-text';
     cBox.className = 'cipher-box active';
     cLabel.textContent = 'ENCRYPTED MESSAGE';
-    gameState.clueSet.forEach(mId => {
-      const m = METHODS[mId];
-      const chip = document.createElement('div');
-      chip.className = 'hint-chip';
-      chip.style.cssText = `background:${m.color}22;border:1.5px solid ${m.color};color:${m.color}`;
-      chip.textContent = m.name + ' 사용됨';
-      hints.appendChild(chip);
-    });
+    // 2개 이상 방식 사용 시에만 힌트 공개
+    if (gameState.currentMethods.length >= 2) {
+      gameState.clueSet.forEach(mId => {
+        const m = METHODS[mId];
+        const chip = document.createElement('div');
+        chip.className = 'hint-chip';
+        chip.style.cssText = `background:${m.color}22;border:1.5px solid ${m.color};color:${m.color}`;
+        chip.textContent = m.name + ' 사용됨';
+        hints.appendChild(chip);
+      });
+    }
   } else if (gameState.phase==='round_end') {
     banner.className = 'phase-banner roundend';
     banner.textContent = '✓ 라운드 종료 — 다음 차례로 넘어갑니다';
@@ -1595,6 +1966,20 @@ function renderCenter() {
     cText.className = 'cipher-text';
     cBox.className = 'cipher-box active';
     cLabel.textContent = 'RESULT';
+    // 정답자에게만 키값 공개
+    const myResult = gameState.guessResults[myId];
+    const iAmEncoder = myId === gameState.turnOrder[gameState.currentTurnIdx % Math.max(gameState.turnOrder.length,1)];
+    if ((myResult?.correct || iAmEncoder) && gameState.currentKeys && Object.keys(gameState.currentKeys).length > 0) {
+      const keyChip = document.createElement('div');
+      keyChip.className = 'hint-chip';
+      keyChip.style.cssText = `background:rgba(124,200,255,0.1);border:1.5px solid var(--accent2);color:var(--accent2)`;
+      const keyDesc = gameState.currentMethods.map(mId => {
+        const kv = gameState.currentKeys[mId];
+        return kv !== undefined ? `${METHODS[mId].name}: 키=${kv}` : METHODS[mId].name;
+      }).join(' → ');
+      keyChip.textContent = `🔑 ${keyDesc}`;
+      hints.appendChild(keyChip);
+    }
     // Show encoder bonus if any
     if (gameState.guessResults && gameState.guessResults['_encoder_bonus']) {
       const chip = document.createElement('div');
