@@ -1021,6 +1021,14 @@ body::before {
           <div class="btn-row">
             <button class="btn-action blue" id="btn-enc-submit" onclick="submitEncoding()" disabled>암호 출제 제출 ⚔</button>
           </div>
+          <div class="reaction-btns" style="margin-top:10px">
+            <button class="reaction-btn" onclick="sendReaction('🔥')">🔥</button>
+            <button class="reaction-btn" onclick="sendReaction('💡')">💡</button>
+            <button class="reaction-btn" onclick="sendReaction('😤')">😤</button>
+            <button class="reaction-btn" onclick="sendReaction('👀')">👀</button>
+            <button class="reaction-btn" onclick="sendReaction('🤯')">🤯</button>
+            <button class="reaction-btn" onclick="sendReaction('⏳')">⏳</button>
+          </div>
         </div>
 
         <!-- GUESSING UI (추측자들) -->
@@ -1030,6 +1038,14 @@ body::before {
           <div style="display:flex;gap:10px;align-items:center">
             <input class="enc-input" id="guess-answer" type="text" placeholder="복호화된 원본 메시지를 입력하세요" style="flex:1">
             <button class="btn-action gold" id="btn-guess-submit" onclick="submitGuess()">해독 완료 🛡</button>
+          </div>
+          <div class="reaction-btns" style="margin-top:10px">
+            <button class="reaction-btn" onclick="sendReaction('🔥')">🔥</button>
+            <button class="reaction-btn" onclick="sendReaction('💡')">💡</button>
+            <button class="reaction-btn" onclick="sendReaction('😤')">😤</button>
+            <button class="reaction-btn" onclick="sendReaction('👀')">👀</button>
+            <button class="reaction-btn" onclick="sendReaction('🤯')">🤯</button>
+            <button class="reaction-btn" onclick="sendReaction('⏳')">⏳</button>
           </div>
         </div>
 
@@ -1690,43 +1706,66 @@ function enterGame() {
   }
 }
 
-function becomeHost() {
+function becomeHost(isRecover) {
+  saveSession();
   peer = new Peer(roomId, { debug: 0 });
   peer.on('open', () => {
     myId = roomId;
     isHost = true;
-    gameState.players[myId] = { nick: myNick, score: 0, online: true };
-    gameState.totalRounds = selectedRounds;
+    if (!isRecover) {
+      gameState.players[myId] = { nick: myNick, score: 0, online: true };
+      gameState.totalRounds = selectedRounds;
+    } else {
+      if (gameState.players[myId]) gameState.players[myId].online = true;
+      else gameState.players[myId] = { nick: myNick, score: 0, online: true };
+    }
     showGameUI();
-    peer.on('connection', c => {
-      c.on('open', () => {
-        connections[c.peer] = c;
-        c.send({ type: 'sync', state: gameState });
-      });
-      c.on('data', d => handleData(d, c.peer));
-      c.on('close', () => {
-        delete connections[c.peer];
-        if (gameState.players[c.peer]) {
-          gameState.players[c.peer].online = false;
-          broadcast();
-        }
-      });
-    });
+    attachHostListeners();
   });
-  peer.on('error', () => setLobbyStatus('방 코드 충돌 또는 오류. 다른 코드를 사용하세요.', 'error'));
+  peer.on('error', e => {
+    if (isRecover && (e.type === 'unavailable-id' || e.type === 'peer-unavailable')) {
+      setLobbyStatus('재접속 시도 중... (5초)', '');
+      setTimeout(() => becomeHost(true), 5000);
+    } else {
+      setLobbyStatus('방 코드 충돌 또는 오류. 다른 코드를 사용하세요.', 'error');
+    }
+  });
 }
 
-function joinAsClient() {
+function attachHostListeners() {
+  peer.on('connection', c => {
+    c.on('open', () => {
+      connections[c.peer] = c;
+      c.send({ type: 'sync', state: gameState });
+    });
+    c.on('data', d => handleData(d, c.peer));
+    c.on('close', () => {
+      delete connections[c.peer];
+      if (gameState.players[c.peer]) {
+        gameState.players[c.peer].online = false;
+        broadcast();
+      }
+    });
+  });
+}
+
+function joinAsClient(prevPeerId) {
+  saveSession();
   peer = new Peer(undefined, { debug: 0 });
   peer.on('open', id => {
     myId = id;
+    saveSession();
     const c = peer.connect(roomId, { reliable: true });
     let ok = false;
     c.on('open', () => {
       ok = true; conn = c;
       conn.on('data', d => handleData(d, 'host'));
-      conn.on('close', () => showToast('호스트 연결 끊김', 'error'));
-      conn.send({ type: 'join', nick: myNick, peerId: myId });
+      conn.on('close', () => showReconnectBanner());
+      if (prevPeerId && prevPeerId !== myId) {
+        conn.send({ type: 'rejoin', nick: myNick, peerId: myId, prevPeerId });
+      } else {
+        conn.send({ type: 'join', nick: myNick, peerId: myId });
+      }
       showGameUI();
     });
     c.on('error', () => setLobbyStatus('방을 찾을 수 없습니다. 방 코드를 확인하세요.', 'error'));
@@ -1745,6 +1784,7 @@ function setLobbyStatus(msg, type) {
 
 function leaveRoom() {
   if (!confirm('방을 나가시겠습니까?')) return;
+  clearSession();
   if (peer) { try { peer.destroy(); } catch(e) {} }
   location.reload();
 }
@@ -1788,6 +1828,44 @@ function handleData(data, fromId) {
   }
 
   // ── 이하 호스트 전용 처리 ──
+  if (data.type === 'rejoin') {
+    const prev = data.prevPeerId;
+    const existing = gameState.players[prev];
+    if (existing) {
+      gameState.players[fromId] = { ...existing, nick: data.nick, online: true };
+      delete gameState.players[prev];
+      const idx = gameState.turnOrder.indexOf(prev);
+      if (idx !== -1) gameState.turnOrder[idx] = fromId;
+      if (gameState.guessResults && gameState.guessResults[prev]) {
+        gameState.guessResults[fromId] = gameState.guessResults[prev];
+        delete gameState.guessResults[prev];
+      }
+    } else {
+      gameState.players[fromId] = { nick: data.nick, score: 0, online: true };
+    }
+    broadcast();
+    return;
+  }
+
+    if (data.type === 'rejoin') {
+    const prev = data.prevPeerId;
+    const existing = gameState.players[prev];
+    if (existing) {
+      gameState.players[fromId] = { ...existing, nick: data.nick, online: true };
+      delete gameState.players[prev];
+      const ti = gameState.turnOrder.indexOf(prev);
+      if (ti !== -1) gameState.turnOrder[ti] = fromId;
+      if (gameState.guessResults && gameState.guessResults[prev]) {
+        gameState.guessResults[fromId] = gameState.guessResults[prev];
+        delete gameState.guessResults[prev];
+      }
+    } else {
+      gameState.players[fromId] = { nick: data.nick, score: 0, online: true };
+    }
+    broadcast();
+    return;
+  }
+
   if (data.type === 'join') {
     gameState.players[fromId] = { nick: data.nick, score: 0, online: true };
     broadcast();
@@ -2586,10 +2664,10 @@ function renderActionArea() {
   waitUI.classList.remove('visible');
 
   if (gameState.status==='lobby') {
-    if (isHost) {
-      waitUI.classList.add('visible');
-      document.getElementById('wait-text').textContent = '방 코드를 공유하고 플레이어가 접속하면 게임을 시작하세요.';
-    }
+    waitUI.classList.add('visible');
+    document.getElementById('wait-text').textContent = isHost
+      ? '방 코드를 공유하고 플레이어가 접속하면 게임을 시작하세요.'
+      : '⏳ 호스트가 게임을 시작하기를 기다리는 중입니다...';
     return;
   }
   if (gameState.status!=='playing') return;
@@ -2683,8 +2761,92 @@ window.addEventListener('resize', () => {
   if (canvas.offsetWidth > 0) resizeCanvas();
 });
 
+// ════════════════════════════════════════
+//  SESSION RECOVERY
+// ════════════════════════════════════════
+const SESSION_KEY = 'enc_game_session';
+
+function saveSession() {
+  try {
+    localStorage.setItem(SESSION_KEY, JSON.stringify({
+      nick: myNick, roomId, peerId: myId, isHost, ts: Date.now()
+    }));
+  } catch(e) {}
+}
+
+function clearSession() {
+  try { localStorage.removeItem(SESSION_KEY); } catch(e) {}
+}
+
+function loadSession() {
+  try {
+    const raw = localStorage.getItem(SESSION_KEY);
+    if (!raw) return null;
+    const s = JSON.parse(raw);
+    if (Date.now() - s.ts > 30 * 60 * 1000) { clearSession(); return null; }
+    return s;
+  } catch(e) { return null; }
+}
+
+function doRecover() {
+  const s = loadSession();
+  if (!s) { dismissRecovery(); return; }
+  myNick = s.nick;
+  roomId = s.roomId;
+  document.getElementById('user-nick').value = myNick;
+  document.getElementById('room-id').value = roomId.replace(/^CGv4-/, '');
+  document.getElementById('recovery-banner').style.display = 'none';
+  if (s.isHost) {
+    switchTab('host');
+    setLobbyStatus('호스트 재접속 시도 중...', '');
+    becomeHost(true);
+  } else {
+    switchTab('join');
+    setLobbyStatus('재접속 시도 중...', '');
+    joinAsClient(s.peerId);
+  }
+}
+
+function dismissRecovery() {
+  clearSession();
+  document.getElementById('recovery-banner').style.display = 'none';
+}
+
+function showReconnectBanner() {
+  showToast('호스트와 연결이 끊어졌습니다', 'error');
+  const hdr = document.querySelector('.hdr-right');
+  if (hdr && !document.getElementById('btn-reconnect')) {
+    const btn = document.createElement('button');
+    btn.id = 'btn-reconnect';
+    btn.className = 'host-btn';
+    btn.textContent = '방 재접속';
+    btn.style.cssText = 'background:rgba(255,200,50,0.1);border-color:rgba(255,200,50,0.4);color:#ffc832;';
+    btn.onclick = () => {
+      const s = loadSession();
+      if (!s) { location.reload(); return; }
+      joinAsClient(s.peerId);
+    };
+    hdr.insertBefore(btn, hdr.firstChild);
+  }
+}
+
+window.addEventListener('beforeunload', () => {
+  if (myId && roomId) saveSession();
+});
+
 // Init
 switchTab('host');
+
+(function checkRecovery() {
+  const s = loadSession();
+  if (!s) return;
+  const banner = document.getElementById('recovery-banner');
+  if (!banner) return;
+  const roleLabel = s.isHost ? '호스트' : '참가자';
+  document.getElementById('recovery-info').textContent =
+    s.nick + ' (' + roleLabel + ') • 방: ' + s.roomId.replace(/^CGv4-/, '') + ' — 이전 세션을 복구하시겠습니까?';
+  banner.style.display = '';
+})();
 </script>
 </body>
 </html>
