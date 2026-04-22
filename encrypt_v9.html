@@ -945,6 +945,7 @@ body {
 .srv-dot { width:8px; height:8px; border-radius:50%; background:#22c55e; display:inline-block; flex-shrink:0; }
 .srv-dot.local { background:var(--gold); }
 .srv-dot.direct { background:#a855f7; }
+.srv-dot.python { background:#10b981; }
 </style>
 </head>
 <body>
@@ -1011,8 +1012,9 @@ body {
         <div class="srv-panel-body">
           <div class="srv-mode-row">
             <button class="srv-mode-btn active" id="srv-pub-btn" onclick="setServerMode('public')">🌐 공용 서버 (기본)</button>
-            <button class="srv-mode-btn" id="srv-loc-btn" onclick="setServerMode('local')">🏠 로컬 서버</button>
-            <button class="srv-mode-btn" id="srv-dir-btn" onclick="setServerMode('direct')">🔗 직접 연결 (SDP)</button>
+            <button class="srv-mode-btn" id="srv-loc-btn" onclick="setServerMode('local')">🏠 로컬 PeerJS</button>
+            <button class="srv-mode-btn" id="srv-dir-btn" onclick="setServerMode('direct')">🔗 SDP 직접</button>
+            <button class="srv-mode-btn" id="srv-py-btn" onclick="setServerMode('python')">🐍 Python 서버</button>
           </div>
           <div id="srv-pub-info">
             <div class="srv-note">PeerJS 공용 시그널링 서버를 사용합니다.<br>초기 연결 시 인터넷이 잠깐 필요하며, 이후 게임 데이터는 같은 WiFi 안에서 P2P로 직접 전송됩니다.</div>
@@ -1034,6 +1036,21 @@ body {
           </div>
           <div id="srv-direct-cfg" style="display:none">
             <div class="srv-note">인터넷 없이 같은 WiFi에서 직접 연결합니다.<br>① 호스트가 접속 코드 생성 → ② 참가자에게 전달 → ③ 참가자가 응답 코드 전달 → ④ 연결 완료.<br>HTML 파일은 <code>http://</code> 서버를 통해 열어야 합니다.</div>
+          </div>
+          <div id="srv-python-cfg" style="display:none">
+            <div class="srv-note">인터넷 없이 같은 WiFi에서 Python WebSocket 서버를 통해 통신합니다.<br>① 한 대의 컴퓨터에서 서버 코드를 다운로드하여 실행 <code>python server.py</code><br>② 나머지 컴퓨터는 서버 IP와 포트를 입력 후 저장</div>
+            <div class="srv-input-row">
+              <label>IP</label>
+              <input class="srv-input" id="srv-ws-host-input" type="text" placeholder="예: 192.168.0.10">
+            </div>
+            <div class="srv-input-row">
+              <label>포트</label>
+              <input class="srv-input" id="srv-ws-port-input" type="number" placeholder="9000" style="max-width:120px">
+              <button class="srv-save-btn" onclick="saveSrvPython()">저장</button>
+            </div>
+            <div style="margin-top:10px">
+              <button class="srv-save-btn" style="background:rgba(16,185,129,0.9)" onclick="downloadPythonServer()">⬇ 서버 코드 다운로드 (server.py)</button>
+            </div>
           </div>
         </div>
       </div>
@@ -1766,6 +1783,10 @@ function getPeerOptions() {
 }
 
 function createPeer(id) {
+  if (isPythonMode()) {
+    const wsUrl = _getWsUrl();
+    return new WsPeer(id !== undefined ? id : null, wsUrl);
+  }
   return id === undefined ? new Peer(undefined, getPeerOptions()) : new Peer(id, getPeerOptions());
 }
 
@@ -3258,8 +3279,8 @@ function dismissRecovery() {
 }
 
 function showReconnectBanner() {
-  // 직접 연결 모드에서는 자동 재접속 불가
-  if (isDirectMode()) {
+  // 직접 연결 모드 / Python 서버 모드에서는 자동 재접속 불가
+  if (isDirectMode() || isPythonMode()) {
     showToast('🚫 호스트와 연결이 끊겼습니다.', 'error');
     return;
   }
@@ -3425,6 +3446,132 @@ window.addEventListener('beforeunload', () => {
 
 // Init
 switchTab('host');
+
+// ════════════════════════════════════════
+//  WS PEER  (Python WebSocket 서버 전용 — PeerJS 호환 인터페이스)
+// ════════════════════════════════════════
+function isPythonMode() {
+  return localStorage.getItem('enc_server_mode') === 'python';
+}
+function _getWsUrl() {
+  const host = (localStorage.getItem('enc_ws_host') || '127.0.0.1').trim();
+  const port = (localStorage.getItem('enc_ws_port') || '9000').trim();
+  return 'ws://' + host + ':' + port;
+}
+
+class WsConn {
+  constructor(peer, remoteId) {
+    this._peer = peer;
+    this.peer = remoteId;
+    this._evts = {};
+  }
+  on(evt, cb) {
+    if (!this._evts[evt]) this._evts[evt] = [];
+    this._evts[evt].push(cb);
+    return this;
+  }
+  _emit(evt, ...args) {
+    (this._evts[evt] || []).forEach(cb => { try { cb(...args); } catch(e) {} });
+  }
+  send(data) {
+    this._peer._wsSend({ type: 'data', dst: this.peer, payload: data });
+  }
+  close() {
+    this._peer._wsSend({ type: 'close', dst: this.peer });
+    this._emit('close');
+    delete this._peer._conns[this.peer];
+  }
+}
+
+class WsPeer {
+  constructor(id, wsUrl) {
+    this._reqId = id || null;
+    this._wsUrl = wsUrl;
+    this.id = null;
+    this.destroyed = false;
+    this._evts = {};
+    this._conns = {};
+    this._ws = null;
+    this._doConnect();
+  }
+  on(evt, cb) {
+    if (!this._evts[evt]) this._evts[evt] = [];
+    this._evts[evt].push(cb);
+    return this;
+  }
+  _emit(evt, ...args) {
+    (this._evts[evt] || []).forEach(cb => { try { cb(...args); } catch(e) {} });
+  }
+  _doConnect() {
+    if (this.destroyed) return;
+    const url = this._wsUrl + '?id=' + encodeURIComponent(this._reqId || '__random__');
+    try {
+      this._ws = new WebSocket(url);
+    } catch(e) {
+      this._emit('error', { type: 'network', message: 'WebSocket 연결 실패: ' + (e.message || e) });
+      return;
+    }
+    this._ws.onmessage = (e) => {
+      let msg; try { msg = JSON.parse(e.data); } catch(_) { return; }
+      if (msg.type === 'open') {
+        this.id = msg.id;
+        this._emit('open', msg.id);
+      } else if (msg.type === 'error') {
+        this._emit('error', { type: msg.errType || 'error', message: msg.message || '' });
+      } else if (msg.type === 'connect') {
+        // 상대방이 나에게 접속 요청
+        const conn = new WsConn(this, msg.src);
+        this._conns[msg.src] = conn;
+        this._emit('connection', conn);
+        setTimeout(() => conn._emit('open'), 0);
+      } else if (msg.type === 'connect-ack') {
+        // 내가 요청한 연결이 승인됨
+        const conn = this._conns[msg.src];
+        if (conn) setTimeout(() => conn._emit('open'), 0);
+      } else if (msg.type === 'data') {
+        const conn = this._conns[msg.src];
+        if (conn) conn._emit('data', msg.payload);
+      } else if (msg.type === 'close') {
+        const conn = this._conns[msg.src];
+        if (conn) { conn._emit('close'); delete this._conns[msg.src]; }
+      }
+    };
+    this._ws.onclose = () => {
+      if (!this.destroyed) {
+        Object.values(this._conns).forEach(c => { try { c._emit('close'); } catch(e) {} });
+        this._conns = {};
+        this._emit('disconnected');
+      }
+    };
+    this._ws.onerror = () => {
+      if (!this.destroyed) {
+        this._emit('error', { type: 'network', message: 'WebSocket 오류 — 서버 주소를 확인하세요.' });
+      }
+    };
+  }
+  _wsSend(data) {
+    if (this._ws && this._ws.readyState === WebSocket.OPEN) {
+      this._ws.send(JSON.stringify(data));
+    }
+  }
+  connect(remoteId) {
+    let conn = this._conns[remoteId];
+    if (!conn) { conn = new WsConn(this, remoteId); this._conns[remoteId] = conn; }
+    this._wsSend({ type: 'connect', dst: remoteId });
+    return conn;
+  }
+  reconnect() {
+    if (this.destroyed) return;
+    if (this._ws) { try { this._ws.close(); } catch(e) {} }
+    setTimeout(() => this._doConnect(), 500);
+  }
+  destroy() {
+    this.destroyed = true;
+    if (this._ws) { try { this._ws.close(); } catch(e) {} this._ws = null; }
+    Object.values(this._conns).forEach(c => { try { c._emit('close'); } catch(e) {} });
+    this._conns = {};
+  }
+}
 
 // ════════════════════════════════════════
 //  DIRECT CONNECTION (Manual SDP / No Server)
@@ -3637,16 +3784,19 @@ function setServerMode(mode) {
   document.getElementById('srv-pub-btn').classList.toggle('active', mode === 'public');
   document.getElementById('srv-loc-btn').classList.toggle('active', mode === 'local');
   document.getElementById('srv-dir-btn').classList.toggle('active', mode === 'direct');
+  document.getElementById('srv-py-btn').classList.toggle('active', mode === 'python');
   document.getElementById('srv-pub-info').style.display = mode === 'public' ? 'block' : 'none';
   document.getElementById('srv-local-cfg').style.display = mode === 'local' ? 'block' : 'none';
   document.getElementById('srv-direct-cfg').style.display = mode === 'direct' ? 'block' : 'none';
+  document.getElementById('srv-python-cfg').style.display = mode === 'python' ? 'block' : 'none';
   const dot = document.getElementById('srv-dot');
   if (dot) {
     if (mode === 'local') dot.className = 'srv-dot local';
     else if (mode === 'direct') dot.className = 'srv-dot direct';
+    else if (mode === 'python') dot.className = 'srv-dot python';
     else dot.className = 'srv-dot';
   }
-  if (mode === 'public' || mode === 'direct') {
+  if (mode === 'public' || mode === 'direct' || mode === 'python') {
     localStorage.removeItem('enc_peer_host');
     localStorage.removeItem('enc_peer_port');
     localStorage.removeItem('enc_peer_path');
@@ -3666,21 +3816,49 @@ function saveSrvLocal() {
   showToast('✅ 로컬 서버 설정이 저장되었습니다.', 'success');
 }
 
+function saveSrvPython() {
+  const host = (document.getElementById('srv-ws-host-input').value || '').trim();
+  const port = (document.getElementById('srv-ws-port-input').value || '9000').trim();
+  if (!host) { showToast('서버 IP를 입력하세요.', 'error'); return; }
+  localStorage.setItem('enc_ws_host', host);
+  localStorage.setItem('enc_ws_port', port || '9000');
+  showToast('✅ Python 서버 설정이 저장되었습니다.', 'success');
+}
+
+function downloadPythonServer() {
+  const el = document.getElementById('embedded-python-server');
+  if (!el) { showToast('서버 코드를 찾을 수 없습니다.', 'error'); return; }
+  const code = el.textContent;
+  const blob = new Blob([code], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'server.py';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(a.href);
+}
+
 function initServerSettings() {
   const mode = localStorage.getItem('enc_server_mode') || 'public';
   const host = localStorage.getItem('enc_peer_host') || '';
   const port = localStorage.getItem('enc_peer_port') || '9000';
   const secure = String(localStorage.getItem('enc_peer_secure') || '0') !== '0';
+  const wsHost = localStorage.getItem('enc_ws_host') || '';
+  const wsPort = localStorage.getItem('enc_ws_port') || '9000';
   document.getElementById('srv-pub-btn').classList.toggle('active', mode === 'public');
   document.getElementById('srv-loc-btn').classList.toggle('active', mode === 'local');
   document.getElementById('srv-dir-btn').classList.toggle('active', mode === 'direct');
+  document.getElementById('srv-py-btn').classList.toggle('active', mode === 'python');
   document.getElementById('srv-pub-info').style.display = mode === 'public' ? 'block' : 'none';
   document.getElementById('srv-local-cfg').style.display = mode === 'local' ? 'block' : 'none';
   document.getElementById('srv-direct-cfg').style.display = mode === 'direct' ? 'block' : 'none';
+  document.getElementById('srv-python-cfg').style.display = mode === 'python' ? 'block' : 'none';
   const dot = document.getElementById('srv-dot');
   if (dot) {
     if (mode === 'local') dot.className = 'srv-dot local';
     else if (mode === 'direct') dot.className = 'srv-dot direct';
+    else if (mode === 'python') dot.className = 'srv-dot python';
     else dot.className = 'srv-dot';
   }
   const hostEl = document.getElementById('srv-host-input');
@@ -3689,6 +3867,10 @@ function initServerSettings() {
   if (hostEl) hostEl.value = host;
   if (portEl) portEl.value = port;
   if (secEl) secEl.checked = secure;
+  const wsHostEl = document.getElementById('srv-ws-host-input');
+  const wsPortEl = document.getElementById('srv-ws-port-input');
+  if (wsHostEl) wsHostEl.value = wsHost;
+  if (wsPortEl) wsPortEl.value = wsPort;
 }
 
 (function checkRecovery() {
@@ -3738,5 +3920,195 @@ initServerSettings();
     </div>
   </div>
 </div>
+
+<!-- ══ EMBEDDED PYTHON SERVER CODE ══
+     이 블록은 브라우저에서 실행되지 않습니다.
+     JavaScript의 downloadPythonServer()가 읽어서 server.py 파일로 다운로드합니다. -->
+<script type="text/x-python" id="embedded-python-server">
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+암호화 대전 게임 - Python WebSocket 시그널링 서버
+표준 라이브러리만 사용 (pip install 불필요, Python 3.6+ 지원)
+사용법: python server.py [포트번호]   (기본값: 9000)
+"""
+import socket, threading, struct, hashlib, base64, json, sys, uuid
+from urllib.parse import parse_qs
+
+PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 9000
+_clients = {}       # peer_id -> socket
+_lock = threading.Lock()
+
+
+def _handshake(conn, raw):
+    headers = {}
+    lines = raw.decode('utf-8', errors='replace').split('\r\n')
+    path = lines[0].split(' ')[1] if lines[0] else '/'
+    for line in lines[1:]:
+        if ':' in line:
+            k, v = line.split(':', 1)
+            headers[k.strip().lower()] = v.strip()
+    key = headers.get('sec-websocket-key', '')
+    magic = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11'
+    accept = base64.b64encode(
+        hashlib.sha1((key + magic).encode()).digest()
+    ).decode()
+    conn.sendall((
+        'HTTP/1.1 101 Switching Protocols\r\n'
+        'Upgrade: websocket\r\nConnection: Upgrade\r\n'
+        f'Sec-WebSocket-Accept: {accept}\r\n\r\n'
+    ).encode())
+    return path
+
+
+def _recv_frame(conn):
+    try:
+        hdr = b''
+        while len(hdr) < 2:
+            c = conn.recv(2 - len(hdr))
+            if not c:
+                return None
+            hdr += c
+        b1, b2 = hdr[0], hdr[1]
+        opcode = b1 & 0x0f
+        if opcode == 8:             # close frame
+            return None
+        if opcode == 9:             # ping → pong
+            conn.sendall(bytes([0x8A, 0]))
+            return ''
+        masked = bool(b2 & 0x80)
+        length = b2 & 0x7f
+        if length == 126:
+            length = struct.unpack('>H', conn.recv(2))[0]
+        elif length == 127:
+            length = struct.unpack('>Q', conn.recv(8))[0]
+        mask_key = conn.recv(4) if masked else b'\x00\x00\x00\x00'
+        data = b''
+        while len(data) < length:
+            chunk = conn.recv(length - len(data))
+            if not chunk:
+                return None
+            data += chunk
+        if masked:
+            data = bytes(b ^ mask_key[i % 4] for i, b in enumerate(data))
+        return data.decode('utf-8', errors='replace')
+    except Exception:
+        return None
+
+
+def _send_frame(conn, msg):
+    data = msg.encode('utf-8')
+    n = len(data)
+    if n < 126:
+        hdr = bytes([0x81, n])
+    elif n < 65536:
+        hdr = bytes([0x81, 126]) + struct.pack('>H', n)
+    else:
+        hdr = bytes([0x81, 127]) + struct.pack('>Q', n)
+    try:
+        conn.sendall(hdr + data)
+        return True
+    except Exception:
+        return False
+
+
+def handle_client(conn, addr):
+    peer_id = None
+    try:
+        raw = b''
+        while b'\r\n\r\n' not in raw:
+            chunk = conn.recv(4096)
+            if not chunk:
+                return
+            raw += chunk
+        path = _handshake(conn, raw)
+
+        # Extract peer ID from ?id=XXX
+        qs = parse_qs(path.split('?', 1)[1]) if '?' in path else {}
+        requested_id = (qs.get('id', [None])[0] or '').strip()
+        if not requested_id or requested_id == '__random__':
+            peer_id = 'py-' + uuid.uuid4().hex[:10]
+        else:
+            peer_id = requested_id
+
+        with _lock:
+            if peer_id in _clients:
+                _send_frame(conn, json.dumps({
+                    'type': 'error', 'errType': 'unavailable-id',
+                    'message': f'{peer_id} is taken'
+                }))
+                conn.close()
+                return
+            _clients[peer_id] = conn
+
+        print(f'[+] {peer_id}  ({addr[0]})  총 접속: {len(_clients)}명')
+        _send_frame(conn, json.dumps({'type': 'open', 'id': peer_id}))
+
+        while True:
+            msg = _recv_frame(conn)
+            if msg is None:
+                break
+            if not msg:
+                continue
+            try:
+                data = json.loads(msg)
+                dst = data.get('dst')
+                msg_type = data.get('type')
+                if not dst:
+                    continue
+                with _lock:
+                    dst_conn = _clients.get(dst)
+                if msg_type == 'connect':
+                    if dst_conn:
+                        _send_frame(dst_conn, json.dumps({'type': 'connect', 'src': peer_id}))
+                        _send_frame(conn, json.dumps({'type': 'connect-ack', 'src': dst}))
+                    else:
+                        _send_frame(conn, json.dumps({
+                            'type': 'error', 'errType': 'peer-unavailable',
+                            'message': f'{dst} 에 연결할 수 없습니다'
+                        }))
+                elif dst_conn:
+                    _send_frame(dst_conn, json.dumps({**data, 'src': peer_id}))
+            except Exception as e:
+                print(f'[!] 처리 오류: {e}')
+    except Exception as e:
+        print(f'[!] {addr}: {e}')
+    finally:
+        if peer_id:
+            with _lock:
+                _clients.pop(peer_id, None)
+            print(f'[-] {peer_id}  총 접속: {len(_clients)}명')
+        try:
+            conn.close()
+        except Exception:
+            pass
+
+
+if __name__ == '__main__':
+    # LAN IP 자동 감지
+    try:
+        import socket as _s
+        s2 = _s.socket(_s.AF_INET, _s.SOCK_DGRAM)
+        s2.connect(('8.8.8.8', 80))
+        lan_ip = s2.getsockname()[0]
+        s2.close()
+    except Exception:
+        lan_ip = '127.0.0.1'
+
+    srv = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    srv.bind(('0.0.0.0', PORT))
+    srv.listen(32)
+    print('=' * 45)
+    print(f'  암호화 대전 게임 - Python 시그널링 서버')
+    print(f'  포트    : {PORT}')
+    print(f'  LAN IP  : {lan_ip}')
+    print(f'  서버 주소: ws://{lan_ip}:{PORT}')
+    print(f'  게임 설정에 위 주소를 입력하세요')
+    print('=' * 45)
+    while True:
+        conn, addr = srv.accept()
+        threading.Thread(target=handle_client, args=(conn, addr), daemon=True).start()
+</script>
 </body>
 </html>
