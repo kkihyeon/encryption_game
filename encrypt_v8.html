@@ -944,6 +944,7 @@ body {
 .srv-save-btn:hover { opacity:0.85; }
 .srv-dot { width:8px; height:8px; border-radius:50%; background:#22c55e; display:inline-block; flex-shrink:0; }
 .srv-dot.local { background:var(--gold); }
+.srv-dot.direct { background:#a855f7; }
 </style>
 </head>
 <body>
@@ -1011,6 +1012,7 @@ body {
           <div class="srv-mode-row">
             <button class="srv-mode-btn active" id="srv-pub-btn" onclick="setServerMode('public')">🌐 공용 서버 (기본)</button>
             <button class="srv-mode-btn" id="srv-loc-btn" onclick="setServerMode('local')">🏠 로컬 서버</button>
+            <button class="srv-mode-btn" id="srv-dir-btn" onclick="setServerMode('direct')">🔗 직접 연결 (SDP)</button>
           </div>
           <div id="srv-pub-info">
             <div class="srv-note">PeerJS 공용 시그널링 서버를 사용합니다.<br>초기 연결 시 인터넷이 잠깐 필요하며, 이후 게임 데이터는 같은 WiFi 안에서 P2P로 직접 전송됩니다.</div>
@@ -1029,6 +1031,9 @@ body {
               </label>
               <button class="srv-save-btn" onclick="saveSrvLocal()">저장</button>
             </div>
+          </div>
+          <div id="srv-direct-cfg" style="display:none">
+            <div class="srv-note">인터넷 없이 같은 WiFi에서 직접 연결합니다.<br>① 호스트가 접속 코드 생성 → ② 참가자에게 전달 → ③ 참가자가 응답 코드 전달 → ④ 연결 완료.<br>HTML 파일은 <code>http://</code> 서버를 통해 열어야 합니다.</div>
           </div>
         </div>
       </div>
@@ -1060,6 +1065,7 @@ body {
     </div>
     <div class="hdr-right">
       <span id="my-role-badge" class="my-badge" style="display:none"></span>
+      <button id="direct-add-btn" class="host-btn" onclick="directAddClient()" style="display:none">+ 참가자 추가</button>
       <button id="host-start-btn" class="host-btn" onclick="hostStartGame()" style="display:none">▶ 게임 시작</button>
       <button class="host-btn" onclick="leaveRoom()" style="background:rgba(255,90,90,0.08);border-color:rgba(255,90,90,0.3);color:#ff8080">← 방 나가기</button>
     </div>
@@ -1857,6 +1863,20 @@ let hostRetryTimer = null;
 
 function becomeHost() {
   if (hostRetryTimer) { clearTimeout(hostRetryTimer); hostRetryTimer = null; }
+
+  // ── 직접 연결 모드: 시그널링 서버 없이 SDP 교환 ──
+  if (isDirectMode()) {
+    isHost = true;
+    myId = roomId;
+    gameState.hostPeerId = myId;
+    gameState.players[myId] = { nick: myNick, score: 0, online: true };
+    gameState.totalRounds = selectedRounds;
+    saveSession();
+    showGameUI();
+    // 참가자 추가는 게임 화면의 "+ 참가자 추가" 버튼으로 처리
+    return;
+  }
+
   _acquireHostId();
 
   function _acquireHostId() {
@@ -1936,6 +1956,17 @@ function joinAsClient(prevPeerId) {
   isHost = false;
   saveSession();
   if (clientRetryTimer) { clearTimeout(clientRetryTimer); clientRetryTimer = null; }
+
+  // ── 직접 연결 모드: SDP 모달로 접속 ──
+  if (isDirectMode()) {
+    if (peer && !peer.destroyed) { try { peer.destroy(); } catch(e) {} }
+    peer = null;
+    myId = 'p-' + Math.random().toString(36).substr(2, 8);
+    saveSession();
+    directShowJoinModal(prevPeerId);
+    return;
+  }
+
   // 기존 peer가 있으면 정리 후 재생성
   if (peer && !peer.destroyed) {
     try { peer.destroy(); } catch(e) {}
@@ -2766,6 +2797,7 @@ function showGameUI() {
   resizeCanvas();
   initMethodSelector();
   if (isHost) document.getElementById('host-start-btn').style.display = '';
+  if (isHost && isDirectMode()) document.getElementById('direct-add-btn').style.display = '';
   renderAll();
 }
 
@@ -3226,6 +3258,11 @@ function dismissRecovery() {
 }
 
 function showReconnectBanner() {
+  // 직접 연결 모드에서는 자동 재접속 불가
+  if (isDirectMode()) {
+    showToast('🚫 호스트와 연결이 끊겼습니다.', 'error');
+    return;
+  }
   const nextHostId = gameState.designatedNextHost;
   const gameStarted = gameState.status === 'playing';
 
@@ -3390,6 +3427,201 @@ window.addEventListener('beforeunload', () => {
 switchTab('host');
 
 // ════════════════════════════════════════
+//  DIRECT CONNECTION (Manual SDP / No Server)
+// ════════════════════════════════════════
+function isDirectMode() {
+  return localStorage.getItem('enc_server_mode') === 'direct';
+}
+
+class DirectConn {
+  constructor() {
+    // No STUN/TURN needed for same-LAN: host candidates (LAN IP) are sufficient
+    this.pc = new RTCPeerConnection({ iceServers: [] });
+    this.dc = null; this._evts = {}; this.open = false; this.peer = null;
+  }
+  on(evt, cb) { this._evts[evt] = cb; return this; }
+  _fire(evt, ...args) { try { if (this._evts[evt]) this._evts[evt](...args); } catch(e) {} }
+  send(data) {
+    if (this.dc && this.dc.readyState === 'open') this.dc.send(JSON.stringify(data));
+  }
+  close() { try { this.pc.close(); } catch(e) {} }
+}
+
+function _waitIce(pc) {
+  return new Promise(function(resolve) {
+    if (pc.iceGatheringState === 'complete') { resolve(); return; }
+    var t = setTimeout(resolve, 5000);
+    pc.onicegatheringstatechange = function() {
+      if (pc.iceGatheringState === 'complete') { clearTimeout(t); resolve(); }
+    };
+  });
+}
+
+async function _directMakeOffer() {
+  var dc = new DirectConn();
+  dc.dc = dc.pc.createDataChannel('game', { ordered: true });
+  dc.dc.onopen = function() { dc.open = true; dc._fire('open'); };
+  dc.dc.onclose = function() { dc.open = false; dc._fire('close'); };
+  dc.dc.onmessage = function(e) { try { dc._fire('data', JSON.parse(e.data)); } catch(ex) {} };
+  var offer = await dc.pc.createOffer();
+  await dc.pc.setLocalDescription(offer);
+  await _waitIce(dc.pc);
+  return dc;
+}
+
+async function _directMakeAnswer(offerStr) {
+  var offerSdp = JSON.parse(offerStr);
+  var dc = new DirectConn();
+  dc.pc.ondatachannel = function(e) {
+    dc.dc = e.channel;
+    dc.dc.onopen = function() { dc.open = true; dc._fire('open'); };
+    dc.dc.onclose = function() { dc.open = false; dc._fire('close'); };
+    dc.dc.onmessage = function(ev) { try { dc._fire('data', JSON.parse(ev.data)); } catch(ex) {} };
+  };
+  await dc.pc.setRemoteDescription(new RTCSessionDescription(offerSdp));
+  var answer = await dc.pc.createAnswer();
+  await dc.pc.setLocalDescription(answer);
+  await _waitIce(dc.pc);
+  return dc;
+}
+
+async function _directAcceptAnswer(hostConn, answerStr) {
+  var answerSdp = JSON.parse(answerStr);
+  await hostConn.pc.setRemoteDescription(new RTCSessionDescription(answerSdp));
+}
+
+function _onDirectClientConnected(c, clientId) {
+  c.send({ type: 'sync', state: gameState });
+  c.on('data', function(d) { handleData(d, clientId); });
+  c.on('close', function() {
+    delete connections[clientId];
+    if (gameState.players[clientId]) {
+      gameState.players[clientId].online = false;
+      if (isHost && gameState.status === 'playing' && gameState.phase === 'encoding') {
+        var encoder = gameState.turnOrder[gameState.currentTurnIdx % Math.max(gameState.turnOrder.length, 1)];
+        if (encoder === clientId) {
+          var nick2 = (gameState.players[clientId] && gameState.players[clientId].nick) || '출제자';
+          gameState.pendingToast = { msg: '🚪 ' + nick2 + ' 님이 방을 나갔습니다. 다음 출제자로 넘어갑니다.', type: 'info' };
+          showToast('🚪 ' + nick2 + ' 님이 방을 나갔습니다. 다음 출제자로 넘어갑니다.', 'info');
+          nextTurn(); return;
+        }
+      }
+      broadcast();
+    }
+  });
+}
+
+// ── SDP Modal Control ──────────────────────────────────────────────
+var _sdpState = null;
+
+function _sdpEl(id) { return document.getElementById(id); }
+function _sdpStatus(msg) { _sdpEl('sdp-m-status').textContent = msg; }
+
+function sdpCopy() {
+  var txt = _sdpEl('sdp-m-show-txt').value;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(txt).then(function() { showToast('📋 복사 완료!', 'success'); });
+  } else {
+    _sdpEl('sdp-m-show-txt').select(); document.execCommand('copy');
+    showToast('📋 복사 완료!', 'success');
+  }
+}
+
+async function sdpSubmit() {
+  var txt = (_sdpEl('sdp-m-paste-txt').value || '').trim();
+  if (!txt) { showToast('코드를 붙여넣기 해주세요.', 'error'); return; }
+  var btn = _sdpEl('sdp-m-ok');
+  btn.disabled = true;
+  _sdpStatus('처리 중...');
+  try {
+    if (_sdpState.stage === 'client-paste-offer') {
+      // 클라이언트: 호스트의 offer → answer 생성
+      var answerConn = await _directMakeAnswer(txt);
+      var answerStr = JSON.stringify(answerConn.pc.localDescription);
+      _sdpEl('sdp-m-title').textContent = '📤 응답 코드';
+      _sdpEl('sdp-m-desc').textContent = '아래 코드를 호스트에게 전달하세요. 호스트가 수락하면 자동으로 연결됩니다.';
+      _sdpEl('sdp-m-show').style.display = 'block';
+      _sdpEl('sdp-m-show-txt').value = answerStr;
+      _sdpEl('sdp-m-paste').style.display = 'none';
+      var savedPrevId = _sdpState._prevId;
+      _sdpState = { stage: 'client-answer-shown', conn: answerConn, _prevId: savedPrevId };
+      answerConn.on('open', function() {
+        _sdpEl('sdp-m-show').style.display = 'none';
+        _sdpEl('sdp-m-done').style.display = 'block';
+        conn = answerConn;
+        answerConn.peer = 'host';
+        var _prevId = savedPrevId || null;
+        setTimeout(function() {
+          _sdpEl('sdp-modal').style.display = 'none';
+          conn.on('data', function(d) { handleData(d, 'host'); });
+          conn.on('close', function() { isHost = false; saveSession(); showReconnectBanner(); });
+          if (_prevId && _prevId !== myId) {
+            conn.send({ type: 'rejoin', nick: myNick, peerId: myId, prevPeerId: _prevId });
+          } else {
+            conn.send({ type: 'join', nick: myNick, peerId: myId });
+          }
+          showGameUI();
+        }, 800);
+      });
+
+    } else if (_sdpState.stage === 'host-paste-answer') {
+      // 호스트: 클라이언트의 answer SDP 수락
+      await _directAcceptAnswer(_sdpState.conn, txt);
+      _sdpStatus('연결 대기 중...');
+      var pendingConn = _sdpState.conn;
+      pendingConn.on('open', function() {
+        var clientId = 'dc-' + Math.random().toString(36).substr(2, 6);
+        pendingConn.peer = clientId;
+        connections[clientId] = pendingConn;
+        _onDirectClientConnected(pendingConn, clientId);
+        _sdpEl('sdp-modal').style.display = 'none';
+        showToast('✅ 참가자가 연결되었습니다!', 'success');
+        renderAll();
+      });
+    }
+  } catch(e) {
+    _sdpStatus('오류: ' + (e.message || '잘못된 코드입니다.'));
+    btn.disabled = false;
+  }
+}
+
+async function directAddClient() {
+  showToast('접속 코드 생성 중...', 'info');
+  try {
+    var offerConn = await _directMakeOffer();
+    var offerStr = JSON.stringify(offerConn.pc.localDescription);
+    _sdpEl('sdp-m-title').textContent = '📡 접속 코드';
+    _sdpEl('sdp-m-desc').textContent = '아래 코드를 참가자에게 전달하세요. 참가자의 응답 코드를 받으면 아래에 붙여넣기 하세요.';
+    _sdpEl('sdp-m-show').style.display = 'block';
+    _sdpEl('sdp-m-show-txt').value = offerStr;
+    _sdpEl('sdp-m-paste').style.display = 'block';
+    _sdpEl('sdp-m-paste-lbl').textContent = '참가자의 응답 코드';
+    _sdpEl('sdp-m-paste-txt').value = '';
+    _sdpEl('sdp-m-done').style.display = 'none';
+    _sdpEl('sdp-m-ok').disabled = false;
+    _sdpStatus('응답 코드를 기다리는 중...');
+    _sdpEl('sdp-modal').style.display = 'flex';
+    _sdpState = { stage: 'host-paste-answer', conn: offerConn };
+  } catch(e) {
+    showToast('접속 코드 생성 실패: ' + (e.message || '오류'), 'error');
+  }
+}
+
+function directShowJoinModal(prevPeerId) {
+  _sdpEl('sdp-m-title').textContent = '🔗 접속 코드 입력';
+  _sdpEl('sdp-m-desc').textContent = '호스트에게 받은 접속 코드를 붙여넣기 해주세요.';
+  _sdpEl('sdp-m-show').style.display = 'none';
+  _sdpEl('sdp-m-paste').style.display = 'block';
+  _sdpEl('sdp-m-paste-lbl').textContent = '호스트의 접속 코드';
+  _sdpEl('sdp-m-paste-txt').value = '';
+  _sdpEl('sdp-m-done').style.display = 'none';
+  _sdpEl('sdp-m-ok').disabled = false;
+  _sdpStatus('');
+  _sdpEl('sdp-modal').style.display = 'flex';
+  _sdpState = { stage: 'client-paste-offer', _prevId: prevPeerId };
+}
+
+// ════════════════════════════════════════
 //  SERVER SETTINGS UI
 // ════════════════════════════════════════
 let _srvPanelOpen = false;
@@ -3404,11 +3636,17 @@ function setServerMode(mode) {
   localStorage.setItem('enc_server_mode', mode);
   document.getElementById('srv-pub-btn').classList.toggle('active', mode === 'public');
   document.getElementById('srv-loc-btn').classList.toggle('active', mode === 'local');
+  document.getElementById('srv-dir-btn').classList.toggle('active', mode === 'direct');
   document.getElementById('srv-pub-info').style.display = mode === 'public' ? 'block' : 'none';
   document.getElementById('srv-local-cfg').style.display = mode === 'local' ? 'block' : 'none';
+  document.getElementById('srv-direct-cfg').style.display = mode === 'direct' ? 'block' : 'none';
   const dot = document.getElementById('srv-dot');
-  if (dot) dot.className = 'srv-dot' + (mode === 'local' ? ' local' : '');
-  if (mode === 'public') {
+  if (dot) {
+    if (mode === 'local') dot.className = 'srv-dot local';
+    else if (mode === 'direct') dot.className = 'srv-dot direct';
+    else dot.className = 'srv-dot';
+  }
+  if (mode === 'public' || mode === 'direct') {
     localStorage.removeItem('enc_peer_host');
     localStorage.removeItem('enc_peer_port');
     localStorage.removeItem('enc_peer_path');
@@ -3435,10 +3673,16 @@ function initServerSettings() {
   const secure = String(localStorage.getItem('enc_peer_secure') || '0') !== '0';
   document.getElementById('srv-pub-btn').classList.toggle('active', mode === 'public');
   document.getElementById('srv-loc-btn').classList.toggle('active', mode === 'local');
+  document.getElementById('srv-dir-btn').classList.toggle('active', mode === 'direct');
   document.getElementById('srv-pub-info').style.display = mode === 'public' ? 'block' : 'none';
   document.getElementById('srv-local-cfg').style.display = mode === 'local' ? 'block' : 'none';
+  document.getElementById('srv-direct-cfg').style.display = mode === 'direct' ? 'block' : 'none';
   const dot = document.getElementById('srv-dot');
-  if (dot) dot.className = 'srv-dot' + (mode === 'local' ? ' local' : '');
+  if (dot) {
+    if (mode === 'local') dot.className = 'srv-dot local';
+    else if (mode === 'direct') dot.className = 'srv-dot direct';
+    else dot.className = 'srv-dot';
+  }
   const hostEl = document.getElementById('srv-host-input');
   const portEl = document.getElementById('srv-port-input');
   const secEl = document.getElementById('srv-secure-chk');
@@ -3466,5 +3710,33 @@ function initServerSettings() {
 
 initServerSettings();
 </script>
+
+<!-- ══ SDP DIRECT CONNECTION MODAL ══ -->
+<div id="sdp-modal" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(10,14,23,0.88);align-items:center;justify-content:center">
+  <div style="background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius-lg);padding:28px 32px;width:540px;max-width:92vw;max-height:92vh;overflow-y:auto">
+    <div id="sdp-m-title" style="font-family:'Pretendard',sans-serif;font-size:21px;font-weight:700;color:var(--accent);letter-spacing:2px;margin-bottom:8px"></div>
+    <div id="sdp-m-desc" style="font-size:17px;color:var(--text2);line-height:1.65;margin-bottom:16px"></div>
+    <!-- 코드 표시 영역 (복사용) -->
+    <div id="sdp-m-show" style="display:none;margin-bottom:14px">
+      <div style="font-size:14px;font-weight:700;letter-spacing:1.5px;color:var(--text3);margin-bottom:6px">접속 코드</div>
+      <textarea id="sdp-m-show-txt" readonly style="width:100%;height:140px;font-family:'Pretendard',sans-serif;font-size:12px;border:1px solid var(--border);border-radius:var(--radius);padding:10px;background:rgba(26,127,212,0.04);color:var(--text2);resize:none;outline:none;box-sizing:border-box"></textarea>
+      <button onclick="sdpCopy()" style="margin-top:8px;padding:7px 20px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius);font-size:16px;font-weight:700;cursor:pointer;font-family:'Pretendard',sans-serif">📋 코드 복사</button>
+    </div>
+    <!-- 코드 입력 영역 (붙여넣기용) -->
+    <div id="sdp-m-paste" style="display:none">
+      <div id="sdp-m-paste-lbl" style="font-size:14px;font-weight:700;letter-spacing:1.5px;color:var(--text3);margin-bottom:6px"></div>
+      <textarea id="sdp-m-paste-txt" style="width:100%;height:140px;font-family:'Pretendard',sans-serif;font-size:12px;border:1px solid var(--border);border-radius:var(--radius);padding:10px;background:var(--bg);color:var(--text);resize:none;outline:none;box-sizing:border-box" placeholder="여기에 붙여넣기..."></textarea>
+      <div style="display:flex;gap:10px;margin-top:8px;align-items:center">
+        <button id="sdp-m-ok" onclick="sdpSubmit()" style="padding:8px 24px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius);font-size:17px;font-weight:700;cursor:pointer;font-family:'Pretendard',sans-serif">확인</button>
+        <span id="sdp-m-status" style="font-size:16px;color:var(--text3)"></span>
+      </div>
+    </div>
+    <!-- 연결 완료 표시 -->
+    <div id="sdp-m-done" style="display:none;text-align:center;padding:16px 0">
+      <div style="font-size:36px;margin-bottom:10px">✅</div>
+      <div style="font-size:19px;font-weight:700;color:var(--text)">연결 완료!</div>
+    </div>
+  </div>
+</div>
 </body>
 </html>
