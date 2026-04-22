@@ -342,6 +342,7 @@ body {
 .hint-chip {
   padding: 6px 16px; border-radius: 20px;
   font-size: 19px; font-weight: 700; letter-spacing: 1px;
+  border: 1.5px solid var(--border2);
 }
 
 /* Toolbar */
@@ -1580,15 +1581,6 @@ function caesarEnc(s, shift) {
     return c;
   }).join('');
 }
-function caesarDec(s, shift) {
-  shift = ((shift % 26) + 26) % 26;
-  return s.split('').map(c => {
-    if (c >= 'a' && c <= 'z') return String.fromCharCode((c.charCodeAt(0)-97+(26-shift))%26+97);
-    if (c >= 'A' && c <= 'Z') return String.fromCharCode((c.charCodeAt(0)-65+(26-shift))%26+65);
-    return c;
-  }).join('');
-}
-
 // Anagram (unit-based reverse) — 키 = 단위 크기
 function anagramEnc(s, unit) {
   unit = Math.max(1, parseInt(unit) || 3);
@@ -1598,8 +1590,6 @@ function anagramEnc(s, unit) {
   }
   return result;
 }
-function anagramDec(s, unit) { return anagramEnc(s, unit); }
-
 // Key order (columnar transposition) — 키 = 순열 숫자(예: "312")
 function _keyOrder(keyNum) {
   return String(keyNum).split('').map(Number).filter(n => n >= 1);
@@ -1621,37 +1611,6 @@ function keyEnc(s, keyNum) {
   }
   return result;
 }
-function keyDec(s, keyNum) {
-  const order = _keyOrder(keyNum);
-  if (!order.length) return s;
-  const n = order.length;
-  let result = '';
-  const fullChunks = Math.floor(s.length / n);
-  const lastChunkSize = s.length % n;
-  const numChunks = lastChunkSize > 0 ? fullChunks + 1 : fullChunks;
-  let pos = 0;
-  for (let c = 0; c < numChunks; c++) {
-    const isLastPartial = (c === fullChunks && lastChunkSize > 0);
-    const chunkSize = isLastPartial ? lastChunkSize : n;
-    const chunk = s.slice(pos, pos + chunkSize);
-    pos += chunkSize;
-    if (chunkSize === n) {
-      const dec = new Array(n);
-      order.forEach((o, j) => { dec[o - 1] = chunk[j]; });
-      result += dec.join('');
-    } else {
-      const usedOrder = [];
-      for (let j = 0; j < order.length; j++) {
-        if (order[j] <= chunkSize) usedOrder.push(order[j]);
-      }
-      const dec = new Array(chunkSize).fill('');
-      usedOrder.forEach((o, j) => { dec[o - 1] = chunk[j]; });
-      result += dec.join('');
-    }
-  }
-  return result;
-}
-
 // Scytale (variable rails)
 function scytaleEnc(s, rails) {
   rails = Math.max(2, rails || 3);
@@ -1667,31 +1626,6 @@ function scytaleEnc(s, rails) {
   }
   return result.slice(0, len + (result.slice(len).replace(/_/g,'').length));
 }
-function scytaleDec(s, rails) {
-  rails = Math.max(2, rails || 3);
-  const len = s.length;
-  const cols = Math.ceil(len / rails);
-  const fullLen = rails * cols;
-  const extra = fullLen - len;
-  const colLengths = [];
-  for (let col = 0; col < cols; col++) {
-    colLengths.push(col < cols - extra ? rails : rails - 1);
-  }
-  const columns = [];
-  let pos = 0;
-  for (let col = 0; col < cols; col++) {
-    columns.push(s.slice(pos, pos + colLengths[col]));
-    pos += colLengths[col];
-  }
-  let result = '';
-  for (let row = 0; row < rails; row++) {
-    for (let col = 0; col < cols; col++) {
-      if (row < columns[col].length) result += columns[col][row];
-    }
-  }
-  return result.replace(/_+$/, '');
-}
-
 function applyEnc(s, m, key) {
   if (m===1) return keyEnc(s, key);
   if (m===2) return anagramEnc(s, key);
@@ -1699,14 +1633,6 @@ function applyEnc(s, m, key) {
   if (m===4) return scytaleEnc(s, key);
   return s;
 }
-function applyDec(s, m, key) {
-  if (m===1) return keyDec(s, key);
-  if (m===2) return anagramDec(s, key);
-  if (m===3) return caesarDec(s, key);
-  if (m===4) return scytaleDec(s, key);
-  return s;
-}
-
 // ════════════════════════════════════════
 //  STATE
 // ════════════════════════════════════════
@@ -1726,7 +1652,6 @@ let gameState = {
   players: {},       // peerId -> { nick, score, online }
   turnOrder: [],     // peerId[] rotation
   currentTurnIdx: 0,
-  scores: {},        // peerId -> score (duplicate with players but easy access)
   currentRaw: '',
   currentMethods: [],
   currentEncSteps: [],
@@ -1813,7 +1738,7 @@ function enterGame() {
   if (lobbyMode === 'host') {
     // 방 만들기 탭: 이전 호스트 세션이면 복구, 아니면 신규 생성
     const isRecover = !!(sameSession && prevSession.isHost);
-    setLobbyStatus(isRecover ? '호스트 재접속 중... (PeerJS ID 해제 대기)' : '방 생성 중...', '');
+    setLobbyStatus(isRecover ? '재접속 확인 중...' : '방 생성 중...', '');
     becomeHost(isRecover, prevPeerId);
   } else {
     // 방 참가하기 탭: 사용자 선택을 무조건 존중 — joinAsClient로 접속
@@ -1828,80 +1753,115 @@ let hostCreateRetries = 0;
 let hostRetryTimer = null;
 
 function becomeHost(isRecover, fallbackPrevId) {
-  saveSession();
-  if (hostRetryTimer) { clearTimeout(hostRetryTimer); hostRetryTimer = null; }
-  if (peer && !peer.destroyed) {
-    try { peer.destroy(); } catch(e) {}
+  // 재접속 의도를 즉시 HOST 키로 기록 — isHost가 아직 false여도 올바른 키에 저장
+  if (isRecover) {
+    try {
+      localStorage.setItem(SESSION_KEY_HOST, JSON.stringify({
+        nick: myNick, roomId, peerId: fallbackPrevId || roomId, isHost: true, ts: Date.now()
+      }));
+    } catch(e) {}
   }
-  // destroy 후 PeerJS 서버가 ID를 해제할 시간을 줌
-  const delay = hostCreateRetries > 0 ? 500 : 0;
-  setTimeout(() => {
-    peer = new Peer(roomId, { debug: 0 });
-    peer.on('open', () => {
-      hostCreateRetries = 0;
-      myId = roomId;
-      isHost = true;
-      if (!isRecover) {
-        gameState.players[myId] = { nick: myNick, score: 0, online: true };
-        gameState.totalRounds = selectedRounds;
+  if (hostRetryTimer) { clearTimeout(hostRetryTimer); hostRetryTimer = null; }
+
+  // ── 재접속 시: probe(방 생존 여부 확인) → 실패 시 ID 취득 시도 ──
+  // ── ID 취득 실패 시: 대기 후 다시 probe → 반복 (누군가 먼저 올라오면 join으로 전환) ──
+  if (isRecover) {
+    _probeRoom();
+    return;
+  }
+  // 신규 방 생성 (isRecover=false)
+  _acquireHostId();
+
+  function _probeRoom() {
+    setLobbyStatus('이전 연결 확인 중...', '');
+    if (peer && !peer.destroyed) { try { peer.destroy(); } catch(e) {} }
+    const probePeer = new Peer(undefined, { debug: 0 });
+    let probeResolved = false;
+
+    function _probeDone(alive) {
+      if (probeResolved) return;
+      probeResolved = true;
+      try { probePeer.destroy(); } catch(e) {}
+      if (alive) {
+        // 방 살아있음 → 다른 호스트가 이미 올라옴 → 클라이언트로 참가
+        hostCreateRetries = 0;
+        isHost = false;
+        setLobbyStatus('새 호스트에 접속 중...', '');
+        saveSession();
+        switchTab('join');
+        joinAsClient(fallbackPrevId);
       } else {
-        // 저장된 gameState 복원
-        const saved = loadGameState();
-        if (saved && saved.players) {
-          Object.assign(gameState, saved);
-          // 모든 플레이어를 일단 offline으로 표시 (재접속 시 online으로 전환)
-          Object.keys(gameState.players).forEach(pid => {
-            if (pid !== myId) gameState.players[pid].online = false;
-          });
-        }
-        if (gameState.players[myId]) gameState.players[myId].online = true;
-        else gameState.players[myId] = { nick: myNick, score: 0, online: true };
+        // 방 없음 → ID 취득 시도
+        _acquireHostId();
       }
-      saveSession();
-      showGameUI();
-      attachHostListeners();
-      if (isRecover) broadcast();
+    }
+
+    const overallTimeout = setTimeout(() => _probeDone(false), 2500);
+
+    probePeer.on('open', () => {
+      // reliable:true — false positive 방지
+      const tc = probePeer.connect(roomId, { reliable: true });
+      tc.on('open', () => { clearTimeout(overallTimeout); _probeDone(true); });
+      tc.on('error', () => { clearTimeout(overallTimeout); _probeDone(false); });
     });
-    peer.on('error', e => {
-      if (e.type === 'unavailable-id' || e.type === 'peer-unavailable') {
-        hostCreateRetries++;
-        // 이전 호스트가 복귀하는 경우: 새 호스트가 이미 운영 중이면 클라이언트로 폴백
-        if (isRecover && hostCreateRetries >= 3) {
-          const savedGs = loadGameState();
-          if (savedGs && savedGs.designatedNextHost) {
-            // 다른 클라이언트가 새 호스트로 승격됨 → 클라이언트로 폴백
-            // roomId는 CGv4-XXXX 유지 — promoteToHost()가 CGv4-XXXX를 취득하므로
-            hostCreateRetries = 0;
-            isHost = false;
-            setLobbyStatus('새 호스트에 접속 중...', '');
-            saveSession();
-            switchTab('join');
-            joinAsClient(fallbackPrevId);
-            return;
-          }
-          // designatedNextHost가 없음 = 혼자 병기 중 또는 클라이언트가 아직 없음
-          // → 폴백 안 하고 호스트 ID 해제를 계속 기다림 (fall through)
-        }
-        if (hostCreateRetries < 10) {
-          const wait = Math.min(3000 + hostCreateRetries * 2000, 10000);
-          const sec = Math.ceil(wait / 1000);
-          setLobbyStatus(`이전 연결 해제 대기 중... (${hostCreateRetries}/10, ${sec}초 후 재시도)`, '');
-          hostRetryTimer = setTimeout(() => becomeHost(isRecover || true, fallbackPrevId), wait);
+    probePeer.on('error', () => { clearTimeout(overallTimeout); _probeDone(false); });
+  }
+
+  function _acquireHostId() {
+    if (peer && !peer.destroyed) { try { peer.destroy(); } catch(e) {} }
+    const delay = hostCreateRetries > 0 ? 300 : 0;
+    setTimeout(() => {
+      peer = new Peer(roomId, { debug: 0 });
+      peer.on('open', () => {
+        hostCreateRetries = 0;
+        myId = roomId;
+        isHost = true;
+        gameState.hostPeerId = myId;
+        if (!isRecover) {
+          gameState.players[myId] = { nick: myNick, score: 0, online: true };
+          gameState.totalRounds = selectedRounds;
         } else {
-          hostCreateRetries = 0;
-          setLobbyStatus('방 생성 실패. 이전 연결이 아직 해제되지 않았습니다. 잠시 후 다시 시도하거나 다른 방 코드를 사용하세요.', 'error');
+          const saved = loadGameState();
+          if (saved && saved.players) {
+            Object.assign(gameState, saved);
+            Object.keys(gameState.players).forEach(pid => {
+              if (pid !== myId) gameState.players[pid].online = false;
+            });
+          }
+          if (gameState.players[myId]) gameState.players[myId].online = true;
+          else gameState.players[myId] = { nick: myNick, score: 0, online: true };
         }
-      } else {
-        setLobbyStatus('방 코드 충돌 또는 오류. 다른 코드를 사용하세요.', 'error');
-      }
-    });
-    peer.on('disconnected', () => {
-      // PeerJS 서버 연결 끊김 시 자동 재연결 시도
-      if (isHost && peer && !peer.destroyed) {
-        try { peer.reconnect(); } catch(e) {}
-      }
-    });
-  }, delay);
+        saveSession();
+        showGameUI();
+        attachHostListeners();
+        if (isRecover) broadcast();
+      });
+      peer.on('error', e => {
+        if (e.type === 'unavailable-id' || e.type === 'peer-unavailable') {
+          hostCreateRetries++;
+          if (hostCreateRetries < 8) {
+            // 대기 후 다시 probe — 그 사이 새 호스트가 올라왔을 수 있음
+            const wait = Math.min(800 + hostCreateRetries * 800, 4000);
+            const sec = Math.ceil(wait / 1000);
+            setLobbyStatus(`이전 연결 해제 대기 중... (${hostCreateRetries}/8, ${sec}초 후 재시도)`, '');
+            hostRetryTimer = setTimeout(() => {
+              if (isRecover) _probeRoom(); else _acquireHostId();
+            }, wait);
+          } else {
+            hostCreateRetries = 0;
+            setLobbyStatus('방 생성 실패. 이전 연결이 아직 해제되지 않았습니다. 잠시 후 다시 시도하거나 다른 방 코드를 사용하세요.', 'error');
+          }
+        } else {
+          setLobbyStatus('방 코드 충돌 또는 오류. 다른 코드를 사용하세요.', 'error');
+        }
+      });
+      peer.on('disconnected', () => {
+        if (isHost && peer && !peer.destroyed) {
+          try { peer.reconnect(); } catch(e) {}
+        }
+      });
+    }, delay);
+  }
 }
 
 function attachHostListeners() {
@@ -1954,7 +1914,12 @@ function joinAsClient(prevPeerId) {
       ok = true; conn = c;
       clientRetries = 0;
       conn.on('data', d => handleData(d, 'host'));
-      conn.on('close', () => showReconnectBanner());
+      conn.on('close', () => {
+        // 호스트가 나갔을 때: 클라이언트 상태를 명시적으로 participant로 보장 후 세션 저장
+        isHost = false;
+        saveSession();
+        showReconnectBanner();
+      });
       if (_prevId && _prevId !== myId) {
         conn.send({ type: 'rejoin', nick: myNick, peerId: myId, prevPeerId: _prevId });
       } else {
@@ -1978,14 +1943,27 @@ function retryJoinAsClient(prevId) {
   // 이미 재시도 타이머가 있으면 중복 방지
   if (clientRetryTimer) return;
   clientRetries++;
-  if (clientRetries <= 8) {
+  if (clientRetries <= 12) {
     const wait = Math.min(2000 + clientRetries * 1000, 5000);
     const sec = Math.ceil(wait / 1000);
-    setLobbyStatus('호스트 접속 대기 중... (' + clientRetries + '/8, ' + sec + '초 후 재시도)', '');
+    const inGame = document.getElementById('game-ui').style.display !== 'none';
+    if (inGame) {
+      // 게임 화면에서는 toast로 피드백
+      if (clientRetries <= 2 || clientRetries % 3 === 0) {
+        showToast(`🔄 호스트 재접속 대기 중... (${clientRetries}/12)`, 'info');
+      }
+    } else {
+      setLobbyStatus('호스트 접속 대기 중... (' + clientRetries + '/12, ' + sec + '초 후 재시도)', '');
+    }
     clientRetryTimer = setTimeout(function() { joinAsClient(prevId); }, wait);
   } else {
     clientRetries = 0;
-    setLobbyStatus('방을 찾을 수 없습니다. 호스트가 아직 접속하지 않았거나 방 코드를 확인하세요.', 'error');
+    const inGame = document.getElementById('game-ui').style.display !== 'none';
+    if (inGame) {
+      showToast('🚫 호스트를 찾을 수 없습니다. 방이 종료되었을 수 있습니다.', 'error');
+    } else {
+      setLobbyStatus('방을 찾을 수 없습니다. 호스트가 아직 접속하지 않았거나 방 코드를 확인하세요.', 'error');
+    }
   }
 }
 
@@ -2023,6 +2001,10 @@ function handleData(data, fromId) {
       if (gameState.currentTurnIdx !== prevTurnIdx || gameState.phase !== prevPhase) {
         startClientTimer();
       }
+    }
+    // 페이즈 변경 시 세션 저장 — localStorage와 UI 상태를 동기화
+    if (!isHost && gameState.phase !== prevPhase) {
+      saveSession();
     }
     saveGameState();
     renderAll();
@@ -2155,7 +2137,7 @@ function handleData(data, fromId) {
     gameState.lastEncResult = data.finalResult;
     gameState.currentKeys = keys || {};
     gameState.clueSet = methods.length >= 2
-      ? [...methods]  // 버튼 선택 순서 그대로 유지 (정렬 없음)
+      ? [...methods].sort((a, b) => a - b)  // UI 표시 순서 (키 순서→애너그램→카이사르→스키테일)
       : [];
     gameState.guessResults = {};
     gameState.phase = 'guessing';
@@ -2423,14 +2405,14 @@ function renderEncSteps() {
   if (encStepMethods[0]) {
     const m = METHODS[encStepMethods[0]];
     document.getElementById('step1-method-name').textContent = `1단계 ${m.name}`;
-    document.getElementById('step1-method-name').style.color = m.color;
+    document.getElementById('step1-method-name').style.color = '';
     document.getElementById('enc-input-1').placeholder = `${m.name} 암호화 결과`;
     renderKeyInput(0, encStepMethods[0]);
   }
   if (encStepMethods[1]) {
     const m = METHODS[encStepMethods[1]];
     document.getElementById('step2-method-name').textContent = `2단계 ${m.name}`;
-    document.getElementById('step2-method-name').style.color = m.color;
+    document.getElementById('step2-method-name').style.color = '';
     document.getElementById('enc-input-2').placeholder = `${m.name} 암호화 결과`;
     renderKeyInput(1, encStepMethods[1]);
   }
@@ -2909,7 +2891,6 @@ function renderCenter() {
       const keyVal = (_keys[mId] !== undefined && _keys[mId] !== null) ? _keys[mId] : '?';
       const chip = document.createElement('div');
       chip.className = 'hint-chip';
-      chip.style.cssText = `background:${m.color}15;border:1.5px solid ${m.color};color:${m.color}`;
       chip.textContent = `키: ${keyVal}`;
       hints.appendChild(chip);
     } else {
@@ -2920,7 +2901,6 @@ function renderCenter() {
         const lbl = _keyLabels[mId] || 'KEY';
         const chip = document.createElement('div');
         chip.className = 'hint-chip';
-        chip.style.cssText = `background:${m.color}15;border:1.5px solid ${m.color};color:${m.color}`;
         chip.textContent = `${m.name} ${lbl}: ${keyVal}`;
         hints.appendChild(chip);
       });
@@ -2931,7 +2911,7 @@ function renderCenter() {
     let resultText = gameState.currentRaw || '';
     if (gameState.currentRaw && !gameState.currentRaw.startsWith('⏰')) {
       if (gameState.currentEncSteps && gameState.currentEncSteps.length >= 2) {
-        resultText = `원본: "${gameState.currentRaw}" → 1차: "${gameState.currentEncSteps[0].result}" → 최종: "${gameState.lastEncResult || '?'}"`;
+        resultText = `최종: "${gameState.lastEncResult || '?'}" ← 1차: "${gameState.currentEncSteps[0].result}" ← 원본: "${gameState.currentRaw}"`;
       } else {
         resultText = `암호: "${gameState.lastEncResult || '?'}" → 원본: "${gameState.currentRaw}"`;
       }
@@ -3093,14 +3073,19 @@ window.addEventListener('resize', () => {
 // ════════════════════════════════════════
 //  SESSION RECOVERY
 // ════════════════════════════════════════
-const SESSION_KEY = 'enc_game_session';
+// 호스트와 클라이언트가 같은 키를 덮어쓰지 않도록 분리
+const SESSION_KEY_HOST   = 'enc_game_session_host';
+const SESSION_KEY_CLIENT = 'enc_game_session_client';
 const GAMESTATE_KEY = 'enc_game_state';
 
 function saveSession() {
   try {
-    localStorage.setItem(SESSION_KEY, JSON.stringify({
-      nick: myNick, roomId, peerId: myId, isHost, ts: Date.now()
-    }));
+    const data = JSON.stringify({ nick: myNick, roomId, peerId: myId, isHost, ts: Date.now() });
+    if (isHost) {
+      localStorage.setItem(SESSION_KEY_HOST, data);
+    } else {
+      localStorage.setItem(SESSION_KEY_CLIENT, data);
+    }
   } catch(e) {}
 }
 
@@ -3123,14 +3108,20 @@ function clearGameState() {
 }
 
 function clearSession() {
-  try { localStorage.removeItem(SESSION_KEY); } catch(e) {}
+  try {
+    localStorage.removeItem(SESSION_KEY_HOST);
+    localStorage.removeItem(SESSION_KEY_CLIENT);
+  } catch(e) {}
   // gameState는 유지 — 새 호스트 ID(designatedNextHost) 참조에 필요
   // 게임이 완전히 종료될 때만 clearGameState() 별도 호출
 }
 
 function loadSession() {
   try {
-    const raw = localStorage.getItem(SESSION_KEY);
+    // lobbyMode 기반으로 적절한 키 우선 읽기 (호스트 탭은 호스트 세션, 클라이언트 탭은 클라이언트 세션)
+    const hostRaw   = localStorage.getItem(SESSION_KEY_HOST);
+    const clientRaw = localStorage.getItem(SESSION_KEY_CLIENT);
+    const raw = (lobbyMode === 'host') ? (hostRaw || clientRaw) : (clientRaw || hostRaw);
     if (!raw) return null;
     const s = JSON.parse(raw);
     if (Date.now() - s.ts > 30 * 60 * 1000) { clearSession(); return null; }
@@ -3167,19 +3158,18 @@ function showReconnectBanner() {
   const gameStarted = gameState.status === 'playing';
 
   if (!gameStarted) {
-    // ── 게임 시작 전: 호스트 이탈 → 방 폭파, 모두 로비로 ──────────────────
-    // 경쟁적 ID 취득 없이, 원 호스트가 복귀하면 새 방을 열게 두는 것이 가장 안전
-    showToast('🚫 호스트가 방을 나갔습니다. 로비로 돌아갑니다...', 'error');
-    clearSession();
-    clearGameState();
-    setTimeout(() => location.reload(), 2500);
+    // ── 게임 시작 전: 호스트 이탈 → 재접속 대기 (localStorage 훼손 방지) ──
+    showToast('⏳ 호스트 연결이 끊겼습니다. 재접속을 기다립니다...', 'info');
+    const _myIdBeforeDisconnect = myId;
+    setTimeout(function() { joinAsClient(_myIdBeforeDisconnect); }, 2000);
     return;
   }
 
   // ── 게임 진행 중: 호스트 인계 또는 재접속 ──────────────────────────────
   if (nextHostId && myId === nextHostId) {
-    // 내가 지정된 다음 호스트 → 5초 대기 후 승격 (원 호스트 복귀 여부 확인)
+    // 내가 지정된 다음 호스트 → 8초 대기 후 probe 3회 (최대 ~30초) → 원 호스트 미복귀 시 승격
     showToast('⏳ 호스트 연결이 끊겼습니다. 복귀를 기다립니다...', 'info');
+    clientRetries = 0; // 재접속 카운터 초기화 (이전 시도와 독립)
     let waited = 0;
     const _savedRoomId = roomId;
     const _myId = myId;
@@ -3206,11 +3196,12 @@ function showReconnectBanner() {
       });
       testPeer.on('error', () => { setTimeout(checkHostReturn, 4000); });
     }
-    setTimeout(checkHostReturn, 5000);
+    setTimeout(checkHostReturn, 8000);
   } else if (nextHostId) {
     // 다른 플레이어가 새 호스트로 승격 → 방코드(CGv4-XXXX)로 재접속
     showToast('🔄 호스트가 바뀌었습니다. 잠시 후 재접속합니다...', 'info');
     saveSession();
+    clientRetries = 0; // 충분한 재시도 횟수 확보
     const _myIdAtDisconnect = myId;
     setTimeout(function() { joinAsClient(_myIdAtDisconnect); }, 1800);
   } else {
@@ -3294,6 +3285,7 @@ function promoteToHost() {
     peer = new Peer(oldHostId, { debug: 0 });
     peer.on('open', () => {
       myId = oldHostId;
+      gameState.hostPeerId = oldHostId;
       saveSession();
       showToast('👑 호스트 역할을 인계받았습니다!', 'success');
       attachHostListeners();
@@ -3348,8 +3340,13 @@ window.addEventListener('beforeunload', () => {
 switchTab('host');
 
 (function checkRecovery() {
-  const s = loadSession();
-  if (!s) return;
+  // 호스트 세션 우선 확인 (더 중요), 없으면 클라이언트 세션 확인
+  const hostRaw   = localStorage.getItem('enc_game_session_host');
+  const clientRaw = localStorage.getItem('enc_game_session_client');
+  const raw = hostRaw || clientRaw;
+  if (!raw) return;
+  let s; try { s = JSON.parse(raw); } catch(e) { return; }
+  if (!s || Date.now() - s.ts > 30 * 60 * 1000) return;
   // 폼 필드 자동 채우기 + 올바른 탭으로 전환
   document.getElementById('user-nick').value = s.nick;
   document.getElementById('room-id').value = s.roomId.replace(/^CGv4-/, '');
