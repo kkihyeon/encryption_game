@@ -1,0 +1,3390 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>암호화 대전 게임</title>
+<script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+:root {
+  --bg: #f9fafb;
+  --surface: #ffffff;
+  --surface2: #f2f4f6;
+  --border: #e5e8eb;
+  --border2: #c9cdd2;
+  --text: #191f28;
+  --text2: #333d4b;
+  --text3: #8b95a1;
+  --accent: #3182f6;
+  --accent2: #1b64da;
+  --gold: #f0a918;
+  --silver: #6b7684;
+  --bronze: #b36b00;
+  --active: #3182f6;
+  --active-bg: rgba(49,130,246,0.08);
+  --radius: 12px;
+  --radius-lg: 16px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow: 0 4px 16px rgba(0,0,0,0.08);
+}
+
+.mono { font-family: 'Pretendard', sans-serif; font-weight: 700; }
+
+body {
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* scanline removed */
+
+/* ── LOBBY ── */
+#lobby {
+  position: fixed; inset: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: center;
+  background: radial-gradient(ellipse at 50% 40%, #dbeafe 0%, #f0f4f8 65%);
+}
+
+.lobby-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 48px 44px;
+  width: 500px;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.10);
+}
+
+.lobby-title {
+  text-align: center;
+  margin-bottom: 36px;
+}
+.lobby-title h1 {
+  font-family: 'Pretendard', sans-serif;
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  color: var(--accent);
+}
+.lobby-title p {
+  font-size: 15px;
+  color: var(--text3);
+  margin-top: 8px;
+  letter-spacing: 0;
+  font-weight: 400;
+}
+
+.divider {
+  height: 1px;
+  background: var(--border);
+  margin: 20px 0;
+}
+
+.field-group { margin-bottom: 18px; }
+.field-group label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0;
+  color: var(--text2);
+  margin-bottom: 8px;
+}
+.field-group input, .field-group select {
+  width: 100%;
+  background: var(--surface2);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  padding: 14px 16px;
+  font-size: 16px;
+  font-family: 'Pretendard', sans-serif;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+}
+.field-group input:focus, .field-group select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(49,130,246,0.12);
+  background: var(--surface);
+}
+.field-group select option { background: #ffffff; }
+
+.round-row { display: flex; gap: 8px; align-items: center; }
+.round-badge {
+  flex: 1; padding: 11px; text-align: center;
+  background: var(--surface2); border: 1.5px solid var(--border);
+  border-radius: var(--radius); cursor: pointer; font-size: 17px; font-weight: 700;
+  transition: all 0.15s; color: var(--text2);
+}
+.round-badge:hover { border-color: var(--accent); color: var(--accent); background: var(--active-bg); }
+.round-badge.active { background: var(--active-bg); border-color: var(--active); color: var(--active); }
+
+.btn-primary {
+  width: 100%; padding: 16px;
+  background: var(--accent);
+  border: none; border-radius: var(--radius);
+  color: #fff; font-weight: 700; font-size: 16px;
+  letter-spacing: 0.5px; cursor: pointer;
+  transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+  margin-top: 8px;
+  font-family: 'Pretendard', sans-serif;
+  box-shadow: 0 4px 12px rgba(49,130,246,0.25);
+}
+.btn-primary:hover { background: var(--accent2); box-shadow: 0 6px 16px rgba(49,130,246,0.3); }
+.btn-primary:active { transform: scale(0.98); }
+
+.lobby-status {
+  margin-top: 14px; text-align: center;
+  font-size: 13px; color: var(--text3);
+  letter-spacing: 0; min-height: 20px;
+}
+
+.role-tabs {
+  display: flex; gap: 0; margin-bottom: 20px;
+  border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden;
+}
+.role-tab {
+  flex: 1; padding: 12px; text-align: center;
+  cursor: pointer; font-size: 15px; font-weight: 600;
+  color: var(--text2); background: transparent;
+  transition: all 0.15s; letter-spacing: 0;
+  border: none; font-family: 'Pretendard', sans-serif;
+}
+.role-tab:first-child { border-right: 1px solid var(--border); }
+.role-tab.active { background: var(--active-bg); color: var(--active); }
+
+/* ── GAME UI ── */
+#game-ui { display: none; height: 100vh; flex-direction: column; }
+
+/* Header */
+.hdr {
+  display: flex; align-items: stretch;
+  border-bottom: 1px solid var(--border);
+  height: 60px; flex-shrink: 0;
+  background: var(--surface);
+}
+.hdr-left {
+  display: flex; align-items: center;
+  padding: 0 20px; gap: 12px;
+  border-right: 1px solid var(--border);
+  min-width: 180px;
+}
+.hdr-title {
+  font-family: 'Pretendard', sans-serif;
+  font-size: 17px; font-weight: 800; letter-spacing: 1.5px;
+  color: var(--accent);
+}
+.hdr-center {
+  display: flex; align-items: center; justify-content: center;
+  flex: 1; gap: 24px;
+}
+.hdr-stat {
+  text-align: center;
+}
+.hdr-stat-label {
+  font-size: 11px; letter-spacing: 0.5px; color: var(--text3);
+  display: block; margin-bottom: 2px; font-weight: 500;
+}
+.hdr-stat-value {
+  font-family: 'Pretendard', sans-serif;
+  font-size: 20px; font-weight: 700;
+  color: var(--accent);
+}
+.timer-urgent { color: #ff5a5a !important; animation: blink 1s infinite; }
+@keyframes blink { 0%,100%{opacity:1}50%{opacity:0.5} }
+
+.hdr-right {
+  display: flex; align-items: center; gap: 12px;
+  padding: 0 20px;
+  border-left: 1px solid var(--border);
+}
+
+/* Main layout */
+.main-layout {
+  display: flex; flex: 1; overflow: hidden;
+}
+
+/* Side panel */
+.side-panel {
+  width: 230px; flex-shrink: 0;
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  background: var(--surface);
+  overflow-y: auto;
+}
+
+.panel-header {
+  padding: 10px 16px;
+  font-size: 11px; font-weight: 700; letter-spacing: 1.5px; color: var(--text3);
+  border-bottom: 1px solid var(--border);
+  text-align: center; text-transform: uppercase;
+}
+
+/* Player card - bigger, more readable */
+.player-card {
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(38,51,84,0.5);
+  display: flex; align-items: center; gap: 12px;
+  transition: background 0.2s;
+}
+.player-card.current-turn {
+  background: rgba(26,127,212,0.08);
+  border-left: 3px solid var(--accent);
+}
+.player-card.current-turn .player-name {
+  color: var(--accent2);
+}
+.player-card.ghost { opacity: 0.25; }
+
+.player-avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 15px; flex-shrink: 0;
+  background: rgba(49,130,246,0.08);
+  color: var(--accent); border: 1.5px solid var(--border);
+  position: relative;
+}
+.player-avatar.is-turn {
+  background: var(--active-bg);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(26,127,212,0.25);
+  animation: turnGlow 1.5s infinite;
+}
+.player-avatar.is-guessing {
+  background: rgba(245,200,66,0.15);
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(245,200,66,0.2);
+  color: var(--gold);
+  animation: guessGlow 1.5s infinite;
+}
+@keyframes turnGlow {
+  0%,100% { box-shadow: 0 0 0 3px rgba(26,127,212,0.25); }
+  50% { box-shadow: 0 0 0 6px rgba(26,127,212,0.15); }
+}
+@keyframes guessGlow {
+  0%,100% { box-shadow: 0 0 0 3px rgba(245,200,66,0.2); }
+  50% { box-shadow: 0 0 0 6px rgba(245,200,66,0.1); }
+}
+
+.player-info-block { flex: 1; min-width: 0; }
+.player-name {
+  font-size: 14px; font-weight: 700;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  color: var(--text);
+}
+.player-score-line {
+  font-family: 'Pretendard', sans-serif;
+  font-size: 12px; color: var(--text3); margin-top: 2px;
+}
+.player-turn-badge {
+  font-size: 11px; font-weight: 700; letter-spacing: 0;
+  padding: 3px 8px; border-radius: 20px;
+  background: var(--active-bg); color: var(--active);
+  border: 1px solid rgba(49,130,246,0.2);
+  white-space: nowrap;
+}
+.player-turn-badge.guessing {
+  background: rgba(245,200,66,0.15); color: var(--gold);
+  border-color: rgba(245,200,66,0.3);
+}
+
+/* Center */
+.center-area {
+  flex: 1; display: flex; flex-direction: column;
+  overflow: hidden; position: relative;
+}
+
+/* Phase banner */
+.phase-banner {
+  padding: 10px 24px; text-align: center;
+  font-size: 13px; font-weight: 700; letter-spacing: 1px;
+  border-bottom: 1px solid var(--border);
+}
+.phase-banner.encoding { background: rgba(26,127,212,0.1); color: var(--accent2); }
+.phase-banner.guessing { background: rgba(245,200,66,0.1); color: var(--gold); }
+.phase-banner.waiting { background: rgba(90,112,149,0.1); color: var(--text3); }
+.phase-banner.roundend { background: rgba(34,197,94,0.12); color: #15803d; }
+
+/* Cipher display */
+.cipher-overlay {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 16px; padding: 24px; pointer-events: none;
+}
+.cipher-box {
+  background: rgba(26,127,212,0.03);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px 36px;
+  text-align: center;
+  max-width: 640px; width: 100%;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+.cipher-box.active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(26,127,212,0.12);
+}
+.cipher-box label {
+  font-size: 16px; font-weight: 700; letter-spacing: 3px;
+  color: var(--text3); display: block; margin-bottom: 12px;
+}
+.cipher-text {
+  font-family: 'Pretendard', sans-serif;
+  font-size: 28px; color: var(--accent2);
+  word-break: break-all; line-height: 1.7;
+}
+.cipher-text.muted { color: var(--text3); font-size: 21px; }
+
+.method-hints {
+  display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;
+}
+.hint-chip {
+  padding: 6px 16px; border-radius: 20px;
+  font-size: 19px; font-weight: 700; letter-spacing: 1px;
+  border: 1.5px solid var(--border2);
+}
+
+/* Toolbar */
+.toolbar {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 16px; border-bottom: 1px solid var(--border);
+  background: var(--surface); flex-shrink: 0;
+  flex-wrap: wrap;
+}
+.tool-btn {
+  background: rgba(26,127,212,0.04);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text2); padding: 6px 14px;
+  font-size: 18px; cursor: pointer; letter-spacing: 1px;
+  transition: all 0.15s; font-family: 'Pretendard', sans-serif;
+}
+.tool-btn.active { background: var(--active-bg); border-color: var(--active); color: var(--active); }
+.tool-btn:hover:not(.active) { border-color: var(--border2); color: var(--text); }
+.color-dot {
+  width: 20px; height: 20px; border-radius: 50%;
+  cursor: pointer; border: 2px solid transparent;
+  transition: border-color 0.15s; flex-shrink: 0;
+}
+.color-dot.selected { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
+.spacer { flex: 1; }
+
+/* Canvas */
+.canvas-wrapper {
+  position: relative; flex: 1; width: 100%; min-height: 0;
+}
+#shared-canvas {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  touch-action: none; cursor: crosshair;
+}
+
+/* Action area */
+.action-area {
+  border-top: 1px solid var(--border);
+  background: var(--surface); padding: 16px 20px;
+  flex-shrink: 0;
+}
+
+/* Encoding UI */
+.enc-ui { display: none; }
+.enc-ui.visible { display: block; }
+
+.section-label {
+  font-size: 13px; font-weight: 700; letter-spacing: 0.5px;
+  color: var(--text3); text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.enc-error-msg {
+  display: none;
+  background: #fff1f0;
+  border: 1.5px solid #ff4d4f;
+  border-radius: 10px;
+  color: #cf1322;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px 14px;
+  margin-bottom: 10px;
+  animation: errShake 0.3s ease;
+}
+@keyframes errShake {
+  0%,100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  60% { transform: translateX(6px); }
+}
+
+
+.key-reveal {
+  background: #f0f7ff;
+  border: 1.5px solid #bfdaff;
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin-bottom: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.key-reveal-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--text3);
+  text-transform: uppercase;
+  width: 100%;
+  margin-bottom: 2px;
+}
+.key-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 700;
+  border: 1.5px solid;
+}
+.key-chip.m1 { background: rgba(255,107,53,0.08); border-color: #ff6b35; color: #ff6b35; }
+.key-chip.m2 { background: rgba(168,85,247,0.08); border-color: #a855f7; color: #a855f7; }
+.key-chip.m3 { background: rgba(34,197,94,0.08);  border-color: #22c55e; color: #22c55e; }
+.key-chip.m4 { background: rgba(77,166,255,0.08);  border-color: #4da6ff; color: #4da6ff; }
+.key-chip .key-val {
+  font-family: 'Pretendard', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.enc-step {
+  display: flex; align-items: stretch; gap: 8px; margin-bottom: 10px;
+}
+.enc-label {
+  background: rgba(26,127,212,0.04);
+  border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 0 14px; display: flex; align-items: center;
+  font-size: 17px; font-weight: 700; letter-spacing: 2px;
+  color: var(--text3); white-space: nowrap;
+  min-width: 72px; justify-content: center;
+}
+.enc-input {
+  flex: 1; background: var(--surface2);
+  border: 1.5px solid var(--border); border-radius: var(--radius);
+  color: var(--text); padding: 10px 16px; font-size: 16px;
+  font-family: 'Pretendard', sans-serif; outline: none;
+  transition: border-color 0.2s, background 0.2s;
+}
+.enc-input:focus { border-color: var(--accent); }
+.enc-input::placeholder { color: var(--text3); font-size: 19px; }
+
+.method-grid { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.method-btn {
+  padding: 8px 16px; border: 1.5px solid; border-radius: var(--radius);
+  font-size: 19px; font-weight: 700; cursor: pointer;
+  transition: all 0.15s; background: rgba(26,127,212,0.03);
+  font-family: 'Pretendard', sans-serif;
+}
+.method-btn:hover { transform: translateY(-1px); opacity: 0.9; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+.method-btn.m1 { border-color: #ff6b35; color: #ff6b35; }
+.method-btn.m2 { border-color: #a855f7; color: #a855f7; }
+.method-btn.m3 { border-color: #22c55e; color: #22c55e; }
+.method-btn.m4 { border-color: #4da6ff; color: #4da6ff; }
+.method-btn.selected.m1 { background: #ff6b35; color: #fff; }
+.method-btn.selected.m2 { background: #a855f7; color: #fff; }
+.method-btn.selected.m3 { background: #22c55e; color: #000; }
+.method-btn.selected.m4 { background: #4da6ff; color: #000; }
+
+.step-arrow { color: var(--text3); font-size: 24px; padding: 0 6px; display: flex; align-items: center; }
+
+.btn-row { display: flex; gap: 10px; align-items: center; margin-top: 6px; }
+.btn-action {
+  padding: 11px 28px; border: none; border-radius: var(--radius);
+  font-weight: 700; font-size: 20px; letter-spacing: 1px;
+  cursor: pointer; transition: all 0.15s;
+  font-family: 'Pretendard', sans-serif;
+}
+.btn-action.blue { background: var(--accent); color: #fff; box-shadow: 0 4px 12px rgba(49,130,246,0.25); }
+.btn-action.gold { background: var(--gold); color: #fff; box-shadow: 0 4px 12px rgba(240,169,24,0.25); }
+.btn-action:hover { opacity: 0.9; transform: translateY(-1px); }
+.btn-action:active { transform: scale(0.97); }
+.btn-action:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
+
+/* Guessing UI */
+.guess-ui { display: none; }
+.guess-ui.visible { display: block; }
+
+.guess-steps { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+.guess-step { display: flex; gap: 8px; align-items: center; }
+.step-num {
+  width: 26px; height: 26px; border-radius: 50%;
+  background: var(--border); display: flex; align-items: center;
+  justify-content: center; font-size: 17px; font-weight: 700;
+  flex-shrink: 0; color: var(--text2);
+}
+.guess-method-row { display: flex; gap: 6px; flex-wrap: wrap; }
+.guess-m-btn {
+  padding: 6px 14px; border: 1.5px solid; border-radius: 6px;
+  font-size: 19px; font-weight: 700; cursor: pointer;
+  background: rgba(26,127,212,0.03); transition: all 0.1s;
+  font-family: 'Pretendard', sans-serif;
+}
+.guess-m-btn.m1 { border-color: #ff6b35; color: #ff6b35; }
+.guess-m-btn.m2 { border-color: #a855f7; color: #a855f7; }
+.guess-m-btn.m3 { border-color: #22c55e; color: #22c55e; }
+.guess-m-btn.m4 { border-color: #4da6ff; color: #4da6ff; }
+.guess-m-btn.sel.m1 { background: #ff6b35; color: #fff; }
+.guess-m-btn.sel.m2 { background: #a855f7; color: #fff; }
+.guess-m-btn.sel.m3 { background: #22c55e; color: #000; }
+.guess-m-btn.sel.m4 { background: #4da6ff; color: #000; }
+
+/* Waiting UI */
+.wait-ui { display: none; }
+.wait-ui.visible { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.wait-text { font-size: 21px; color: var(--text2); text-align: center; }
+.reaction-btns { display: flex; gap: 10px; }
+.reaction-btn {
+  background: rgba(26,127,212,0.05); border: 1px solid var(--border);
+  border-radius: 20px; padding: 8px 16px; font-size: 24px; cursor: pointer;
+  transition: all 0.15s;
+}
+.reaction-btn:hover { background: rgba(26,127,212,0.12); transform: scale(1.15); }
+
+.floating-reaction {
+  position: fixed; font-size: 36px;
+  animation: floatUp 2s ease-out forwards;
+  pointer-events: none; z-index: 9998;
+}
+@keyframes floatUp {
+  0% { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(-160px) scale(1.5); }
+}
+
+/* Host button */
+.host-btn {
+  background: var(--active-bg); border: 1px solid var(--accent);
+  border-radius: var(--radius); color: var(--accent);
+  padding: 8px 20px; font-size: 19px; font-weight: 700;
+  letter-spacing: 1px; cursor: pointer; transition: all 0.15s;
+  font-family: 'Pretendard', sans-serif;
+}
+.host-btn:hover { background: rgba(26,127,212,0.15); }
+
+/* Ranking on side */
+.rank-item {
+  padding: 10px 16px;
+  border-bottom: 1px solid rgba(38,51,84,0.35);
+  display: flex; align-items: center; gap: 10px;
+}
+.rank-num { font-family: 'Pretendard', sans-serif; font-size: 19px; color: var(--text3); width: 18px; }
+.rank-num.gold { color: var(--gold); }
+.rank-num.silver { color: var(--silver); }
+.rank-num.bronze { color: var(--bronze); }
+
+/* Game Over */
+#game-over {
+  display: none; position: fixed; inset: 0; z-index: 200;
+  background: rgba(236,242,248,0.97);
+  align-items: center; justify-content: center;
+}
+.go-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 52px 48px;
+  text-align: center; max-width: 520px; width: 90%;
+  box-shadow: 0 4px 40px rgba(26,127,212,0.12);
+}
+.go-title {
+  font-family: 'Pretendard', sans-serif;
+  font-size: 32px; letter-spacing: 6px;
+  color: var(--accent); margin-bottom: 36px;
+}
+.go-winner { font-size: 28px; font-weight: 900; letter-spacing: 2px; margin-bottom: 28px; }
+.go-ranking { text-align: left; background: rgba(26,127,212,0.03); border-radius: var(--radius); padding: 20px; margin-bottom: 28px; }
+.go-ranking h3 { font-size: 17px; font-weight: 700; letter-spacing: 3px; color: var(--text3); margin-bottom: 16px; text-transform: uppercase; }
+.go-rank-item {
+  display: flex; align-items: center; gap: 14px;
+  padding: 10px 0; border-bottom: 1px solid var(--border);
+}
+.go-rank-item:last-child { border-bottom: none; }
+
+/* Toast */
+.toast {
+  position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+  background: var(--surface); border: 1.5px solid var(--border);
+  border-radius: 12px; padding: 14px 22px;
+  font-size: 14px; font-weight: 600;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  z-index: 9000; animation: toastIn 0.3s ease;
+  min-width: 240px; text-align: center;
+  pointer-events: none;
+}
+.toast.success { border-color: #22c55e; color: #15803d; }
+.toast.error { border-color: #ff5a5a; color: #ff8080; }
+.toast.info { border-color: var(--accent); color: var(--accent2); }
+@keyframes toastIn {
+  from { opacity:0; transform: translateX(-50%) translateY(-8px); }
+  to { opacity:1; transform: translateX(-50%) translateY(0); }
+}
+
+/* My badge */
+.my-badge {
+  display: inline-flex; align-items: center;
+  padding: 3px 10px; border-radius: 5px;
+  font-size: 17px; font-weight: 700; letter-spacing: 1px;
+  background: var(--active-bg); color: var(--active);
+  border: 1px solid rgba(26,127,212,0.3);
+  margin-left: 6px;
+}
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* Skytale hint display */
+.skytale-info {
+  font-size: 18px; color: var(--text3);
+  font-family: 'Pretendard', sans-serif;
+  margin-top: 6px;
+}
+
+/* Memo textarea */
+#memo-area {
+  display: none;
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  border: none; outline: none; resize: none;
+  padding: 20px 24px;
+  font-family: 'Pretendard', sans-serif;
+  font-size: 21px; line-height: 1.8;
+}
+#memo-area::placeholder { color: var(--text3); }
+
+/* ── GUIDE OVERLAY ── */
+#guide-overlay {
+  display: none; position: fixed; inset: 0; z-index: 300;
+  background: rgba(236,242,248,0.97);
+  flex-direction: column;
+}
+#guide-overlay.visible { display: flex; }
+.guide-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 32px; height: 60px; flex-shrink: 0;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+.guide-header-title {
+  font-family: 'Pretendard', sans-serif;
+  font-size: 22px; letter-spacing: 4px; color: var(--accent);
+}
+.guide-tabs {
+  display: flex; gap: 0;
+  border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden;
+}
+.guide-tab {
+  padding: 8px 20px; font-size: 19px; font-weight: 700; letter-spacing: 1px;
+  cursor: pointer; color: var(--text2); background: transparent;
+  border: none; transition: all 0.15s;
+  font-family: 'Pretendard', sans-serif;
+}
+.guide-tab:first-child { border-right: 1px solid var(--border); }
+.guide-tab.active { background: var(--active-bg); color: var(--active); }
+.guide-close-btn {
+  background: rgba(26,127,212,0.06); border: 1px solid var(--border);
+  border-radius: var(--radius); color: var(--text2);
+  padding: 8px 16px; font-size: 22px; cursor: pointer;
+  transition: all 0.15s; line-height: 1;
+}
+.guide-close-btn:hover { background: rgba(255,90,90,0.15); border-color: #ff5a5a; color: #ff8080; }
+.guide-body { flex: 1; overflow-y: auto; padding: 32px; }
+
+/* Game preview */
+.game-preview {
+  display: none; flex-direction: column; gap: 20px;
+  zoom: 1.25;
+}
+.game-preview.active { display: flex; }
+.preview-section {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 20px 24px;
+}
+.preview-section-title {
+  font-size: 17px; font-weight: 700; letter-spacing: 3px; color: var(--accent);
+  margin-bottom: 14px; text-transform: uppercase;
+}
+.preview-section p { font-size: 20px; color: var(--text2); line-height: 1.7; }
+.preview-section .callout-list { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; }
+.callout-item {
+  display: flex; gap: 12px; align-items: flex-start;
+  padding: 10px 14px; background: rgba(26,127,212,0.03);
+  border-radius: var(--radius); border-left: 3px solid var(--accent);
+}
+.callout-item-icon { font-size: 24px; flex-shrink: 0; margin-top: 1px; }
+.callout-item-desc { font-size: 19px; color: var(--text2); line-height: 1.6; }
+.callout-item-desc strong { color: var(--text); }
+
+/* Cipher guide */
+.cipher-guide { display: none; flex-direction: column; gap: 20px; zoom: 1.25; }
+.cipher-guide.active { display: flex; }
+.cipher-card {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 22px 26px;
+}
+.cipher-card-header { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+.cipher-card-badge {
+  padding: 4px 14px; border-radius: 20px;
+  font-size: 18px; font-weight: 700; letter-spacing: 2px;
+}
+.cipher-card-name { font-size: 24px; font-weight: 700; color: var(--text); }
+.cipher-card-desc { font-size: 20px; color: var(--text2); line-height: 1.7; margin-bottom: 12px; }
+.cipher-card-key { font-size: 19px; color: var(--text3); margin-bottom: 12px; }
+.cipher-card-key span { font-family: 'Pretendard', sans-serif; color: var(--accent2); }
+.cipher-example {
+  background: rgba(26,127,212,0.03); border-radius: var(--radius);
+  padding: 12px 16px; font-family: 'Pretendard', sans-serif;
+  font-size: 19px; color: var(--text2); line-height: 1.8;
+}
+.cipher-example .arrow { color: var(--text3); }
+
+/* ── ANNOTATED GAME GUIDE MOCK ── */
+.ann-wrap { display: flex; flex-direction: column; gap: 16px; }
+.ann-mock {
+  width: 100%; height: 520px; display: flex; flex-direction: column;
+  background: var(--bg); border: 1px solid var(--border2);
+  border-radius: var(--radius-lg); overflow: hidden;
+  pointer-events: none; user-select: none; position: relative;
+}
+.ann-mock-hdr {
+  height: 42px; flex-shrink: 0; display: flex; align-items: center;
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: 0 12px;
+}
+.ann-mock-logo {
+  flex: 0 0 25%; font-family: 'Pretendard', sans-serif;
+  font-size: 17px; letter-spacing: 3px; color: var(--accent);
+  white-space: nowrap; overflow: hidden; text-overflow: clip;
+}
+.ann-mock-stats {
+  flex: 0 0 50%; display: flex; align-items: center; justify-content: space-around;
+}
+.ann-mock-hdr-right { flex: 0 0 25%; }
+.ann-mock-stat { text-align: center; }
+.ann-sl { display: block; font-size: 15px; letter-spacing: 2px; color: var(--text3); }
+.ann-sv { font-family: 'Pretendard', sans-serif; font-size: 21px; font-weight: 700; color: var(--accent); }
+.ann-mock-body { flex: 1; display: flex; overflow: hidden; min-height: 0; }
+.ann-mock-side {
+  width: 22%; flex-shrink: 0; border-right: 1px solid var(--border);
+  background: var(--surface); overflow: hidden; display: flex; flex-direction: column;
+}
+.ann-mock-ph-hdr {
+  font-size: 13px; letter-spacing: 2px; color: var(--text3); font-weight: 700;
+  text-align: center; padding: 4px 6px; border-bottom: 1px solid rgba(38,51,84,0.5);
+  flex-shrink: 0;
+}
+.ann-mock-pc {
+  display: flex; align-items: center; gap: 5px; padding: 5px 6px;
+  border-bottom: 1px solid rgba(38,51,84,0.3); flex-shrink: 0;
+}
+.ann-mock-pc.encoder { background: rgba(26,127,212,0.06); border-left: 2.5px solid var(--accent); }
+.ann-mock-pc.guessing { border-left: 2.5px solid var(--gold); }
+.ann-mock-av {
+  width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0;
+  background: rgba(26,127,212,0.15); border: 1.5px solid var(--border2);
+  color: var(--accent); font-size: 15px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+.ann-mock-av.encoder { border-color: var(--accent); box-shadow: 0 0 5px rgba(26,127,212,0.5); }
+.ann-mock-av.guessing {
+  background: rgba(245,200,66,0.1); border-color: var(--gold);
+  color: var(--gold); box-shadow: 0 0 5px rgba(245,200,66,0.4);
+}
+.ann-mock-nm { font-size: 18px; font-weight: 700; color: var(--text); line-height: 1.2; }
+.ann-mock-sc { font-size: 16px; color: var(--text3); font-family: 'Pretendard', sans-serif; }
+.ann-mock-tbadge {
+  margin-left: auto; font-size: 13px; font-weight: 700; letter-spacing: 1px;
+  padding: 1px 5px; border-radius: 3px; white-space: nowrap; flex-shrink: 0;
+  background: var(--active-bg); color: var(--active); border: 1px solid rgba(26,127,212,0.2);
+}
+.ann-mock-tbadge.guessing {
+  background: rgba(245,200,66,0.1); color: var(--gold); border-color: rgba(245,200,66,0.2);
+}
+.ann-mock-rk-entry { font-size: 15px; color: var(--text2); padding: 3px 8px; flex-shrink: 0; }
+.ann-mock-col { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+.ann-mock-banner {
+  flex-shrink: 0; padding: 8px 12px; text-align: center;
+  font-size: 18px; font-weight: 700; letter-spacing: 1px;
+  border-bottom: 1px solid var(--border);
+}
+.ann-mock-banner.encoding { background: rgba(26,127,212,0.1); color: var(--accent2); }
+.ann-mock-banner.guessing { background: rgba(245,200,66,0.1); color: var(--gold); }
+.ann-mock-toolbar {
+  flex-shrink: 0; display: flex; align-items: center; gap: 4px;
+  padding: 5px 8px; border-bottom: 1px solid var(--border);
+  background: var(--surface); overflow: hidden;
+}
+.ann-mock-tbtn {
+  background: rgba(26,127,212,0.04); border: 1px solid var(--border);
+  border-radius: 4px; color: var(--text2); padding: 3px 7px;
+  font-size: 15px; cursor: default; white-space: nowrap; flex-shrink: 0;
+  font-family: 'Pretendard', sans-serif;
+}
+.ann-mock-tbtn.active { background: var(--active-bg); border-color: var(--active); color: var(--active); }
+.ann-vsep { width: 1px; height: 14px; background: var(--border); margin: 0 2px; flex-shrink: 0; }
+.ann-dot-c { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.ann-mock-spacer { flex: 1; min-width: 0; }
+.ann-mock-canvas {
+  flex: 1; position: relative; overflow: hidden;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+}
+.ann-mock-deco-svg {
+  position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none;
+}
+.ann-mock-cipher {
+  background: rgba(26,127,212,0.03); border: 1px solid var(--border);
+  border-radius: 8px; padding: 10px 20px; text-align: center;
+  z-index: 1; max-width: 80%;
+}
+.ann-mock-cl { font-size: 14px; letter-spacing: 2px; color: var(--text3); margin-bottom: 6px; }
+.ann-mock-ct {
+  font-family: 'Pretendard', sans-serif; font-size: 26px; font-weight: 700;
+  color: var(--accent2); letter-spacing: 2px;
+}
+.ann-mock-hints { display: flex; gap: 6px; z-index: 1; }
+.ann-mock-hchip {
+  padding: 4px 12px; border-radius: 12px; font-size: 18px; font-weight: 700; letter-spacing: 1px;
+  background: rgba(26,127,212,0.1); border: 1px solid rgba(26,127,212,0.3); color: var(--accent2);
+}
+.ann-mock-action {
+  flex-shrink: 0; border-top: 1px solid var(--border);
+  background: var(--surface); padding: 8px 10px;
+}
+.ann-mock-albl {
+  font-size: 14px; letter-spacing: 1.5px; color: var(--text3); font-weight: 700; margin-bottom: 6px;
+}
+.ann-mock-arow { display: flex; gap: 6px; align-items: center; overflow: hidden; }
+.ann-mock-order-chip {
+  font-size: 15px; font-weight: 700; padding: 3px 8px; border-radius: 4px; flex-shrink: 0;
+  background: rgba(26,127,212,0.1); border: 1px solid rgba(26,127,212,0.3); color: var(--accent2);
+}
+.ann-mock-ainput {
+  flex: 1; background: rgba(26,127,212,0.05); border: 1px solid var(--border);
+  border-radius: 4px; padding: 4px 8px; font-size: 15px; color: var(--text2);
+  font-family: 'Pretendard', sans-serif; min-width: 0; overflow: hidden;
+  text-overflow: ellipsis; white-space: nowrap;
+}
+.ann-mock-asub {
+  font-size: 15px; font-weight: 700; padding: 4px 10px; border-radius: 4px;
+  background: rgba(245,200,66,0.1); border: 1px solid rgba(245,200,66,0.3); color: var(--gold);
+  white-space: nowrap; flex-shrink: 0;
+}
+/* Annotation pins */
+.ann-pin {
+  position: absolute; width: 26px; height: 26px; border-radius: 50%;
+  background: var(--accent); color: #fff; font-size: 26px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 0 3px rgba(26,127,212,0.45), 0 2px 8px rgba(0,0,0,0.25);
+  transform: translate(-50%, -50%); z-index: 10; pointer-events: none;
+  font-family: 'Pretendard', sans-serif; line-height: 1;
+}
+/* 설명 그리드 — 게임 화면 아래 3열 */
+.ann-legend { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 0; }
+.ann-entry {
+  display: flex; gap: 12px; align-items: flex-start;
+  padding: 14px 16px; background: rgba(26,127,212,0.04);
+  border-radius: var(--radius); border-left: 2px solid var(--accent);
+}
+.ann-num {
+  width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0; margin-top: 1px;
+  background: var(--accent); color: #fff; font-family: 'Pretendard', sans-serif;
+  font-size: 26px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+.ann-entry-text { font-size: 19px; color: var(--text2); line-height: 1.55; }
+.ann-entry-text strong { color: var(--text); display: block; margin-bottom: 2px; }
+
+/* ── FLOW DIAGRAM ── */
+.flow-diagram {
+  display: flex; align-items: center; gap: 0;
+  overflow-x: auto; padding: 4px 0;
+}
+.flow-step {
+  flex: 1; min-width: 100px;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 16px 14px;
+  text-align: center; position: relative;
+}
+.flow-step.enc { border-top: 3px solid var(--accent); }
+.flow-step.guess { border-top: 3px solid var(--gold); }
+.flow-step.end { border-top: 3px solid #15803d; }
+.flow-step-icon { font-size: 28px; margin-bottom: 6px; display: block; }
+.flow-step-title {
+  font-size: 18px; font-weight: 700; letter-spacing: 1px;
+  color: var(--text); margin-bottom: 4px;
+}
+.flow-step-sub { font-size: 17px; color: var(--text3); line-height: 1.5; }
+.flow-arrow {
+  width: 32px; flex-shrink: 0; text-align: center;
+  color: var(--text3); font-size: 26px; font-weight: 700;
+}
+</style>
+</head>
+<body>
+
+<!-- ══ LOBBY ══ -->
+<div id="lobby">
+  <div class="lobby-card">
+    <div class="lobby-title">
+      <h1>암호화 대전 게임</h1>
+      <p>전략적 암호화·해독 대전</p>
+    </div>
+
+    <div style="text-align:center;margin-bottom:20px">
+      <button onclick="openGuide()" style="background:rgba(26,127,212,0.08);border:1px solid var(--border);border-radius:var(--radius);color:var(--text2);padding:8px 20px;font-size: 19px;font-weight:700;letter-spacing:2px;cursor:pointer;font-family:'Pretendard', sans-serif;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text2)'">📖 게임 가이드</button>
+    </div>
+
+    <div class="role-tabs">
+      <button class="role-tab active" id="tab-host" onclick="switchTab('host')">🏠 방 만들기</button>
+      <button class="role-tab" id="tab-join" onclick="switchTab('join')">🚪 방 참가하기</button>
+    </div>
+
+    <div class="field-group">
+      <label>닉네임</label>
+      <input id="user-nick" type="text" placeholder="예: 홍길동">
+    </div>
+    <div class="field-group">
+      <label>방 코드</label>
+      <input id="room-id" type="text" placeholder="예: ALPHA7" style="text-transform:uppercase">
+    </div>
+
+    <div id="host-options">
+      <div class="field-group">
+        <label style="margin-bottom:10px">라운드 수</label>
+        <div class="round-row">
+          <div class="round-badge active" data-r="1" onclick="selectRound(1)">1R</div>
+          <div class="round-badge" data-r="2" onclick="selectRound(2)">2R</div>
+          <div class="round-badge" data-r="3" onclick="selectRound(3)">3R</div>
+          <div class="round-badge" data-r="4" onclick="selectRound(4)">4R</div>
+          <div class="round-badge" data-r="5" onclick="selectRound(5)">5R</div>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn-primary" id="lobby-btn" onclick="enterGame()">▶ 접속하기</button>
+    <div class="lobby-status" id="lobby-status">닉네임과 방 코드를 입력하세요</div>
+
+    <!-- 세션 복구 배너 -->
+    <div id="recovery-banner" style="display:none;margin-top:16px;background:#f0f7ff;border:1.5px solid #bfdaff;border-radius:12px;padding:14px 18px;text-align:center">
+      <div id="recovery-info" style="font-size:14px;color:var(--text2);margin-bottom:10px"></div>
+      <div style="display:flex;gap:10px;justify-content:center">
+        <button onclick="doRecover()" style="padding:8px 20px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-weight:700;font-size:14px;cursor:pointer;font-family:'Pretendard',sans-serif">🔄 복구하기</button>
+        <button onclick="dismissRecovery()" style="padding:8px 20px;background:var(--surface2);color:var(--text3);border:1px solid var(--border);border-radius:8px;font-weight:700;font-size:14px;cursor:pointer;font-family:'Pretendard',sans-serif">✕ 무시</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ GAME UI ══ -->
+<div id="game-ui" style="display:none; height:100vh; flex-direction:column">
+
+  <!-- Header -->
+  <div class="hdr">
+    <div class="hdr-left">
+      <span class="hdr-title">암호화 대전</span>
+    </div>
+    <div class="hdr-center">
+      <div class="hdr-stat">
+        <span class="hdr-stat-label">PHASE</span>
+        <span class="hdr-stat-value" id="phase-label" style="font-size: 19px;letter-spacing:2px">대기 중</span>
+      </div>
+      <div class="hdr-stat">
+        <span class="hdr-stat-label">TIMER</span>
+        <span class="hdr-stat-value mono" id="timer-display">--:--</span>
+      </div>
+      <div class="hdr-stat">
+        <span class="hdr-stat-label">ROUND</span>
+        <span class="hdr-stat-value" id="round-info">0 / 0</span>
+      </div>
+    </div>
+    <div class="hdr-right">
+      <span id="my-role-badge" class="my-badge" style="display:none"></span>
+      <button id="host-start-btn" class="host-btn" onclick="hostStartGame()" style="display:none">▶ 게임 시작</button>
+      <button class="host-btn" onclick="leaveRoom()" style="background:rgba(255,90,90,0.08);border-color:rgba(255,90,90,0.3);color:#ff8080">← 방 나가기</button>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div class="main-layout">
+
+    <!-- Side: Players + Ranking -->
+    <div class="side-panel">
+      <div class="panel-header">참가자</div>
+      <div id="player-list"></div>
+      <div style="flex:1"></div>
+      <div class="panel-header" style="border-top:1px solid var(--border)">🏆 순위</div>
+      <div id="rank-list"></div>
+    </div>
+
+    <!-- Center -->
+    <div class="center-area">
+      <div class="phase-banner waiting" id="center-phase-banner">STANDBY — 플레이어 대기 중</div>
+
+      <!-- Toolbar -->
+      <div class="toolbar">
+        <button class="tool-btn active" id="btn-mode-draw" onclick="setBoardMode('draw')">🎨 그리기</button>
+        <button class="tool-btn" id="btn-mode-memo" onclick="setBoardMode('memo')">📝 메모장</button>
+        <div style="width:1px;height:20px;background:var(--border);margin:0 4px;flex-shrink:0"></div>
+        <button class="tool-btn active" id="btn-draw" onclick="setMode('draw')">✏ 펜</button>
+        <button class="tool-btn" id="btn-erase" onclick="setMode('erase')">◻ 지우기</button>
+        <div class="color-dot selected" style="background:#000" data-color="#000000" onclick="setColor(this)"></div>
+        <div class="color-dot" style="background:#ff6b35" data-color="#ff6b35" onclick="setColor(this)"></div>
+        <div class="color-dot" style="background:#a855f7" data-color="#a855f7" onclick="setColor(this)"></div>
+        <div class="color-dot" style="background:#22c55e" data-color="#22c55e" onclick="setColor(this)"></div>
+        <div class="color-dot" style="background:#4da6ff" data-color="#4da6ff" onclick="setColor(this)"></div>
+        <button class="tool-btn" id="btn-clear-draw" onclick="clearCanvas()">🗑 전체 삭제</button>
+        <div class="spacer"></div>
+      </div>
+
+      <!-- Canvas + Cipher overlay -->
+      <div class="canvas-wrapper">
+        <canvas id="shared-canvas"></canvas>
+        <textarea id="memo-area" placeholder="메모장 — 개인 메모를 자유롭게 입력하세요"></textarea>
+        <div class="cipher-overlay" id="cipher-overlay">
+          <div class="cipher-box" id="cipher-box-main">
+            <label id="cipher-label-main">ENCODED MESSAGE</label>
+            <div class="cipher-text muted" id="cipher-text-main">메모장을 자유롭게 사용하거나 게임 시작을 기다리세요</div>
+          </div>
+          <div class="method-hints" id="method-hints-area"></div>
+        </div>
+      </div>
+
+      <!-- Action area -->
+      <div class="action-area">
+
+        <!-- ENCODING UI (출제자) -->
+        <div class="enc-ui" id="enc-ui">
+          <div class="section-label">암호화 입력 — 최대 2단계 조합 가능</div>
+          <div id="enc-error-msg" class="enc-error-msg"></div>
+          <div id="enc-steps-container">
+            <div class="enc-step">
+              <div class="enc-label">원본</div>
+              <input class="enc-input" id="raw-input" type="text" placeholder="암호화할 메시지를 입력하세요" oninput="onRawInput()">
+            </div>
+            <div class="enc-step" id="step1-row" style="display:none">
+              <div class="enc-label" id="step1-label-wrap" style="width:auto;padding:0 10px">
+                <span id="step1-method-name" style="font-size: 18px;font-weight:700">✕</span>
+              </div>
+              <span class="step-arrow">→</span>
+              <input class="enc-input" id="enc-input-1" type="text" placeholder="1단계 암호화 결과" oninput="onEncInput()">
+            </div>
+            <div class="enc-step" id="step2-row" style="display:none">
+              <div class="enc-label" style="width:auto;padding:0 10px">
+                <span id="step2-method-name" style="font-size: 18px;font-weight:700">✕</span>
+              </div>
+              <span class="step-arrow">→</span>
+              <input class="enc-input" id="enc-input-2" type="text" placeholder="2단계 암호화 결과">
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+            <span style="font-size: 18px;color:var(--text3);font-weight:700;letter-spacing:1px">방식 추가:</span>
+            <div class="method-grid" style="margin:0" id="method-selector"></div>
+          </div>
+          <div class="btn-row">
+            <button class="btn-action blue" id="btn-enc-submit" onclick="submitEncoding()" disabled>암호 출제 제출 ⚔</button>
+          </div>
+          <div class="reaction-btns" style="margin-top:10px">
+            <button class="reaction-btn" onclick="sendReaction('🔥')">🔥</button>
+            <button class="reaction-btn" onclick="sendReaction('💡')">💡</button>
+            <button class="reaction-btn" onclick="sendReaction('😤')">😤</button>
+            <button class="reaction-btn" onclick="sendReaction('👀')">👀</button>
+            <button class="reaction-btn" onclick="sendReaction('🤯')">🤯</button>
+            <button class="reaction-btn" onclick="sendReaction('⏳')">⏳</button>
+          </div>
+        </div>
+
+        <!-- GUESSING UI (추측자들) -->
+        <div class="guess-ui" id="guess-ui">
+          <div class="section-label" id="guess-ui-label">복호화 순서 추측 및 원본 입력</div>
+          <div id="guess-error-msg" class="enc-error-msg"></div>
+          <div class="guess-steps" id="guess-steps"></div>
+          <div style="display:flex;gap:10px;align-items:center">
+            <input class="enc-input" id="guess-answer" type="text" placeholder="복호화된 원본 메시지를 입력하세요" style="flex:1">
+            <button class="btn-action gold" id="btn-guess-submit" onclick="submitGuess()">해독 완료 🛡</button>
+          </div>
+          <div class="reaction-btns" style="margin-top:10px">
+            <button class="reaction-btn" onclick="sendReaction('🔥')">🔥</button>
+            <button class="reaction-btn" onclick="sendReaction('💡')">💡</button>
+            <button class="reaction-btn" onclick="sendReaction('😤')">😤</button>
+            <button class="reaction-btn" onclick="sendReaction('👀')">👀</button>
+            <button class="reaction-btn" onclick="sendReaction('🤯')">🤯</button>
+            <button class="reaction-btn" onclick="sendReaction('⏳')">⏳</button>
+          </div>
+        </div>
+
+        <!-- WAITING UI -->
+        <div class="wait-ui" id="wait-ui">
+          <div class="wait-text" id="wait-text">대기 중...</div>
+          <div class="reaction-btns">
+            <button class="reaction-btn" onclick="sendReaction('🔥')">🔥</button>
+            <button class="reaction-btn" onclick="sendReaction('💡')">💡</button>
+            <button class="reaction-btn" onclick="sendReaction('😤')">😤</button>
+            <button class="reaction-btn" onclick="sendReaction('👀')">👀</button>
+            <button class="reaction-btn" onclick="sendReaction('🤯')">🤯</button>
+            <button class="reaction-btn" onclick="sendReaction('⏳')">⏳</button>
+          </div>
+          <div style="font-size: 18px;color:var(--text3)">리액션으로 분위기를 띄워보세요!</div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══ GAME OVER ══ -->
+<div id="game-over" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(236,242,248,0.97);align-items:center;justify-content:center">
+  <div class="go-card">
+    <div class="go-title">게임 종료</div>
+    <div class="go-winner" id="go-winner"></div>
+    <div class="go-ranking">
+      <h3>🏆 최종 순위</h3>
+      <div id="go-rank-list"></div>
+    </div>
+    <button class="btn-primary" onclick="clearSession();clearGameState();location.reload()" style="margin-top:0">새 게임 시작</button>
+  </div>
+</div>
+
+<!-- ══ GUIDE OVERLAY ══ -->
+<div id="guide-overlay">
+  <div class="guide-header">
+    <span class="guide-header-title">GUIDE</span>
+    <div class="guide-tabs">
+      <button class="guide-tab active" id="gtab-game" onclick="switchGuideTab('game')">🎮 게임 가이드</button>
+      <button class="guide-tab" id="gtab-cipher" onclick="switchGuideTab('cipher')">🔐 암호화 가이드</button>
+    </div>
+    <button class="guide-close-btn" onclick="closeGuide()">✕</button>
+  </div>
+  <div class="guide-body">
+
+    <!-- 게임 가이드 탭 -->
+    <div class="game-preview active" id="gpanel-game">
+
+      <!-- 어노테이션 목 스크린 -->
+      <div class="ann-wrap">
+
+        <!-- 게임 목업 화면: 전체 너비 -->
+        <div class="ann-mock">
+
+          <!-- 헤더 -->
+          <div class="ann-mock-hdr">
+            <span class="ann-mock-logo">⚔ 암호화 대전 게임</span>
+            <div class="ann-mock-stats">
+              <div class="ann-mock-stat"><span class="ann-sl">PHASE</span><span class="ann-sv">해독 중</span></div>
+              <div class="ann-mock-stat"><span class="ann-sl">TIMER</span><span class="ann-sv">01:45</span></div>
+              <div class="ann-mock-stat"><span class="ann-sl">ROUND</span><span class="ann-sv">2 / 5</span></div>
+            </div>
+            <div class="ann-mock-hdr-right"></div>
+          </div>
+
+          <!-- 본문 -->
+          <div class="ann-mock-body">
+
+            <!-- 좌측 플레이어 패널 -->
+            <div class="ann-mock-side">
+              <div class="ann-mock-ph-hdr">PLAYERS</div>
+              <div class="ann-mock-pc encoder">
+                <div class="ann-mock-av encoder">A</div>
+                <div><div class="ann-mock-nm">Alice</div><div class="ann-mock-sc">850 pts</div></div>
+                <span class="ann-mock-tbadge">출제</span>
+              </div>
+              <div class="ann-mock-pc guessing">
+                <div class="ann-mock-av guessing">B</div>
+                <div><div class="ann-mock-nm">Bob</div><div class="ann-mock-sc">400 pts</div></div>
+                <span class="ann-mock-tbadge guessing">해독</span>
+              </div>
+              <div class="ann-mock-pc guessing">
+                <div class="ann-mock-av guessing">C</div>
+                <div><div class="ann-mock-nm">Carol</div><div class="ann-mock-sc">200 pts</div></div>
+                <span class="ann-mock-tbadge guessing">해독</span>
+              </div>
+              <div class="ann-mock-ph-hdr" style="margin-top:6px">RANK</div>
+              <div class="ann-mock-rk-entry">🥇 Alice · 850</div>
+              <div class="ann-mock-rk-entry">🥈 Bob · 400</div>
+              <div class="ann-mock-rk-entry">🥉 Carol · 200</div>
+            </div>
+
+            <!-- 중앙 컬럼 -->
+            <div class="ann-mock-col">
+              <div class="ann-mock-banner guessing">🛡 해독 단계 — 암호문을 해독하고 원본 메시지를 입력하세요</div>
+              <div class="ann-mock-toolbar">
+                <button class="ann-mock-tbtn active">🎨 그리기</button>
+                <button class="ann-mock-tbtn">📝 메모장</button>
+                <span class="ann-vsep"></span>
+                <button class="ann-mock-tbtn active">✏ 펜</button>
+                <button class="ann-mock-tbtn">◻ 지우기</button>
+                <span class="ann-dot-c" style="background:#4da6ff"></span>
+                <span class="ann-dot-c" style="background:#f5c842"></span>
+                <span class="ann-dot-c" style="background:#15803d"></span>
+                <span class="ann-mock-spacer"></span>
+                <button class="ann-mock-tbtn">🗑 삭제</button>
+              </div>
+              <div class="ann-mock-canvas">
+                <svg class="ann-mock-deco-svg" viewBox="0 0 600 200" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+                  <path d="M10 80 Q50 40 90 80 T170 80 T250 70 T330 85 T410 78" stroke="rgba(26,127,212,0.18)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                  <path d="M30 130 L70 100 L120 125 L170 90 L220 120 L270 100" stroke="rgba(200,154,16,0.14)" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+                  <circle cx="500" cy="80" r="28" stroke="rgba(26,127,212,0.09)" stroke-width="1.5" fill="none"/>
+                </svg>
+                <div class="ann-mock-cipher">
+                  <div class="ann-mock-cl">ENCODED MESSAGE</div>
+                  <div class="ann-mock-ct">KHOOR · ZRUOG</div>
+                </div>
+                <div class="ann-mock-hints">
+                  <span class="ann-mock-hchip">CAESAR</span>
+                  <span class="ann-mock-hchip">KEY</span>
+                </div>
+              </div>
+              <div class="ann-mock-action">
+                <div class="ann-mock-albl">복호화 순서 추측 및 원본 입력</div>
+                <div class="ann-mock-arow">
+                  <span class="ann-mock-order-chip">① CAESAR</span>
+                  <span class="ann-mock-order-chip">② KEY</span>
+                  <span class="ann-mock-ainput">hello world</span>
+                  <span class="ann-mock-asub">해독 완료 🛡</span>
+                </div>
+              </div>
+            </div>
+          </div><!-- /body -->
+
+          <!-- 번호 뱃지: ann-mock(520px) 기준 절대 위치 -->
+          <span class="ann-pin" style="top:21px;left:33%">&#9312;</span>
+          <span class="ann-pin" style="top:21px;left:50%">&#9313;</span>
+          <span class="ann-pin" style="top:21px;left:68%">&#9314;</span>
+          <span class="ann-pin" style="top:230px;left:11%">&#9315;</span>
+          <span class="ann-pin" style="top:57px;left:61%">&#9316;</span>
+          <span class="ann-pin" style="top:84px;left:88%">&#9317;</span>
+          <span class="ann-pin" style="top:232px;left:78%">&#9318;</span>
+          <span class="ann-pin" style="top:305px;left:78%">&#9319;</span>
+          <span class="ann-pin" style="top:470px;left:78%">&#9320;</span>
+        </div><!-- /ann-mock -->
+
+        <!-- 설명 그리드: 3열 -->
+        <div class="ann-legend">
+          <div class="ann-entry">
+            <span class="ann-num">&#9312;</span>
+            <div class="ann-entry-text"><strong>현재 페이즈</strong>출제(⚔)&#183;해독(🛡)&#183;결과(✨) 단계를 실시간 표시합니다.</div>
+          </div>
+          <div class="ann-entry">
+            <span class="ann-num">&#9313;</span>
+            <div class="ann-entry-text"><strong>타이머</strong>남은 시간. 10초 이하면 빨간색으로 깜빡입니다.</div>
+          </div>
+          <div class="ann-entry">
+            <span class="ann-num">&#9314;</span>
+            <div class="ann-entry-text"><strong>라운드 진행</strong>현재 라운드&#160;/&#160;총 라운드 수를 표시합니다.</div>
+          </div>
+          <div class="ann-entry">
+            <span class="ann-num">&#9315;</span>
+            <div class="ann-entry-text"><strong>플레이어 패널</strong>참가자 목록과 점수 순위. <span style="color:var(--accent)">파란 아우라</span>=출제자, <span style="color:var(--gold)">골드 아우라</span>=해독 중.</div>
+          </div>
+          <div class="ann-entry">
+            <span class="ann-num">&#9316;</span>
+            <div class="ann-entry-text"><strong>페이즈 배너</strong>현재 단계 안내. 출제=파랑, 해독=골드, 결과=초록으로 색상이 바뀝니다.</div>
+          </div>
+          <div class="ann-entry">
+            <span class="ann-num">&#9317;</span>
+            <div class="ann-entry-text"><strong>캔버스 툴바</strong>그리기/메모장 전환, 펜&#183;지우기&#183;색상 선택. 그리기와 메모는 <strong>나에게만</strong> 보이며 다른 참가자와 공유되지 않습니다.</div>
+          </div>
+          <div class="ann-entry">
+            <span class="ann-num">&#9318;</span>
+            <div class="ann-entry-text"><strong>암호문</strong>출제자가 제출한 암호화 메시지. 배경 캔버스에 그림&#183;메모로 힌트를 남길 수 있습니다.</div>
+          </div>
+          <div class="ann-entry">
+            <span class="ann-num">&#9319;</span>
+            <div class="ann-entry-text"><strong>힌트 칩</strong>암호화 방식 2개 사용 시 종류만 표시(순서 비공개). 1개 방식 사용 시 힌트 없음.</div>
+          </div>
+          <div class="ann-entry">
+            <span class="ann-num">&#9320;</span>
+            <div class="ann-entry-text"><strong>액션 영역</strong>출제자: 방식&#183;키&#183;메시지 입력 / 해독자: 순서 추측 및 원본 메시지 입력 후 제출.</div>
+          </div>
+        </div><!-- /ann-legend -->
+
+      </div><!-- /ann-wrap -->
+
+      <!-- 게임 흐름 다이어그램 -->
+      <div class="preview-section">
+        <div class="preview-section-title">📋 게임 흐름</div>
+        <div class="flow-diagram">
+          <div class="flow-step enc">
+            <span class="flow-step-icon">⚔</span>
+            <div class="flow-step-title">출제 단계</div>
+            <div class="flow-step-sub">출제자가 암호화 방식(최대 2가지)·키·원본 메시지를 선택해 암호문을 만들고 제출<br><span style="color:var(--accent)">90초</span></div>
+          </div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step guess">
+            <span class="flow-step-icon">🔍</span>
+            <div class="flow-step-title">해독 단계</div>
+            <div class="flow-step-sub">해독자들이 암호문을 분석하고 복호화 순서와 원본 메시지를 추측해 제출<br><span style="color:var(--gold)">120초</span></div>
+          </div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step end">
+            <span class="flow-step-icon">✨</span>
+            <div class="flow-step-title">결과 공개</div>
+            <div class="flow-step-sub">원본 메시지 공개. 정답자·출제자에게만 키값 공개.<br>정답=<span style="color:#15803d">+10pt+보너스</span> 오답=0</div>
+          </div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step" style="border-top:3px solid var(--text3)">
+            <span class="flow-step-icon">🔄</span>
+            <div class="flow-step-title">다음 차례</div>
+            <div class="flow-step-sub">모든 플레이어가 한 번씩 출제한 후 라운드 종료. 설정한 라운드 수까지 반복.</div>
+          </div>
+        </div>
+        <div style="margin-top:12px;padding:10px 14px;background:rgba(245,200,66,0.06);border-radius:var(--radius);border-left:3px solid var(--gold);font-size: 18px;color:var(--text2)">
+          <strong style="color:var(--gold)">출제자 보너스:</strong> 해독자가 틀릴 때마다 출제자에게 <strong>+5pt</strong> 지급. 점수는 라운드가 끝날 때 최종 공개됩니다.
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 암호화 가이드 탭 -->
+    <div class="cipher-guide" id="gpanel-cipher">
+      <div class="cipher-card">
+        <div class="cipher-card-header">
+          <div class="cipher-card-badge" style="background:#ff6b3522;border:1.5px solid #ff6b35;color:#ff6b35">KEY</div>
+          <div class="cipher-card-name">키 순서 암호화</div>
+        </div>
+        <div class="cipher-card-desc">원문을 <strong>키의 자릿수 크기</strong>만큼 단위로 자른 뒤, 각 단위의 글자를 <strong>키 숫자가 나타내는 순서</strong>로 재배열합니다.</div>
+        <div class="cipher-card-key">키 입력: 순열 숫자 (예: <span>21</span>, <span>312</span>, <span>4132</span>) — 각 자릿수는 1~n 범위의 중복 없는 위치 번호</div>
+        <!-- SVG 그림 -->
+        <svg viewBox="0 0 500 100" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:500px;margin:10px 0;display:block">
+          <!-- 원본 블록 -->
+          <g font-family="'Pretendard', sans-serif" font-size="14" font-weight="bold">
+            <rect x="10" y="30" width="36" height="36" rx="6" fill="#ff6b3522" stroke="#ff6b35" stroke-width="1.5"/>
+            <text x="28" y="53" text-anchor="middle" fill="#ff6b35">A</text>
+            <rect x="50" y="30" width="36" height="36" rx="6" fill="#ff6b3522" stroke="#ff6b35" stroke-width="1.5"/>
+            <text x="68" y="53" text-anchor="middle" fill="#ff6b35">B</text>
+            <rect x="90" y="30" width="36" height="36" rx="6" fill="#ff6b3522" stroke="#ff6b35" stroke-width="1.5"/>
+            <text x="108" y="53" text-anchor="middle" fill="#ff6b35">C</text>
+            <text x="28" y="20" text-anchor="middle" fill="#7a95b0" font-size="10">①</text>
+            <text x="68" y="20" text-anchor="middle" fill="#7a95b0" font-size="10">②</text>
+            <text x="108" y="20" text-anchor="middle" fill="#7a95b0" font-size="10">③</text>
+          </g>
+          <!-- 키 표시 -->
+          <text x="145" y="50" font-family="'Pretendard', sans-serif" font-size="12" fill="#7a95b0">키=312</text>
+          <!-- 화살표 -->
+          <text x="190" y="54" font-size="20" fill="#7a95b0" font-family="Pretendard, sans-serif">→</text>
+          <!-- 결과 블록 (3→C, 1→A, 2→B 순서로) -->
+          <g font-family="'Pretendard', sans-serif" font-size="14" font-weight="bold">
+            <rect x="220" y="30" width="36" height="36" rx="6" fill="#22c55e22" stroke="#22c55e" stroke-width="1.5"/>
+            <text x="238" y="53" text-anchor="middle" fill="#22c55e">C</text>
+            <rect x="260" y="30" width="36" height="36" rx="6" fill="#22c55e22" stroke="#22c55e" stroke-width="1.5"/>
+            <text x="278" y="53" text-anchor="middle" fill="#22c55e">A</text>
+            <rect x="300" y="30" width="36" height="36" rx="6" fill="#22c55e22" stroke="#22c55e" stroke-width="1.5"/>
+            <text x="318" y="53" text-anchor="middle" fill="#22c55e">B</text>
+            <text x="238" y="20" text-anchor="middle" fill="#7a95b0" font-size="10">③→1</text>
+            <text x="278" y="20" text-anchor="middle" fill="#7a95b0" font-size="10">①→2</text>
+            <text x="318" y="20" text-anchor="middle" fill="#7a95b0" font-size="10">②→3</text>
+          </g>
+          <text x="345" y="50" font-family="'Pretendard', sans-serif" font-size="11" fill="#4a6080">3번→1위</text>
+          <text x="345" y="65" font-family="'Pretendard', sans-serif" font-size="11" fill="#4a6080">1번→2위</text>
+          <text x="345" y="80" font-family="'Pretendard', sans-serif" font-size="11" fill="#4a6080">2번→3위</text>
+        </svg>
+        <div class="cipher-example">
+          원본: <span style="color:var(--accent2)">ABCDEF</span> &nbsp; 키=<span style="color:#ff6b35">312</span> (자릿수 3 → 3글자씩 자름)<br>
+          1번째 단위 [A B C] → 3위=C, 1위=A, 2위=B → <span style="color:#22c55e">C A B</span><br>
+          2번째 단위 [D E F] → 3위=F, 1위=D, 2위=E → <span style="color:#22c55e">F D E</span><br>
+          <span class="arrow">→</span> 암호문: <span style="color:#ff6b35">CABFDE</span>
+        </div>
+      </div>
+
+      <div class="cipher-card">
+        <div class="cipher-card-header">
+          <div class="cipher-card-badge" style="background:#a855f722;border:1.5px solid #a855f7;color:#a855f7">ANA</div>
+          <div class="cipher-card-name">애너그램 암호화</div>
+        </div>
+        <div class="cipher-card-desc">원문을 <strong>키값 크기의 단위</strong>로 자른 뒤, 각 단위를 <strong>역순으로 뒤집습니다</strong>. 키가 있어야 같은 단위로 복호화가 가능합니다. 복호화는 암호화와 같은 방법(각 단위를 다시 역순)으로 수행합니다.</div>
+        <div class="cipher-card-key">키 입력: 단위 크기 (정수, 권장 2–10) — <span>예: 키=3 → 3글자씩 단위로 역순</span></div>
+        <!-- SVG 그림 -->
+        <svg viewBox="0 0 460 90" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:460px;margin:10px 0;display:block">
+          <g font-family="'Pretendard', sans-serif" font-size="14" font-weight="bold">
+            <!-- 원본 블록 -->
+            <rect x="10" y="25" width="30" height="36" rx="5" fill="#a855f722" stroke="#a855f7" stroke-width="1.5"/>
+            <text x="25" y="48" text-anchor="middle" fill="#a855f7">H</text>
+            <rect x="44" y="25" width="30" height="36" rx="5" fill="#a855f722" stroke="#a855f7" stroke-width="1.5"/>
+            <text x="59" y="48" text-anchor="middle" fill="#a855f7">E</text>
+            <rect x="78" y="25" width="30" height="36" rx="5" fill="#a855f722" stroke="#a855f7" stroke-width="1.5"/>
+            <text x="93" y="48" text-anchor="middle" fill="#a855f7">L</text>
+            <!-- 단위 구분선 -->
+            <rect x="115" y="25" width="30" height="36" rx="5" fill="#a855f733" stroke="#a855f7" stroke-width="1.5" stroke-dasharray="4,2"/>
+            <text x="130" y="48" text-anchor="middle" fill="#a855f7">L</text>
+            <rect x="149" y="25" width="30" height="36" rx="5" fill="#a855f733" stroke="#a855f7" stroke-width="1.5" stroke-dasharray="4,2"/>
+            <text x="164" y="48" text-anchor="middle" fill="#a855f7">O</text>
+            <!-- 괄호 단위 표시 -->
+            <text x="59" y="15" text-anchor="middle" fill="#7a95b0" font-size="9">단위 1</text>
+            <text x="147" y="15" text-anchor="middle" fill="#7a95b0" font-size="9">단위 2</text>
+          </g>
+          <text x="190" y="48" font-size="20" fill="#7a95b0" font-family="Pretendard, sans-serif">→</text>
+          <g font-family="'Pretendard', sans-serif" font-size="14" font-weight="bold">
+            <!-- 역순 결과 -->
+            <rect x="220" y="25" width="30" height="36" rx="5" fill="#4da6ff22" stroke="#4da6ff" stroke-width="1.5"/>
+            <text x="235" y="48" text-anchor="middle" fill="#4da6ff">L</text>
+            <rect x="254" y="25" width="30" height="36" rx="5" fill="#4da6ff22" stroke="#4da6ff" stroke-width="1.5"/>
+            <text x="269" y="48" text-anchor="middle" fill="#4da6ff">E</text>
+            <rect x="288" y="25" width="30" height="36" rx="5" fill="#4da6ff22" stroke="#4da6ff" stroke-width="1.5"/>
+            <text x="303" y="48" text-anchor="middle" fill="#4da6ff">H</text>
+            <rect x="325" y="25" width="30" height="36" rx="5" fill="#4da6ff33" stroke="#4da6ff" stroke-width="1.5" stroke-dasharray="4,2"/>
+            <text x="340" y="48" text-anchor="middle" fill="#4da6ff">O</text>
+            <rect x="359" y="25" width="30" height="36" rx="5" fill="#4da6ff33" stroke="#4da6ff" stroke-width="1.5" stroke-dasharray="4,2"/>
+            <text x="374" y="48" text-anchor="middle" fill="#4da6ff">L</text>
+          </g>
+          <text x="400" y="42" font-family="'Pretendard', sans-serif" font-size="11" fill="#4a6080">각 단위</text>
+          <text x="400" y="57" font-family="'Pretendard', sans-serif" font-size="11" fill="#4a6080">역순</text>
+        </svg>
+        <div class="cipher-example">
+          원본: <span style="color:var(--accent2)">HELLO</span> &nbsp; 키=<span style="color:#a855f7">3</span> (3글자씩 자름)<br>
+          단위 1: [H E L] → 역순 → <span style="color:#4da6ff">L E H</span><br>
+          단위 2: [L O] &nbsp; → 역순 → <span style="color:#4da6ff">O L</span><br>
+          <span class="arrow">→</span> 암호문: <span style="color:#a855f7">LEHOL</span>
+        </div>
+      </div>
+
+      <div class="cipher-card">
+        <div class="cipher-card-header">
+          <div class="cipher-card-badge" style="background:#22c55e22;border:1.5px solid #22c55e;color:#22c55e">CAE</div>
+          <div class="cipher-card-name">카이사르 암호화</div>
+        </div>
+        <div class="cipher-card-desc">알파벳 각 글자를 <strong>오른쪽으로 키값만큼 이동</strong>합니다. 알파벳 순서에서 Z를 넘으면 A로 순환합니다.</div>
+        <div class="cipher-card-key">키 입력: 이동(시프트) 칸 수 (1–25) — <span>예: 키=3 → A는 오른쪽 3칸 → D</span></div>
+        <!-- SVG 그림 -->
+        <svg viewBox="0 0 316 170" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:316px;margin:10px 0;display:block">
+  <defs>
+  <marker id="cmarr-b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><polygon points="0,0 10,5 0,10" fill="#1a7fd4"/></marker>
+  <marker id="cmarr-o" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><polygon points="0,0 10,5 0,10" fill="#d97706"/></marker>
+</defs>
+  <rect x="13" y="71" width="219" height="32" rx="4" fill="none" stroke="#dde5ed" stroke-width="1"/>
+  <rect x="232" y="71" width="68" height="32" rx="4" fill="#fffbeb" stroke="#d97706" stroke-width="1.3" stroke-dasharray="4,2"/>
+  <text x="2" y="84" font-family="'Pretendard', sans-serif" font-size="10" fill="#4a6080">알</text>
+  <text x="2" y="95" font-family="'Pretendard', sans-serif" font-size="10" fill="#4a6080">파</text>
+  <text x="2" y="106" font-family="'Pretendard', sans-serif" font-size="10" fill="#4a6080">벳</text>
+  <rect x="15" y="75" width="20" height="24" rx="3" fill="#1a7fd4" stroke="#1565b8" stroke-width="1.5"/><text x="25" y="94" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#ffffff">A</text>
+  <rect x="37" y="75" width="20" height="24" rx="3" fill="#e8eef5" stroke="#b0c4d8" stroke-width="1.5"/><text x="47" y="94" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#1a2340">B</text>
+  <rect x="59" y="75" width="20" height="24" rx="3" fill="#e8eef5" stroke="#b0c4d8" stroke-width="1.5"/><text x="69" y="94" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#1a2340">C</text>
+  <rect x="81" y="75" width="20" height="24" rx="3" fill="#1a7fd4" stroke="#1565b8" stroke-width="1.5"/><text x="91" y="94" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#ffffff">D</text>
+  <rect x="103" y="75" width="20" height="24" rx="3" fill="#e8eef5" stroke="#b0c4d8" stroke-width="1.5"/><text x="113" y="94" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#1a2340">E</text>
+  <rect x="125" y="75" width="20" height="24" rx="3" fill="#e8eef5" stroke="#b0c4d8" stroke-width="1.5"/><text x="135" y="94" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#1a2340">F</text>
+  <text x="157" y="94" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="14" fill="#7a95b0">⋯</text>
+  <rect x="169" y="75" width="20" height="24" rx="3" fill="#d97706" stroke="#b45309" stroke-width="1.5"/><text x="179" y="94" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#ffffff">X</text>
+  <rect x="191" y="75" width="20" height="24" rx="3" fill="#d97706" stroke="#b45309" stroke-width="1.5"/><text x="201" y="94" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#ffffff">Y</text>
+  <rect x="213" y="75" width="20" height="24" rx="3" fill="#d97706" stroke="#b45309" stroke-width="1.5"/><text x="223" y="94" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#ffffff">Z</text>
+  <line x1="234" y1="55" x2="234" y2="129" stroke="#d97706" stroke-width="1.5" stroke-dasharray="4,2"/>
+  <rect x="235" y="75" width="20" height="24" rx="3" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/><text x="245" y="94" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#7c3a00">A</text>
+  <rect x="257" y="75" width="20" height="24" rx="3" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/><text x="267" y="94" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#7c3a00">B</text>
+  <rect x="279" y="75" width="20" height="24" rx="3" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/><text x="289" y="94" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#7c3a00">C</text>
+  <path d="M25,71 Q58,37 91,71" stroke="#1a7fd4" stroke-width="2" fill="none" marker-end="url(#cmarr-b)"/>
+  <text x="58" y="33" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#1a7fd4">+3</text>
+  <text x="58" y="116" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="11" fill="#1a7fd4">A → D</text>
+  <path d="M223,71 Q256,33 289,71" stroke="#d97706" stroke-width="2" fill="none" stroke-dasharray="5,2" marker-end="url(#cmarr-o)"/>
+  <text x="256" y="29" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#d97706">+3</text>
+  <text x="158" y="116" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="12" fill="#4a6080">예시: key=3 → 각 글자를 오른쪽으로 3칸 이동</text>
+        </svg>
+        <div class="cipher-example">
+          원본: <span style="color:var(--accent2)">ATTACK</span> &nbsp; 키=<span style="color:#22c55e">3</span> (오른쪽으로 3칸)<br>
+          A→D, T→W, T→W, A→D, C→F, K→N<br>
+          <span class="arrow">→</span> 암호문: <span style="color:#22c55e">DWWDFN</span>
+        </div>
+      </div>
+
+      <div class="cipher-card">
+        <div class="cipher-card-header">
+          <div class="cipher-card-badge" style="background:#4da6ff22;border:1.5px solid #4da6ff;color:#4da6ff">SKY</div>
+          <div class="cipher-card-name">스키테일 암호화</div>
+        </div>
+        <div class="cipher-card-desc">고대 그리스의 암호 도구에서 유래한 방식입니다. 메시지를 <strong>키값(행 수)개의 행</strong>으로 이루어진 격자에 가로(행) 방향으로 채운 뒤, <strong>세로(열) 방향으로 읽어</strong> 암호문을 만듭니다.</div>
+        <div class="cipher-card-key">키 입력: 레일(행) 수 (2–10) — <span>예: 키=3 → 3행 격자 사용</span></div>
+        <!-- SVG 그림 -->
+        <svg viewBox="0 0 500 130" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:500px;margin:10px 0;display:block">
+          <text x="10" y="16" font-family="'Pretendard', sans-serif" font-size="11" fill="#4a6080">원본: HELLOWORLD (키=3) → 3행으로 채움 → 열 방향으로 읽기</text>
+          <!-- 격자 -->
+          <g font-family="'Pretendard', sans-serif" font-size="13" font-weight="bold">
+            <!-- 행 라벨 -->
+            <text x="10" y="42" fill="#7a95b0" font-size="10">행1</text>
+            <text x="10" y="76" fill="#7a95b0" font-size="10">행2</text>
+            <text x="10" y="110" fill="#7a95b0" font-size="10">행3</text>
+            <!-- 격자 셀 -->
+            <!-- 행 1: H E L L -->
+            <rect x="30" y="26" width="28" height="28" rx="4" fill="#4da6ff22" stroke="#4da6ff" stroke-width="1.5"/>
+            <text x="44" y="45" text-anchor="middle" fill="#4da6ff">H</text>
+            <rect x="62" y="26" width="28" height="28" rx="4" fill="#4da6ff22" stroke="#4da6ff" stroke-width="1.5"/>
+            <text x="76" y="45" text-anchor="middle" fill="#4da6ff">E</text>
+            <rect x="94" y="26" width="28" height="28" rx="4" fill="#4da6ff22" stroke="#4da6ff" stroke-width="1.5"/>
+            <text x="108" y="45" text-anchor="middle" fill="#4da6ff">L</text>
+            <rect x="126" y="26" width="28" height="28" rx="4" fill="#4da6ff22" stroke="#4da6ff" stroke-width="1.5"/>
+            <text x="140" y="45" text-anchor="middle" fill="#4da6ff">L</text>
+            <!-- 행 2: O W O R -->
+            <rect x="30" y="58" width="28" height="28" rx="4" fill="#4da6ff22" stroke="#4da6ff" stroke-width="1.5"/>
+            <text x="44" y="77" text-anchor="middle" fill="#4da6ff">O</text>
+            <rect x="62" y="58" width="28" height="28" rx="4" fill="#4da6ff22" stroke="#4da6ff" stroke-width="1.5"/>
+            <text x="76" y="77" text-anchor="middle" fill="#4da6ff">W</text>
+            <rect x="94" y="58" width="28" height="28" rx="4" fill="#4da6ff22" stroke="#4da6ff" stroke-width="1.5"/>
+            <text x="108" y="77" text-anchor="middle" fill="#4da6ff">O</text>
+            <rect x="126" y="58" width="28" height="28" rx="4" fill="#4da6ff22" stroke="#4da6ff" stroke-width="1.5"/>
+            <text x="140" y="77" text-anchor="middle" fill="#4da6ff">R</text>
+            <!-- 행 3: L D -->
+            <rect x="30" y="90" width="28" height="28" rx="4" fill="#4da6ff22" stroke="#4da6ff" stroke-width="1.5"/>
+            <text x="44" y="109" text-anchor="middle" fill="#4da6ff">L</text>
+            <rect x="62" y="90" width="28" height="28" rx="4" fill="#4da6ff22" stroke="#4da6ff" stroke-width="1.5"/>
+            <text x="76" y="109" text-anchor="middle" fill="#4da6ff">D</text>
+            <rect x="94" y="90" width="28" height="28" rx="4" fill="rgba(200,214,229,0.4)" stroke="#c8d6e5" stroke-width="1" stroke-dasharray="3,2"/>
+            <text x="108" y="109" text-anchor="middle" fill="#7a95b0">_</text>
+            <rect x="126" y="90" width="28" height="28" rx="4" fill="rgba(200,214,229,0.4)" stroke="#c8d6e5" stroke-width="1" stroke-dasharray="3,2"/>
+            <text x="140" y="109" text-anchor="middle" fill="#7a95b0">_</text>
+            <!-- 열 방향 화살표 -->
+            <text x="38" y="124" text-anchor="middle" fill="#22c55e" font-size="9">↓</text>
+            <text x="70" y="124" text-anchor="middle" fill="#22c55e" font-size="9">↓</text>
+            <text x="102" y="124" text-anchor="middle" fill="#22c55e" font-size="9">↓</text>
+            <text x="134" y="124" text-anchor="middle" fill="#22c55e" font-size="9">↓</text>
+          </g>
+          <text x="165" y="72" font-size="20" fill="#7a95b0" font-family="Pretendard, sans-serif">→</text>
+          <!-- 결과 -->
+          <text x="192" y="50" font-family="'Pretendard', sans-serif" font-size="11" fill="#4a6080">열 방향으로 읽기:</text>
+          <text x="192" y="70" font-family="'Pretendard', sans-serif" font-size="14" font-weight="bold" fill="#4da6ff">HOL</text>
+          <text x="192" y="88" font-family="'Pretendard', sans-serif" font-size="14" font-weight="bold" fill="#4da6ff">WED</text>
+          <text x="192" y="106" font-family="'Pretendard', sans-serif" font-size="14" font-weight="bold" fill="#4da6ff">LOR</text>
+          <text x="240" y="72" font-size="16" fill="#7a95b0">→</text>
+          <text x="260" y="78" font-family="'Pretendard', sans-serif" font-size="16" font-weight="bold" fill="#22c55e">HOLWEDLOR</text>
+        </svg>
+        <div class="cipher-example">
+          원본: <span style="color:var(--accent2)">HELLOWORLD</span> (레일=3)<br>
+          격자 배치(가로 방향): H E L L / O W O R / L D _ _<br>
+          세로 방향으로 읽기: <span class="arrow">→</span> <span style="color:#4da6ff">HOLWEDLOR</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+
+// 스크립트 시작 부분에 추가
+const PEER_CONFIG = {
+  debug: 2, // 핫스팟 연결 실패 원인을 콘솔(F12)에 표시
+  config: {
+    'iceServers': [
+      { url: 'stun:stun.l.google.com:19302' },
+      { url: 'stun:stun1.l.google.com:19302' },
+      { url: 'stun:stun2.l.google.com:19302' },
+      { url: 'stun:stun3.l.google.com:19302' },
+      { url: 'stun:stun4.l.google.com:19302' }
+    ],
+    iceCandidatePoolSize: 10 // 핫스팟의 엄격한 보안을 뚫기 위해 경로 후보 수집 강화
+  }
+};
+
+// ════════════════════════════════════════
+//  CIPHER METHODS
+// ════════════════════════════════════════
+const METHODS = {
+  1: { name: '키 순서', color: '#ff6b35', short: 'KEY' },
+  2: { name: '애너그램', color: '#a855f7', short: 'ANA' },
+  3: { name: '카이사르', color: '#22c55e', short: 'CAE' },
+  4: { name: '스키테일', color: '#4da6ff', short: 'SKY' }
+};
+
+// Caesar (variable shift)
+function caesarEnc(s, shift) {
+  shift = ((shift % 26) + 26) % 26;
+  return s.split('').map(c => {
+    if (c >= 'a' && c <= 'z') return String.fromCharCode((c.charCodeAt(0)-97+shift)%26+97);
+    if (c >= 'A' && c <= 'Z') return String.fromCharCode((c.charCodeAt(0)-65+shift)%26+65);
+    return c;
+  }).join('');
+}
+// Anagram (unit-based reverse) — 키 = 단위 크기
+function anagramEnc(s, unit) {
+  unit = Math.max(1, parseInt(unit) || 3);
+  let result = '';
+  for (let i = 0; i < s.length; i += unit) {
+    result += s.slice(i, i + unit).split('').reverse().join('');
+  }
+  return result;
+}
+// Key order (columnar transposition) — 키 = 순열 숫자(예: "312")
+function _keyOrder(keyNum) {
+  return String(keyNum).split('').map(Number).filter(n => n >= 1);
+}
+function keyEnc(s, keyNum) {
+  const order = _keyOrder(keyNum);
+  if (!order.length) return s;
+  const n = order.length;
+  let result = '';
+  for (let i = 0; i < s.length; i += n) {
+    const chunk = s.slice(i, i + n);
+    if (chunk.length === n) {
+      result += order.map(o => chunk[o - 1]).join('');
+    } else {
+      for (let j = 0; j < order.length; j++) {
+        if (order[j] <= chunk.length) result += chunk[order[j] - 1];
+      }
+    }
+  }
+  return result;
+}
+// Scytale (variable rails)
+function scytaleEnc(s, rails) {
+  rails = Math.max(2, rails || 3);
+  const len = s.length;
+  const cols = Math.ceil(len / rails);
+  const padded = s.padEnd(rails * cols, '_');
+  let result = '';
+  for (let col = 0; col < cols; col++) {
+    for (let row = 0; row < rails; row++) {
+      const idx = row * cols + col;
+      if (idx < rails * cols) result += padded[idx];
+    }
+  }
+  return result.slice(0, len + (result.slice(len).replace(/_/g,'').length));
+}
+function applyEnc(s, m, key) {
+  if (m===1) return keyEnc(s, key);
+  if (m===2) return anagramEnc(s, key);
+  if (m===3) return caesarEnc(s, key);
+  if (m===4) return scytaleEnc(s, key);
+  return s;
+}
+// ════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════
+let peer, myId, isHost = false, roomId = '';
+let myNick = '', selectedRounds = 1;
+let connections = {}, conn = null;
+let lobbyMode = 'host';
+
+let currentMode = 'draw', drawColor = '#000000';
+let drawing = false;
+const canvas = document.getElementById('shared-canvas');
+const ctx = canvas.getContext('2d');
+
+let gameState = {
+  status: 'lobby',
+  phase: 'idle',
+  players: {},       // peerId -> { nick, score, online }
+  turnOrder: [],     // peerId[] rotation
+  currentTurnIdx: 0,
+  currentRaw: '',
+  currentMethods: [],
+  currentEncSteps: [],
+  currentKeys: {},   // methodId -> keyValue
+  lastEncResult: '',
+  clueSet: [],
+  totalRounds: 1,
+  currentRound: 1,
+  turnTimer: 90,
+  turnTimerStart: 0,
+  guessResults: {},  // peerId -> {correct, points} for current turn
+  pendingToast: null, // { msg, type } — 다음 sync 수신 시 클라이언트에게 표시
+  designatedNextHost: null, // 호스트 이탈 시 인계받을 클라이언트 peerId
+};
+
+const ENC_TIME = 90;
+const GUESS_TIME = 120;
+let timerInterval = null;
+let clientTimerInterval = null; // 클라이언트 독립 타이머 (broadcast 지연 무관)
+
+function startClientTimer() {
+  if (clientTimerInterval) clearInterval(clientTimerInterval);
+  if (isHost) return; // 호스트는 startHostTimer() 사용
+  clientTimerInterval = setInterval(() => {
+    if (!gameState.turnTimerStart || gameState.status !== 'playing') return;
+    const limit = gameState.phase === 'encoding' ? ENC_TIME : GUESS_TIME;
+    const elapsed = Math.floor((Date.now() - gameState.turnTimerStart) / 1000);
+    const left = Math.max(0, limit - elapsed);
+    // 로컬 표시만 업데이트 (서버 상태는 호스트가 관리)
+    const timerEl = document.getElementById('timer-display');
+    if (!timerEl) return;
+    const min = Math.floor(left/60).toString().padStart(2,'0');
+    const sec = (left%60).toString().padStart(2,'0');
+    timerEl.textContent = `${min}:${sec}`;
+    timerEl.classList.toggle('timer-urgent', left <= 15);
+  }, 250); // 250ms 간격으로 체크 → 건너뜀 없음
+}
+
+// ════════════════════════════════════════
+//  GUIDE
+// ════════════════════════════════════════
+function openGuide() {
+  document.getElementById('guide-overlay').classList.add('visible');
+  switchGuideTab('game');
+}
+function closeGuide() {
+  document.getElementById('guide-overlay').classList.remove('visible');
+}
+function switchGuideTab(tab) {
+  ['game','cipher'].forEach(t => {
+    document.getElementById(`gtab-${t}`).classList.toggle('active', t===tab);
+    document.getElementById(`gpanel-${t}`).classList.toggle('active', t===tab);
+  });
+}
+
+// ════════════════════════════════════════
+//  LOBBY
+// ════════════════════════════════════════
+function switchTab(mode) {
+  lobbyMode = mode;
+  document.getElementById('tab-host').classList.toggle('active', mode==='host');
+  document.getElementById('tab-join').classList.toggle('active', mode==='join');
+  document.getElementById('host-options').style.display = mode==='host' ? '' : 'none';
+  document.getElementById('lobby-btn').textContent = mode==='host' ? '▶ 방 만들기' : '▶ 참가하기';
+}
+
+function selectRound(n) {
+  selectedRounds = n;
+  document.querySelectorAll('.round-badge').forEach(el => {
+    el.classList.toggle('active', parseInt(el.dataset.r)===n);
+  });
+}
+
+function enterGame() {
+  myNick = document.getElementById('user-nick').value.trim();
+  const val = document.getElementById('room-id').value.trim().toUpperCase();
+  if (!myNick || !val) { setLobbyStatus('닉네임과 방 코드를 입력하세요', 'error'); return; }
+  roomId = 'CGv4-' + val;
+
+  const prevSession = loadSession();
+  const sameSession = prevSession && prevSession.roomId === roomId && prevSession.nick === myNick;
+  const prevPeerId = sameSession ? prevSession.peerId : null;
+
+  if (lobbyMode === 'host') {
+    // 방 만들기 탭: 이전 호스트 세션이면 복구, 아니면 신규 생성
+    const isRecover = !!(sameSession && prevSession.isHost);
+    setLobbyStatus(isRecover ? '재접속 확인 중...' : '방 생성 중...', '');
+    becomeHost(isRecover, prevPeerId);
+  } else {
+    // 방 참가하기 탭: 사용자 선택을 무조건 존중 — joinAsClient로 접속
+    // promoteToHost() 후 새 호스트는 CGv4-XXXX(=roomId)를 차지하므로
+    // designatedNextHost(승격 전 random peerId)로 리다이렉트하면 안 됨
+    setLobbyStatus('접속 시도 중...', '');
+    joinAsClient(prevPeerId);
+  }
+}
+
+let hostCreateRetries = 0;
+let hostRetryTimer = null;
+
+function becomeHost(isRecover, fallbackPrevId) {
+  // 재접속 의도를 즉시 HOST 키로 기록 — isHost가 아직 false여도 올바른 키에 저장
+  if (isRecover) {
+    try {
+      localStorage.setItem(SESSION_KEY_HOST, JSON.stringify({
+        nick: myNick, roomId, peerId: fallbackPrevId || roomId, isHost: true, ts: Date.now()
+      }));
+    } catch(e) {}
+  }
+
+  if (peer && !peer.destroyed) { try { peer.destroy(); } catch(e) {} }
+  peer = new Peer(roomId, PEER_CONFIG);
+
+  if (hostRetryTimer) { clearTimeout(hostRetryTimer); hostRetryTimer = null; }
+
+  // ── 재접속 시: probe(방 생존 여부 확인) → 실패 시 ID 취득 시도 ──
+  // ── ID 취득 실패 시: 대기 후 다시 probe → 반복 (누군가 먼저 올라오면 join으로 전환) ──
+  if (isRecover) {
+    _probeRoom();
+    return;
+  }
+  // 신규 방 생성 (isRecover=false)
+  _acquireHostId();
+
+  function _probeRoom() {
+    setLobbyStatus('이전 연결 확인 중...', '');
+    if (peer && !peer.destroyed) { try { peer.destroy(); } catch(e) {} }
+    const probePeer = new Peer(undefined, { debug: 0 });
+    let probeResolved = false;
+
+    function _probeDone(alive) {
+      if (probeResolved) return;
+      probeResolved = true;
+      try { probePeer.destroy(); } catch(e) {}
+      if (alive) {
+        // 방 살아있음 → 다른 호스트가 이미 올라옴 → 클라이언트로 참가
+        hostCreateRetries = 0;
+        isHost = false;
+        setLobbyStatus('새 호스트에 접속 중...', '');
+        saveSession();
+        switchTab('join');
+        joinAsClient(fallbackPrevId);
+      } else {
+        // 방 없음 → ID 취득 시도
+        _acquireHostId();
+      }
+    }
+
+    const overallTimeout = setTimeout(() => _probeDone(false), 2500);
+
+    probePeer.on('open', () => {
+      // reliable:true — false positive 방지
+      const tc = probePeer.connect(roomId, { reliable: true });
+      tc.on('open', () => { clearTimeout(overallTimeout); _probeDone(true); });
+      tc.on('error', () => { clearTimeout(overallTimeout); _probeDone(false); });
+    });
+    probePeer.on('error', () => { clearTimeout(overallTimeout); _probeDone(false); });
+  }
+
+  function _acquireHostId() {
+    if (peer && !peer.destroyed) { try { peer.destroy(); } catch(e) {} }
+    const delay = hostCreateRetries > 0 ? 300 : 0;
+    setTimeout(() => {
+      peer = new Peer(roomId, { debug: 0 });
+      peer.on('open', () => {
+        hostCreateRetries = 0;
+        myId = roomId;
+        isHost = true;
+        gameState.hostPeerId = myId;
+        if (!isRecover) {
+          gameState.players[myId] = { nick: myNick, score: 0, online: true };
+          gameState.totalRounds = selectedRounds;
+        } else {
+          const saved = loadGameState();
+          if (saved && saved.players) {
+            Object.assign(gameState, saved);
+            Object.keys(gameState.players).forEach(pid => {
+              if (pid !== myId) gameState.players[pid].online = false;
+            });
+          }
+          if (gameState.players[myId]) gameState.players[myId].online = true;
+          else gameState.players[myId] = { nick: myNick, score: 0, online: true };
+        }
+        saveSession();
+        showGameUI();
+        attachHostListeners();
+        if (isRecover) broadcast();
+      });
+      peer.on('error', e => {
+        if (e.type === 'unavailable-id' || e.type === 'peer-unavailable') {
+          hostCreateRetries++;
+          if (hostCreateRetries < 8) {
+            // 대기 후 다시 probe — 그 사이 새 호스트가 올라왔을 수 있음
+            const wait = Math.min(800 + hostCreateRetries * 800, 4000);
+            const sec = Math.ceil(wait / 1000);
+            setLobbyStatus(`이전 연결 해제 대기 중... (${hostCreateRetries}/8, ${sec}초 후 재시도)`, '');
+            hostRetryTimer = setTimeout(() => {
+              if (isRecover) _probeRoom(); else _acquireHostId();
+            }, wait);
+          } else {
+            hostCreateRetries = 0;
+            setLobbyStatus('방 생성 실패. 이전 연결이 아직 해제되지 않았습니다. 잠시 후 다시 시도하거나 다른 방 코드를 사용하세요.', 'error');
+          }
+        } else {
+          setLobbyStatus('방 코드 충돌 또는 오류. 다른 코드를 사용하세요.', 'error');
+        }
+      });
+      peer.on('disconnected', () => {
+        if (isHost && peer && !peer.destroyed) {
+          try { peer.reconnect(); } catch(e) {}
+        }
+      });
+    }, delay);
+  }
+}
+
+function attachHostListeners() {
+  peer.on('connection', c => {
+    c.on('open', () => {
+      connections[c.peer] = c;
+      c.send({ type: 'sync', state: gameState });
+    });
+    c.on('data', d => handleData(d, c.peer));
+    c.on('close', () => {
+      delete connections[c.peer];
+      if (gameState.players[c.peer]) {
+        gameState.players[c.peer].online = false;
+        // If the disconnected player is the current encoder, advance the turn
+        if (isHost && gameState.status === 'playing' && gameState.phase === 'encoding') {
+          const encoder = gameState.turnOrder[gameState.currentTurnIdx % Math.max(gameState.turnOrder.length, 1)];
+          if (encoder === c.peer) {
+            const nick = (gameState.players[c.peer] && gameState.players[c.peer].nick) || '출제자';
+            gameState.pendingToast = { msg: '🚪 ' + nick + ' 님이 방을 나갔습니다. 다음 출제자로 넘어갑니다.', type: 'info' };
+            showToast('🚪 ' + nick + ' 님이 방을 나갔습니다. 다음 출제자로 넘어갑니다.', 'info');
+            nextTurn();
+            return;
+          }
+        }
+        broadcast();
+      }
+    });
+  });
+}
+
+let clientRetries = 0;
+let clientRetryTimer = null;
+
+function joinAsClient(prevPeerId) {
+  saveSession();
+  if (clientRetryTimer) { clearTimeout(clientRetryTimer); clientRetryTimer = null; }
+  // 기존 peer가 있으면 정리 후 재생성
+  if (peer && !peer.destroyed) {
+    try { peer.destroy(); } catch(e) {}
+  }
+  // prevPeerId는 호출 시점에 캡처 (새 peer 생성 후 myId가 바뀌므로)
+  const _prevId = prevPeerId || null;
+  peer = new Peer(undefined, PEER_CONFIG);
+  peer.on('open', id => {
+    myId = id;
+    saveSession();
+    const c = peer.connect(roomId, { 
+      reliable: true,
+      serialization: 'json'
+    });
+    let ok = false;
+    c.on('open', () => {
+      ok = true; conn = c;
+      clientRetries = 0;
+      conn.on('data', d => handleData(d, 'host'));
+      conn.on('close', () => {
+        // 호스트가 나갔을 때: 클라이언트 상태를 명시적으로 participant로 보장 후 세션 저장
+        isHost = false;
+        saveSession();
+        showReconnectBanner();
+      });
+      if (_prevId && _prevId !== myId) {
+        conn.send({ type: 'rejoin', nick: myNick, peerId: myId, prevPeerId: _prevId });
+      } else {
+        conn.send({ type: 'join', nick: myNick, peerId: myId });
+      }
+      showGameUI();
+    });
+    c.on('error', () => {
+      if (!ok) retryJoinAsClient(_prevId);
+    });
+    setTimeout(() => {
+      if (!ok) retryJoinAsClient(_prevId);
+    }, 4000);
+  });
+  peer.on('error', () => {
+    retryJoinAsClient(_prevId);
+  });
+}
+
+function retryJoinAsClient(prevId) {
+  // 이미 재시도 타이머가 있으면 중복 방지
+  if (clientRetryTimer) return;
+  clientRetries++;
+  if (clientRetries <= 12) {
+    const wait = Math.min(2000 + clientRetries * 1000, 5000);
+    const sec = Math.ceil(wait / 1000);
+    const inGame = document.getElementById('game-ui').style.display !== 'none';
+    if (inGame) {
+      // 게임 화면에서는 toast로 피드백
+      if (clientRetries <= 2 || clientRetries % 3 === 0) {
+        showToast(`🔄 호스트 재접속 대기 중... (${clientRetries}/12)`, 'info');
+      }
+    } else {
+      setLobbyStatus('호스트 접속 대기 중... (' + clientRetries + '/12, ' + sec + '초 후 재시도)', '');
+    }
+    clientRetryTimer = setTimeout(function() { joinAsClient(prevId); }, wait);
+  } else {
+    clientRetries = 0;
+    const inGame = document.getElementById('game-ui').style.display !== 'none';
+    if (inGame) {
+      showToast('🚫 호스트를 찾을 수 없습니다. 방이 종료되었을 수 있습니다.', 'error');
+    } else {
+      setLobbyStatus('방을 찾을 수 없습니다. 호스트가 아직 접속하지 않았거나 방 코드를 확인하세요.', 'error');
+    }
+  }
+}
+
+function setLobbyStatus(msg, type) {
+  const el = document.getElementById('lobby-status');
+  el.textContent = msg;
+  el.style.color = type==='error' ? '#ff8080' : type==='ok' ? '#15803d' : 'var(--text3)';
+}
+
+function leaveRoom() {
+  if (!confirm('방을 나가시겠습니까?')) return;
+  clearSession();
+  clearGameState();
+  if (peer) { try { peer.destroy(); } catch(e) {} }
+  location.reload();
+}
+
+// ════════════════════════════════════════
+//  DATA HANDLING
+// ════════════════════════════════════════
+function handleData(data, fromId) {
+  if (data.type === 'sync') {
+    const prevTurnIdx = gameState.currentTurnIdx;
+    const prevPhase = gameState.phase;
+    gameState = data.state;
+    if (gameState.pendingToast) {
+      showToast(gameState.pendingToast.msg, gameState.pendingToast.type || 'info');
+      gameState.pendingToast = null;
+    }
+    if (gameState.currentTurnIdx !== prevTurnIdx && gameState.phase === 'encoding') {
+      resetLocalState();
+    }
+    // 새 턴 또는 페이즈가 바뀌면 클라이언트 독립 타이머 시작
+    if (!isHost && (gameState.phase === 'encoding' || gameState.phase === 'guessing')) {
+      if (gameState.currentTurnIdx !== prevTurnIdx || gameState.phase !== prevPhase) {
+        startClientTimer();
+      }
+    }
+    // 페이즈 변경 시 세션 저장 — localStorage와 UI 상태를 동기화
+    if (!isHost && gameState.phase !== prevPhase) {
+      saveSession();
+    }
+    saveGameState();
+    renderAll();
+    return;
+  }
+
+  // 클라이언트 전용 수신 처리
+  if (!isHost) {
+    if (data.type === 'enc_invalid') {
+      showEncError('❌ 암호화 결과가 올바르지 않습니다. 다시 확인해주세요.');
+      return;
+    }
+    if (data.type === 'guess_result') {
+      if (data.correct) {
+        showToast(`✅ 정답! +${data.points}pt 획득!`, 'success');
+      } else {
+        showGuessError('❌ 오답! 계속 시도할 수 있습니다.');
+        // 오답이면 버튼 다시 활성화
+        const btn = document.getElementById('btn-guess-submit');
+        if (btn) { btn.disabled = false; btn.textContent = '해독 완료 🛡'; }
+      }
+      return;
+    }
+    if (data.type === 'reaction') {
+      showFloatingReaction(data.emoji);
+      return;
+    }
+    return;
+  }
+
+  // ── 이하 호스트 전용 처리 ──
+  if (data.type === 'rejoin') {
+    const prev = data.prevPeerId;
+    const existing = gameState.players[prev];
+    // nick이 일치할 때만 기존 데이터 인계 — 불일치 시 다른 플레이어가 같은 키를 점유한 것
+    if (existing && existing.nick === data.nick) {
+      gameState.players[fromId] = { ...existing, nick: data.nick, online: true };
+      delete gameState.players[prev];
+      const idx = gameState.turnOrder.indexOf(prev);
+      if (idx !== -1) gameState.turnOrder[idx] = fromId;
+      else if (!gameState.turnOrder.includes(fromId)) gameState.turnOrder.push(fromId);
+      if (gameState.guessResults && gameState.guessResults[prev]) {
+        gameState.guessResults[fromId] = gameState.guessResults[prev];
+        delete gameState.guessResults[prev];
+      }
+    } else {
+      // prevPeerId가 다른 플레이어(승격된 새 호스트 등)에게 재할당됨 → 닉네임 기반 검색
+      let merged = false;
+      for (const [pid, p] of Object.entries(gameState.players)) {
+        if (pid !== fromId && p.nick === data.nick && p.online === false) {
+          gameState.players[fromId] = { ...p, online: true };
+          delete gameState.players[pid];
+          const idx = gameState.turnOrder.indexOf(pid);
+          if (idx !== -1) gameState.turnOrder[idx] = fromId;
+          else if (!gameState.turnOrder.includes(fromId)) gameState.turnOrder.push(fromId);
+          if (gameState.guessResults && gameState.guessResults[pid]) {
+            gameState.guessResults[fromId] = gameState.guessResults[pid];
+            delete gameState.guessResults[pid];
+          }
+          if (connections[pid]) delete connections[pid];
+          merged = true;
+          break;
+        }
+      }
+      if (!merged) {
+        gameState.players[fromId] = { nick: data.nick, score: 0, online: true };
+        if (gameState.status === 'playing' && !gameState.turnOrder.includes(fromId)) {
+          gameState.turnOrder.push(fromId);
+        }
+      }
+    }
+    broadcast();
+    return;
+  }
+
+  if (data.type === 'join') {
+    // 같은 닉네임의 오프라인 플레이어가 있으면 기존 데이터 인계 (닉네임 기반 병합)
+    let merged = false;
+    for (const [pid, p] of Object.entries(gameState.players)) {
+      if (pid !== fromId && p.nick === data.nick && p.online === false) {
+        gameState.players[fromId] = { ...p, online: true };
+        delete gameState.players[pid];
+        const idx = gameState.turnOrder.indexOf(pid);
+        if (idx !== -1) gameState.turnOrder[idx] = fromId;
+        // _evacuated_ 키는 turnOrder에 없으므로 끝에 추가
+        else if (!gameState.turnOrder.includes(fromId)) gameState.turnOrder.push(fromId);
+        if (gameState.guessResults && gameState.guessResults[pid]) {
+          gameState.guessResults[fromId] = gameState.guessResults[pid];
+          delete gameState.guessResults[pid];
+        }
+        if (connections[pid]) delete connections[pid];
+        merged = true;
+        break;
+      }
+    }
+    if (!merged) {
+      gameState.players[fromId] = { nick: data.nick, score: 0, online: true };
+      // 게임 진행 중 참여 시 턴 순서에도 추가
+      if (gameState.status === 'playing' && !gameState.turnOrder.includes(fromId)) {
+        gameState.turnOrder.push(fromId);
+      }
+    }
+    broadcast();
+    return;
+  }
+
+  if (data.type === 'enc_submit') {
+    if (gameState.phase !== 'encoding') return;
+    const encoder = gameState.turnOrder[gameState.currentTurnIdx % gameState.turnOrder.length];
+    if (fromId !== encoder) return;
+    const { raw, methods, steps, keys } = data;
+    let expectedResult = raw;
+    let encOk = true;
+    for (let i = 0; i < methods.length; i++) {
+      const mId = methods[i];
+      const key = keys ? keys[mId] : undefined;
+      expectedResult = applyEnc(expectedResult, mId, key);
+      if (expectedResult !== steps[i].result) { encOk = false; break; }
+    }
+    if (!encOk) {
+      broadcast();
+      const c = connections[fromId];
+      if (c) c.send({ type: 'enc_invalid' });
+      else showEncError('❌ 암호화 결과가 올바르지 않습니다. 다시 확인해주세요.');
+      return;
+    }
+    gameState.currentRaw = raw;
+    gameState.currentMethods = methods;
+    gameState.currentEncSteps = steps;
+    gameState.lastEncResult = data.finalResult;
+    gameState.currentKeys = keys || {};
+    gameState.clueSet = methods.length >= 2
+      ? [...methods].sort((a, b) => a - b)  // UI 표시 순서 (키 순서→애너그램→카이사르→스키테일)
+      : [];
+    gameState.guessResults = {};
+    gameState.phase = 'guessing';
+    gameState.turnTimerStart = Date.now();
+    gameState.turnTimer = GUESS_TIME;
+    broadcast();
+    startHostTimer();
+    return;
+  }
+
+  if (data.type === 'guess_submit') {
+    if (gameState.phase !== 'guessing') return;
+    if (gameState.guessResults[fromId]) return;
+    const elapsed = Math.floor((Date.now() - gameState.turnTimerStart) / 1000);
+    const timeLeft = Math.max(0, GUESS_TIME - elapsed);
+    const encoder = gameState.turnOrder[gameState.currentTurnIdx % gameState.turnOrder.length];
+    const isSingleMethod = gameState.currentMethods.length === 1;
+    const orderOK = isSingleMethod ? true : JSON.stringify(data.methodOrder) === JSON.stringify(gameState.currentMethods);
+    const answerOK = data.answer.trim().toLowerCase() === gameState.currentRaw.trim().toLowerCase();
+    const success = orderOK && answerOK;
+
+    if (success) {
+      const pts = 10 + Math.floor(timeLeft * 0.04);
+      gameState.guessResults[fromId] = { correct: true, points: pts };
+      if (gameState.players[fromId]) gameState.players[fromId].score += pts;
+      if (fromId === myId) showToast(`✅ 정답! +${pts}pt 획득!`, 'success');
+      else { const c = connections[fromId]; if (c) c.send({ type: 'guess_result', correct: true, points: pts }); }
+    } else {
+      if (fromId === myId) {
+        showGuessError('❌ 오답! 계속 시도할 수 있습니다.');
+        const btn = document.getElementById('btn-guess-submit');
+        if (btn) { btn.disabled = false; btn.textContent = '해독 완료 🛡'; }
+      } else { const c = connections[fromId]; if (c) c.send({ type: 'guess_result', correct: false, points: 0 }); }
+      broadcast();
+      return;
+    }
+
+    const guessers = gameState.turnOrder.filter(id => id !== encoder && gameState.players[id]?.online !== false);
+    const allDone = guessers.every(id => gameState.guessResults[id]);
+    if (allDone) {
+      gameState.phase = 'round_end';
+      broadcast();
+      setTimeout(() => nextTurn(), 5000);
+    } else {
+      broadcast();
+    }
+    return;
+  }
+
+  if (data.type === 'reaction') {
+    Object.entries(connections).forEach(([id, c]) => { if (id !== fromId) c.send(data); });
+    showFloatingReaction(data.emoji);
+    return;
+  }
+}
+
+function broadcast() {
+  if (!isHost) return;
+  // 온라인 상태인 첫 번째 비호스트 플레이어를 백업 호스트로 지정
+  const nextHost = gameState.turnOrder.find(function(pid) {
+    return pid !== myId && gameState.players[pid] && gameState.players[pid].online !== false;
+  });
+  gameState.designatedNextHost = nextHost || null;
+  const msg = { type: 'sync', state: gameState };
+  Object.values(connections).forEach(c => c.send(msg));
+  // pendingToast는 1회만 전송 후 초기화
+  if (gameState.pendingToast) gameState.pendingToast = null;
+  saveGameState();
+  renderAll();
+}
+
+function send(data) {
+  if (isHost) handleData(data, myId);
+  else conn.send(data);
+}
+
+// ════════════════════════════════════════
+//  GAME FLOW
+// ════════════════════════════════════════
+function hostStartGame() {
+  if (!isHost) return;
+  const online = Object.entries(gameState.players).filter(([,p]) => p.online!==false);
+  if (online.length < 2) { showToast('최소 2명이 필요합니다', 'error'); return; }
+  if (online.length > 6) { showToast('최대 6명까지 가능합니다', 'error'); return; }
+
+  const order = online.map(([id]) => id);
+  // Shuffle turn order
+  for (let i = order.length-1; i>0; i--) {
+    const j = Math.floor(Math.random()*(i+1));
+    [order[i],order[j]] = [order[j],order[i]];
+  }
+
+  gameState.turnOrder = order;
+  gameState.currentTurnIdx = 0;
+  gameState.currentRound = 1;
+  gameState.status = 'playing';
+  gameState.phase = 'encoding';
+  gameState.turnTimerStart = Date.now();
+  gameState.turnTimer = ENC_TIME;
+  gameState.guessResults = {};
+  document.getElementById('host-start-btn').style.display = 'none';
+  resetLocalState();
+  broadcast();
+  startHostTimer();
+  showToast('게임 시작!', 'success');
+}
+
+function startHostTimer() {
+  if (timerInterval) clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    if (!isHost) return;
+    const elapsed = Math.floor((Date.now() - gameState.turnTimerStart) / 1000);
+    const limit = gameState.phase === 'encoding' ? ENC_TIME : GUESS_TIME;
+    const left = Math.max(0, limit - elapsed);
+    gameState.turnTimer = left;
+    if (left <= 0) {
+      clearInterval(timerInterval);
+      if (gameState.phase === 'encoding') {
+        const encoder = gameState.turnOrder[gameState.currentTurnIdx % gameState.turnOrder.length];
+        gameState.currentRaw = '⏰ 출제 시간 초과';
+        gameState.phase = 'round_end';
+        broadcast();
+        setTimeout(() => nextTurn(), 5000);
+      } else if (gameState.phase === 'guessing') {
+        // 시간 초과 시 아직 제출 안 한 해독자도 정답 실패 처리
+        const encoder = gameState.turnOrder[gameState.currentTurnIdx % gameState.turnOrder.length];
+        const guessers = gameState.turnOrder.filter(id => id !== encoder && gameState.players[id]?.online!==false);
+        guessers.forEach(id => {
+          if (!gameState.guessResults[id]) {
+            gameState.guessResults[id] = { correct: false, points: 0 };
+          }
+        });
+        gameState.phase = 'round_end';
+        broadcast();
+        setTimeout(() => nextTurn(), 5000);
+      }
+    } else {
+      broadcast();
+    }
+  }, 1000);
+}
+
+function nextTurn() {
+  if (!isHost) return;
+  gameState.currentTurnIdx++;
+  const numPlayers = gameState.turnOrder.length;
+  const totalTurns = gameState.totalRounds * numPlayers;
+
+  if (gameState.currentTurnIdx >= totalTurns) {
+    gameState.status = 'finished';
+    gameState.phase = 'idle';
+    broadcast();
+    clearInterval(timerInterval);
+    return;
+  }
+
+  gameState.currentRound = Math.floor(gameState.currentTurnIdx / numPlayers) + 1;
+  gameState.currentRaw = '';
+  gameState.currentMethods = [];
+  gameState.currentEncSteps = [];
+  gameState.currentKeys = {};
+  gameState.lastEncResult = '';
+  gameState.clueSet = [];
+  gameState.guessResults = {};
+  gameState.phase = 'encoding';
+  gameState.turnTimerStart = Date.now();
+  gameState.turnTimer = ENC_TIME;
+  resetLocalState();
+  broadcast();
+  startHostTimer();
+}
+
+// 로컬 상태 초기화 — 새 턴 시작 시 호출 (host/client 공통)
+function resetLocalState() {
+  // 캔버스 초기화
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  // 메모 초기화
+  document.getElementById('memo-area').value = '';
+  // 암호화 입력 초기화
+  document.getElementById('raw-input').value = '';
+  document.getElementById('enc-input-1').value = '';
+  document.getElementById('enc-input-2').value = '';
+  delete document.getElementById('enc-input-1').dataset.manual;
+  delete document.getElementById('enc-input-2').dataset.manual;
+  const ki0 = document.getElementById('key-input-0');
+  const ki1 = document.getElementById('key-input-1');
+  if (ki0) ki0.remove();
+  if (ki1) ki1.remove();
+  encStepMethods = [];
+  renderEncSteps();
+  checkEncReady();
+  // 해독 입력 초기화
+  document.getElementById('guess-answer').value = '';
+  guessMethodOrder = [];
+  guessUIBuiltForTurn = -1;
+  // 보드 모드 초기화
+  setBoardMode('draw');
+  // 암호화 에러 메시지 초기화
+  const encErr = document.getElementById('enc-error-msg');
+  if (encErr) { encErr.style.display='none'; clearTimeout(encErr._timer); }
+  // 해독 에러 메시지 초기화
+  const guessErr = document.getElementById('guess-error-msg');
+  if (guessErr) { guessErr.style.display='none'; clearTimeout(guessErr._timer); }
+}
+
+// ════════════════════════════════════════
+//  ENCODING SUBMIT
+// ════════════════════════════════════════
+let encStepMethods = [];
+
+function initMethodSelector() {
+  const el = document.getElementById('method-selector');
+  el.innerHTML = '';
+  [1,2,3,4].forEach(id => {
+    const m = METHODS[id];
+    const btn = document.createElement('button');
+    btn.className = `method-btn m${id}`;
+    btn.dataset.id = id;
+    btn.textContent = m.name;
+    btn.onclick = () => addEncStep(id);
+    el.appendChild(btn);
+  });
+}
+
+function addEncStep(methodId) {
+  if (encStepMethods.includes(methodId)) {
+    // 이미 선택된 경우 토글 취소
+    removeEncStep(encStepMethods.indexOf(methodId));
+    return;
+  }
+  if (encStepMethods.length >= 2) { showToast('최대 2단계까지 가능합니다', 'error'); return; }
+  encStepMethods.push(methodId);
+  renderEncSteps();
+  updateMethodBtnSelected();
+  checkEncReady();
+}
+
+function removeEncStep(idx) {
+  encStepMethods.splice(idx, 1);
+  // 해당 인덱스의 key-input만 제거 (다른 단계 입력값 보존)
+  const ki = document.getElementById(`key-input-${idx}`);
+  if (ki) ki.remove();
+  // 2단계가 사라지는 경우 enc-input-2 초기화
+  if (idx === 0) {
+    const ki1 = document.getElementById('key-input-1');
+    if (ki1) ki1.remove();
+  }
+  renderEncSteps();
+  updateMethodBtnSelected();
+  checkEncReady();
+}
+
+function updateMethodBtnSelected() {
+  document.querySelectorAll('.method-btn').forEach(btn => {
+    const id = parseInt(btn.dataset.id);
+    btn.classList.toggle('selected', encStepMethods.includes(id));
+  });
+}
+
+function renderEncSteps() {
+  const s1 = document.getElementById('step1-row');
+  const s2 = document.getElementById('step2-row');
+  s1.style.display = encStepMethods.length >= 1 ? 'flex' : 'none';
+  s2.style.display = encStepMethods.length >= 2 ? 'flex' : 'none';
+  if (encStepMethods[0]) {
+    const m = METHODS[encStepMethods[0]];
+    document.getElementById('step1-method-name').textContent = `1단계 ${m.name}`;
+    document.getElementById('step1-method-name').style.color = '';
+    document.getElementById('enc-input-1').placeholder = `${m.name} 암호화 결과`;
+    renderKeyInput(0, encStepMethods[0]);
+  }
+  if (encStepMethods[1]) {
+    const m = METHODS[encStepMethods[1]];
+    document.getElementById('step2-method-name').textContent = `2단계 ${m.name}`;
+    document.getElementById('step2-method-name').style.color = '';
+    document.getElementById('enc-input-2').placeholder = `${m.name} 암호화 결과`;
+    renderKeyInput(1, encStepMethods[1]);
+  }
+}
+
+// 키 입력 필드를 각 단계 행 옆에 동적 렌더링
+function renderKeyInput(stepIdx, methodId) {
+  const rowId = stepIdx === 0 ? 'step1-row' : 'step2-row';
+  const keyInputId = `key-input-${stepIdx}`;
+  const row = document.getElementById(rowId);
+  const old = document.getElementById(keyInputId);
+  // 같은 방식이면 기존 입력값 유지
+  if (old && parseInt(old.dataset.methodId) === methodId) return;
+  if (old) old.remove();
+  const keyInput = document.createElement('input');
+  keyInput.className = 'enc-input';
+  keyInput.id = keyInputId;
+  keyInput.dataset.methodId = methodId;
+  keyInput.style.cssText = 'width:90px;flex:none;-moz-appearance:textfield;';
+  // 모든 방식 키를 텍스트 입력으로 통일 (스피너 없음)
+  keyInput.type = 'text';
+  keyInput.inputMode = 'text';
+  if (methodId === 1) {
+    keyInput.placeholder = '예: 312';
+    keyInput.value = '21';
+    keyInput.maxLength = 9;
+  } else if (methodId === 2) {
+    keyInput.placeholder = '단위';
+    keyInput.value = '3';
+    keyInput.maxLength = 3;
+    keyInput.inputMode = 'numeric';
+  } else if (methodId === 3) {
+    keyInput.placeholder = '시프트';
+    keyInput.value = '3';
+    keyInput.maxLength = 2;
+    keyInput.inputMode = 'numeric';
+  } else if (methodId === 4) {
+    keyInput.placeholder = '레일';
+    keyInput.value = '3';
+    keyInput.maxLength = 2;
+    keyInput.inputMode = 'numeric';
+  } else {
+    return;
+  }
+  keyInput.oninput = () => { checkEncReady(); };
+  const encInput = document.getElementById(`enc-input-${stepIdx+1}`);
+  row.insertBefore(keyInput, encInput);
+}
+
+function getEncKey(stepIdx) {
+  const ki = document.getElementById(`key-input-${stepIdx}`);
+  if (!ki) return undefined;
+  const val = ki.value.trim();
+  if (!val) return undefined;
+  // 키 순서(m1)는 문자열 그대로, 나머지는 정수로 변환
+  const mId = encStepMethods[stepIdx];
+  if (mId === 1) return val;
+  const n = parseInt(val, 10);
+  return isNaN(n) ? undefined : n;
+}
+
+function autoFillEnc() {
+  const raw = document.getElementById('raw-input').value;
+  if (!raw || !encStepMethods[0]) return;
+  const k0 = getEncKey(0);
+  const r1 = applyEnc(raw, encStepMethods[0], k0);
+  const el1 = document.getElementById('enc-input-1');
+  if (!el1.dataset.manual) el1.value = r1;
+  if (encStepMethods[1]) {
+    const k1 = getEncKey(1);
+    const r2 = applyEnc(el1.value || r1, encStepMethods[1], k1);
+    const el2 = document.getElementById('enc-input-2');
+    if (!el2.dataset.manual) el2.value = r2;
+  }
+  checkEncReady();
+}
+
+function onRawInput() { checkEncReady(); }
+function onEncInput() { checkEncReady(); }
+
+document.getElementById('enc-input-1').oninput = function() { this.dataset.manual='1'; checkEncReady(); };
+document.getElementById('enc-input-2').oninput = function() { this.dataset.manual='1'; checkEncReady(); };
+
+function checkEncReady() {
+  const raw = document.getElementById('raw-input').value.trim();
+  const s1ok = encStepMethods.length===0 || document.getElementById('enc-input-1').value.trim();
+  const s2ok = encStepMethods.length<=1 || document.getElementById('enc-input-2').value.trim();
+  const ready = raw && encStepMethods.length>0 && s1ok && s2ok;
+  document.getElementById('btn-enc-submit').disabled = !ready;
+}
+
+function submitEncoding() {
+  const raw = document.getElementById('raw-input').value.trim();
+  if (!raw || encStepMethods.length===0) return;
+  const steps = [];
+  const keys = {};
+  if (encStepMethods[0]) {
+    steps.push({ methodId: encStepMethods[0], result: document.getElementById('enc-input-1').value.trim() });
+    const k0 = getEncKey(0);
+    if (k0 !== undefined) keys[encStepMethods[0]] = k0;
+  }
+  if (encStepMethods[1]) {
+    steps.push({ methodId: encStepMethods[1], result: document.getElementById('enc-input-2').value.trim() });
+    const k1 = getEncKey(1);
+    if (k1 !== undefined) keys[encStepMethods[1]] = k1;
+  }
+  const finalResult = steps[steps.length-1].result;
+  send({ type: 'enc_submit', raw, methods: [...encStepMethods], steps, finalResult, keys });
+  // Reset
+  document.getElementById('raw-input').value = '';
+  document.getElementById('enc-input-1').value = '';
+  document.getElementById('enc-input-2').value = '';
+  delete document.getElementById('enc-input-1').dataset.manual;
+  delete document.getElementById('enc-input-2').dataset.manual;
+  const ki0 = document.getElementById('key-input-0');
+  const ki1 = document.getElementById('key-input-1');
+  if (ki0) ki0.remove();
+  if (ki1) ki1.remove();
+  encStepMethods = [];
+  renderEncSteps();
+  checkEncReady();
+}
+
+// ════════════════════════════════════════
+//  GUESSING SUBMIT
+// ════════════════════════════════════════
+let guessMethodOrder = [];
+let guessUIBuiltForTurn = -1;
+
+function renderGuessUI() {
+  const steps = document.getElementById('guess-steps');
+
+  // 이미 현재 턴에 대해 빌드했으면 재빌드 방지 (타이머 리렌더링에 의한 초기화 방지)
+  if (guessUIBuiltForTurn === gameState.currentTurnIdx && steps.childElementCount > 0) {
+    return;
+  }
+  guessUIBuiltForTurn = gameState.currentTurnIdx;
+  steps.innerHTML = '';
+
+  const isSingle = gameState.currentMethods.length === 1;
+  // 1개 방식이면 라벨 변경, 순서 선택 UI 불필요
+  const label = document.getElementById('guess-ui-label');
+  if (label) label.textContent = isSingle ? '원본 메시지 입력' : '복호화 순서 추측 및 원본 입력';
+  const num = gameState.clueSet.length;
+  guessMethodOrder = [];
+  if (!isSingle) {
+    guessMethodOrder = new Array(num).fill(null);
+    for (let i=0; i<num; i++) {
+      const div = document.createElement('div');
+      div.className = 'guess-step';
+      const sn = document.createElement('div');
+      sn.className = 'step-num'; sn.textContent = i+1;
+      const row = document.createElement('div');
+      row.className = 'guess-method-row';
+      gameState.clueSet.forEach(mId => {
+        const m = METHODS[mId];
+        const btn = document.createElement('button');
+        btn.className = `guess-m-btn m${mId}`;
+        btn.dataset.mid = mId; btn.dataset.step = i;
+        btn.textContent = m.name;
+        btn.onclick = () => {
+          document.querySelectorAll(`.guess-m-btn[data-step="${i}"]`).forEach(b => b.classList.remove('sel'));
+          btn.classList.add('sel');
+          guessMethodOrder[i] = mId;
+        };
+        row.appendChild(btn);
+      });
+      div.appendChild(sn); div.appendChild(row);
+      steps.appendChild(div);
+    }
+  }
+}
+
+function submitGuess() {
+  const answer = document.getElementById('guess-answer').value.trim();
+  if (!answer) { showToast('원본 메시지를 입력하세요', 'error'); return; }
+  const isSingle = gameState.currentMethods.length === 1;
+  if (!isSingle && guessMethodOrder.some(v => v===null)) { showToast('모든 단계의 방식을 선택하세요', 'error'); return; }
+  const btn = document.getElementById('btn-guess-submit');
+  btn.disabled = true;
+  btn.textContent = '확인 중...';
+  // 결과 수신 후 버튼 상태 복원 (오답이면 클라이언트 이벤트로 처리됨)
+  send({ type: 'guess_submit', methodOrder: isSingle ? [] : guessMethodOrder, answer });
+  // 호스트 직접 제출의 경우 즉시 처리되므로 이미 결과가 왔을 수 있음
+  // 오답 시엔 renderActionArea 에서 버튼을 다시 활성화함
+}
+
+// ════════════════════════════════════════
+//  CANVAS (개인용 — 공유 없음, 부드러운 선)
+// ════════════════════════════════════════
+let lastDrawX = 0, lastDrawY = 0;
+
+function resizeCanvas() {
+  const w = canvas.offsetWidth, h = canvas.offsetHeight;
+  const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  canvas.width = w; canvas.height = h;
+  ctx.putImageData(img, 0, 0);
+}
+
+function initCanvas() {
+  canvas.addEventListener('mousedown', e => {
+    drawing = true;
+    const rect = canvas.getBoundingClientRect();
+    lastDrawX = (e.clientX - rect.left) * (canvas.width / rect.width);
+    lastDrawY = (e.clientY - rect.top) * (canvas.height / rect.height);
+    // 시작점 점 찍기
+    if (currentMode !== 'erase') {
+      ctx.fillStyle = drawColor;
+      ctx.beginPath();
+      ctx.arc(lastDrawX, lastDrawY, 1.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  });
+  canvas.addEventListener('mousemove', e => { if (drawing) handleDraw(e); });
+  window.addEventListener('mouseup', () => drawing = false);
+  canvas.addEventListener('touchstart', e => {
+    drawing = true;
+    const rect = canvas.getBoundingClientRect();
+    lastDrawX = (e.touches[0].clientX - rect.left) * (canvas.width / rect.width);
+    lastDrawY = (e.touches[0].clientY - rect.top) * (canvas.height / rect.height);
+    e.preventDefault();
+  }, { passive: false });
+  canvas.addEventListener('touchmove', e => { if (drawing) handleDraw(e.touches[0]); e.preventDefault(); }, { passive: false });
+  canvas.addEventListener('touchend', () => drawing = false);
+}
+
+function handleDraw(e) {
+  const rect = canvas.getBoundingClientRect();
+  const x = (e.clientX - rect.left) * (canvas.width / rect.width);
+  const y = (e.clientY - rect.top) * (canvas.height / rect.height);
+  if (currentMode === 'erase') {
+    ctx.clearRect(x - 12, y - 12, 24, 24);
+    lastDrawX = x; lastDrawY = y;
+    return;
+  }
+  ctx.strokeStyle = drawColor;
+  ctx.lineWidth = 3;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.beginPath();
+  ctx.moveTo(lastDrawX, lastDrawY);
+  ctx.lineTo(x, y);
+  ctx.stroke();
+  lastDrawX = x;
+  lastDrawY = y;
+}
+
+function clearCanvas() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+function setMode(m) {
+  currentMode = m;
+  document.getElementById('btn-draw').classList.toggle('active', m==='draw');
+  document.getElementById('btn-erase').classList.toggle('active', m==='erase');
+  canvas.style.cursor = m==='erase' ? 'cell' : 'crosshair';
+}
+
+let boardMode = 'draw';
+function setBoardMode(mode) {
+  boardMode = mode;
+  const isDraw = mode === 'draw';
+  document.getElementById('btn-mode-draw').classList.toggle('active', isDraw);
+  document.getElementById('btn-mode-memo').classList.toggle('active', !isDraw);
+  canvas.style.display = isDraw ? '' : 'none';
+  document.getElementById('memo-area').style.display = isDraw ? 'none' : 'block';
+  // 그리기 도구 버튼들 표시/숨김
+  ['btn-draw','btn-erase','btn-clear-draw'].forEach(id => {
+    document.getElementById(id).style.display = isDraw ? '' : 'none';
+  });
+  document.querySelectorAll('.color-dot').forEach(d => { d.style.display = isDraw ? '' : 'none'; });
+  document.querySelector('.toolbar .divider-draw')?.style && (document.querySelector('.toolbar div[style*="1px"]').style.display = isDraw ? '' : 'none');
+}
+
+function setColor(el) {
+  drawColor = el.dataset.color;
+  document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('selected'));
+  el.classList.add('selected');
+  setMode('draw');
+}
+
+// ════════════════════════════════════════
+//  REACTIONS
+// ════════════════════════════════════════
+function sendReaction(emoji) {
+  showFloatingReaction(emoji);
+  const data = { type:'reaction', emoji };
+  if (isHost) Object.values(connections).forEach(c => c.send(data));
+  else conn.send(data);
+}
+
+function showFloatingReaction(emoji) {
+  const el = document.createElement('div');
+  el.className = 'floating-reaction';
+  el.textContent = emoji;
+  el.style.left = (Math.random()*(window.innerWidth-80)+40)+'px';
+  el.style.bottom = '160px';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2100);
+}
+
+// ════════════════════════════════════════
+//  RENDER
+// ════════════════════════════════════════
+function showGameUI() {
+  document.getElementById('lobby').style.display = 'none';
+  const ui = document.getElementById('game-ui');
+  ui.style.display = 'flex';
+  initCanvas();
+  resizeCanvas();
+  initMethodSelector();
+  if (isHost) document.getElementById('host-start-btn').style.display = '';
+  renderAll();
+}
+
+function renderAll() {
+  renderHeader();
+  renderPlayerList();
+  renderRankList();
+  renderCenter();
+  renderActionArea();
+  if (gameState.status==='finished') showGameOver();
+}
+
+function renderHeader() {
+  const phases = { encoding:'출제 단계', guessing:'해독 단계', round_end:'라운드 종료', idle:'대기 중' };
+  document.getElementById('phase-label').textContent = phases[gameState.phase]||'대기 중';
+
+  const timerEl = document.getElementById('timer-display');
+  // 클라이언트는 startClientTimer()가 250ms마다 독립적으로 업데이트하므로
+  // renderAll() 호출 시 broadcast 지연에 의한 덮어쓰기를 방지
+  if (isHost || !clientTimerInterval) {
+    const left = gameState.status === 'playing' && gameState.turnTimerStart
+      ? Math.max(0, (gameState.phase === 'encoding' ? ENC_TIME : GUESS_TIME) -
+          Math.floor((Date.now() - gameState.turnTimerStart) / 1000))
+      : (gameState.turnTimer || 0);
+    const min = Math.floor(left/60).toString().padStart(2,'0');
+    const sec = (left%60).toString().padStart(2,'0');
+    timerEl.textContent = gameState.status==='playing' ? `${min}:${sec}` : '--:--';
+    timerEl.classList.toggle('timer-urgent', left<=15 && gameState.status==='playing');
+  }
+
+  const numP = gameState.turnOrder.length||1;
+  document.getElementById('round-info').textContent =
+    gameState.status==='playing' ? `${gameState.currentRound} / ${gameState.totalRounds}` : '0 / 0';
+
+  // My badge
+  const me = gameState.players[myId];
+  if (me) {
+    const b = document.getElementById('my-role-badge');
+    b.style.display = '';
+    const encoder = gameState.turnOrder[gameState.currentTurnIdx % Math.max(gameState.turnOrder.length,1)];
+    const isEncoder = myId===encoder && gameState.phase==='encoding';
+    const isGuesser = myId!==encoder && gameState.phase==='guessing';
+    b.textContent = isEncoder ? '⚔ 출제자' : isGuesser ? '🔍 해독자' : me.nick;
+  }
+}
+
+function renderPlayerList() {
+  const list = document.getElementById('player-list');
+  list.innerHTML = '';
+  const encoder = gameState.turnOrder[gameState.currentTurnIdx % Math.max(gameState.turnOrder.length,1)];
+
+  const allPlayers = Object.entries(gameState.players).filter(([,p])=>p && p.online!==false);
+  const displayOrder = gameState.turnOrder.length>0
+    ? [...gameState.turnOrder.map(id => [id, gameState.players[id]]).filter(([,p])=>p && p.online!==false), ...allPlayers.filter(([id])=>!gameState.turnOrder.includes(id))]
+    : allPlayers;
+
+  displayOrder.forEach(([id, p]) => {
+    if (!p) return;
+    const isEncoder = id===encoder && gameState.phase==='encoding';
+    const isGuesser = id!==encoder && (gameState.phase==='guessing' || gameState.phase==='round_end');
+    const alreadyGuessed = gameState.guessResults && gameState.guessResults[id];
+    const isMe = id===myId;
+
+    const card = document.createElement('div');
+    card.className = 'player-card';
+    if (isEncoder) card.classList.add('current-turn');
+
+    const initials = p.nick.slice(0,2).toUpperCase();
+    const avClass = isEncoder ? 'is-turn' : (isGuesser && !alreadyGuessed ? 'is-guessing' : '');
+
+    let badge = '';
+    if (isEncoder) badge = `<div class="player-turn-badge" style="background:rgba(255,60,60,0.18);color:#ff6060;border-color:rgba(255,60,60,0.4)">⚔ 출제 중</div>`;
+    else if (isGuesser && !alreadyGuessed) badge = `<div class="player-turn-badge guessing">🔍 해독 중</div>`;
+    else if (isGuesser && alreadyGuessed) {
+      const res = gameState.guessResults[id];
+      badge = res?.correct
+        ? `<div class="player-turn-badge" style="background:rgba(34,197,94,0.15);color:#15803d;border-color:rgba(34,197,94,0.3)">✓ 성공</div>`
+        : `<div class="player-turn-badge" style="background:rgba(255,90,90,0.15);color:#ff8080;border-color:rgba(255,90,90,0.3)">✗ 실패</div>`;
+    }
+
+    card.innerHTML = `
+      <div class="player-avatar ${avClass}">${initials}</div>
+      <div class="player-info-block">
+        <div class="player-name">${p.nick}${isMe?`<span class="my-badge" style="font-size: 16px;padding:1px 6px">나</span>`:''}</div>
+        <div class="player-score-line">${p.score}pt</div>
+      </div>
+      ${badge}
+    `;
+    list.appendChild(card);
+  });
+
+  // Ghost
+  const shown = displayOrder.length;
+  for (let i=shown; i<Math.max(shown,2); i++) {
+    const g = document.createElement('div');
+    g.className = 'player-card ghost';
+    g.innerHTML = '<div class="player-avatar">?</div><div class="player-info-block"><div class="player-name">대기 중</div><div class="player-score-line">—</div></div>';
+    list.appendChild(g);
+  }
+}
+
+function renderRankList() {
+  const sorted = Object.entries(gameState.players).filter(([,p])=>p && p.online!==false).sort(([,a],[,b])=>b.score-a.score);
+  const el = document.getElementById('rank-list');
+  el.innerHTML = '';
+  sorted.forEach(([id,p],i) => {
+    const nc = i===0?'gold':i===1?'silver':i===2?'bronze':'';
+    const item = document.createElement('div');
+    item.className = 'rank-item';
+    const initials = p.nick.slice(0,2).toUpperCase();
+    item.innerHTML = `
+      <div class="rank-num ${nc}">${i+1}</div>
+      <div class="player-avatar" style="width:26px;height:26px;font-size: 17px">${initials}</div>
+      <div style="flex:1;font-size: 19px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)">${p.nick}</div>
+      <div style="font-family:'Pretendard', sans-serif;font-size: 18px;color:var(--text3)">${p.score}</div>
+    `;
+    el.appendChild(item);
+  });
+}
+
+function renderCenter() {
+  const banner = document.getElementById('center-phase-banner');
+  const cBox = document.getElementById('cipher-box-main');
+  const cText = document.getElementById('cipher-text-main');
+  const cLabel = document.getElementById('cipher-label-main');
+  const hints = document.getElementById('method-hints-area');
+  hints.innerHTML = '';
+
+  if (gameState.status==='lobby') {
+    banner.className = 'phase-banner waiting';
+    banner.textContent = 'STANDBY — 플레이어가 접속하면 게임을 시작하세요';
+    cText.textContent = '메모장을 자유롭게 사용하거나 게임 시작을 기다리세요';
+    cText.className = 'cipher-text muted';
+    cBox.className = 'cipher-box';
+    cLabel.textContent = 'MEMO BOARD';
+    return;
+  }
+
+  const encoder = gameState.turnOrder[gameState.currentTurnIdx % Math.max(gameState.turnOrder.length,1)];
+  const encoderName = gameState.players[encoder]?.nick || '출제자';
+
+  if (gameState.phase==='encoding') {
+    banner.className = 'phase-banner encoding';
+    banner.textContent = `⚔ 출제 단계 — ${encoderName}님이 암호화 중`;
+    cText.textContent = '출제자가 암호화 문제를 만들고 있습니다...';
+    cText.className = 'cipher-text muted';
+    cBox.className = 'cipher-box';
+    cLabel.textContent = 'ENCODING IN PROGRESS';
+  } else if (gameState.phase==='guessing') {
+    banner.className = 'phase-banner guessing';
+    banner.textContent = `🔍 해독 단계 — 암호문을 풀어보세요!`;
+    cText.textContent = gameState.lastEncResult || '...';
+    cText.className = 'cipher-text';
+    cBox.className = 'cipher-box active';
+    cLabel.textContent = 'ENCRYPTED MESSAGE';
+    // 2개 이상 방식 사용 시에만 방식 힌트 공개 — "사용됨" 없이 위 키 힌트에 통합
+    // 키값 힌트 — 방식 수에 따라 표시 형식 다름
+    const _keys = gameState.currentKeys || {};
+    const _keyLabels = { 1: '순열', 2: '단위', 3: '시프트', 4: '레일' };
+    if (gameState.currentMethods.length === 1) {
+      // 단일 암호화: 방식명 없이 "키: 값"만 표시
+      const mId = gameState.currentMethods[0];
+      const m = METHODS[mId];
+      const keyVal = (_keys[mId] !== undefined && _keys[mId] !== null) ? _keys[mId] : '?';
+      const chip = document.createElement('div');
+      chip.className = 'hint-chip';
+      chip.textContent = `키: ${keyVal}`;
+      hints.appendChild(chip);
+    } else {
+      // 복수 암호화: "방식명 키종류: 값" 형식, 버튼 선택 순(clueSet 순서)
+      gameState.clueSet.forEach(mId => {
+        const m = METHODS[mId];
+        const keyVal = (_keys[mId] !== undefined && _keys[mId] !== null) ? _keys[mId] : '?';
+        const lbl = _keyLabels[mId] || 'KEY';
+        const chip = document.createElement('div');
+        chip.className = 'hint-chip';
+        chip.textContent = `${m.name} ${lbl}: ${keyVal}`;
+        hints.appendChild(chip);
+      });
+    }
+  } else if (gameState.phase==='round_end') {
+    banner.className = 'phase-banner roundend';
+    banner.textContent = '✓ 라운드 종료 — 다음 차례로 넘어갑니다';
+    let resultText = gameState.currentRaw || '';
+    if (gameState.currentRaw && !gameState.currentRaw.startsWith('⏰')) {
+      if (gameState.currentEncSteps && gameState.currentEncSteps.length >= 2) {
+        resultText = `최종: "${gameState.lastEncResult || '?'}" ← 1차: "${gameState.currentEncSteps[0].result}" ← 원본: "${gameState.currentRaw}"`;
+      } else {
+        resultText = `암호: "${gameState.lastEncResult || '?'}" → 원본: "${gameState.currentRaw}"`;
+      }
+    }
+    cText.textContent = resultText;
+    cText.className = 'cipher-text';
+    cBox.className = 'cipher-box active';
+    cLabel.textContent = '회차 결과';
+    // 정답자에게만 키값 공개
+    const myResult = gameState.guessResults[myId];
+    const iAmEncoder = myId === gameState.turnOrder[gameState.currentTurnIdx % Math.max(gameState.turnOrder.length,1)];
+    if ((myResult?.correct || iAmEncoder) && gameState.currentKeys && Object.keys(gameState.currentKeys).length > 0) {
+      const keyChip = document.createElement('div');
+      keyChip.className = 'hint-chip';
+      keyChip.style.cssText = `background:rgba(124,200,255,0.1);border:1.5px solid var(--accent2);color:var(--accent2)`;
+      const keyDesc = gameState.currentMethods.map(mId => {
+        const kv = gameState.currentKeys[mId];
+        return kv !== undefined ? `${METHODS[mId].name}: 키=${kv}` : METHODS[mId].name;
+      }).join(' → ');
+      keyChip.textContent = `🔑 ${keyDesc}`;
+      hints.appendChild(keyChip);
+    }
+    // Show encoder bonus if any
+    if (gameState.guessResults && gameState.guessResults['_encoder_bonus']) {
+      const chip = document.createElement('div');
+      chip.className = 'hint-chip';
+      chip.style.cssText = `background:rgba(255,107,53,0.15);border:1.5px solid #ff6b35;color:#ff6b35`;
+      chip.textContent = `출제자 +${gameState.guessResults['_encoder_bonus']}pt`;
+      hints.appendChild(chip);
+    }
+  }
+}
+
+function renderActionArea() {
+  const encUI = document.getElementById('enc-ui');
+  const guessUI = document.getElementById('guess-ui');
+  const waitUI = document.getElementById('wait-ui');
+
+  encUI.classList.remove('visible');
+  guessUI.classList.remove('visible');
+  waitUI.classList.remove('visible');
+
+  if (gameState.status==='lobby') {
+    waitUI.classList.add('visible');
+    document.getElementById('wait-text').textContent = isHost
+      ? '방 코드를 공유하고 플레이어가 접속하면 게임을 시작하세요.'
+      : '⏳ 호스트가 게임을 시작하기를 기다리는 중입니다...';
+    return;
+  }
+  if (gameState.status!=='playing') return;
+
+  const encoder = gameState.turnOrder[gameState.currentTurnIdx % Math.max(gameState.turnOrder.length,1)];
+  const iAmEncoder = myId===encoder;
+
+  if (gameState.phase==='encoding') {
+    if (iAmEncoder) {
+      encUI.classList.add('visible');
+    } else {
+      waitUI.classList.add('visible');
+      document.getElementById('wait-text').textContent = `⏳ ${gameState.players[encoder]?.nick||'출제자'}님이 암호화 문제를 만들고 있습니다. 잠시 기다려주세요!`;
+    }
+  } else if (gameState.phase==='guessing') {
+    if (!iAmEncoder) {
+      const alreadySubmitted = gameState.guessResults && gameState.guessResults[myId];
+      if (alreadySubmitted) {
+        waitUI.classList.add('visible');
+        const res = gameState.guessResults[myId];
+        document.getElementById('wait-text').textContent = res.correct
+          ? `✅ 정답! +${res.points}점 획득! 다른 플레이어를 기다리는 중...`
+          : `❌ 오답. 다른 플레이어를 기다리는 중...`;
+      } else {
+        guessUI.classList.add('visible');
+        renderGuessUI();
+        // Reset submit button
+        const btn = document.getElementById('btn-guess-submit');
+        btn.disabled = false;
+        btn.textContent = '해독 완료 🛡';
+      }
+    } else {
+      waitUI.classList.add('visible');
+      const submitted = Object.keys(gameState.guessResults||{}).filter(k=>k!=='_encoder_bonus').length;
+      const total = gameState.turnOrder.filter(id=>id!==encoder && gameState.players[id]?.online!==false).length;
+      document.getElementById('wait-text').textContent = `⏳ 플레이어들이 해독 중입니다... (${submitted}/${total} 제출)`;
+    }
+  } else if (gameState.phase==='round_end') {
+    waitUI.classList.add('visible');
+    document.getElementById('wait-text').textContent = '다음 차례로 넘어갑니다...';
+  }
+}
+
+// ════════════════════════════════════════
+//  GAME OVER
+// ════════════════════════════════════════
+function showGameOver() {
+  const el = document.getElementById('game-over');
+  el.style.display = 'flex';
+
+  const sorted = Object.entries(gameState.players).filter(([,p])=>p && p.online!==false).sort(([,a],[,b])=>b.score-a.score);
+  const winner = sorted[0];
+  const goWin = document.getElementById('go-winner');
+  goWin.textContent = winner ? `🏆 ${winner[1].nick} 우승!` : '게임 종료';
+  goWin.style.color = 'var(--gold)';
+
+  const rl = document.getElementById('go-rank-list');
+  rl.innerHTML = '';
+  const medals = ['🥇','🥈','🥉'];
+  sorted.forEach(([id,p],i) => {
+    const div = document.createElement('div');
+    div.className = 'go-rank-item';
+    const initials = p.nick.slice(0,2).toUpperCase();
+    div.innerHTML = `
+      <span style="font-size: 26px">${medals[i]||`${i+1}.`}</span>
+      <div class="player-avatar" style="width:32px;height:32px;font-size: 19px">${initials}</div>
+      <span style="flex:1;font-size: 21px;font-weight:700;color:var(--text)">${p.nick}</span>
+      <span style="font-family:'Pretendard', sans-serif;font-size: 21px;color:var(--gold)">${p.score}pt</span>
+    `;
+    rl.appendChild(div);
+  });
+}
+
+// ════════════════════════════════════════
+//  TOAST
+// ════════════════════════════════════════
+function showEncError(msg) {
+  const el = document.getElementById('enc-error-msg');
+  el.textContent = msg;
+  el.style.display = 'block';
+  // 5초 후 자동 사라짐
+  clearTimeout(el._timer);
+  el._timer = setTimeout(() => { el.style.display = 'none'; }, 5000);
+}
+
+function showGuessError(msg) {
+  const el = document.getElementById('guess-error-msg');
+  if (!el) return;
+  el.textContent = msg;
+  el.style.display = 'block';
+  clearTimeout(el._timer);
+  el._timer = setTimeout(() => { el.style.display = 'none'; }, 5000);
+}
+
+function showToast(msg, type='info') {
+  const old = document.querySelector('.toast');
+  if (old) old.remove();
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2800);
+}
+
+// ════════════════════════════════════════
+//  RESIZE
+// ════════════════════════════════════════
+window.addEventListener('resize', () => {
+  if (canvas.offsetWidth > 0) resizeCanvas();
+});
+
+// ════════════════════════════════════════
+//  SESSION RECOVERY
+// ════════════════════════════════════════
+// 호스트와 클라이언트가 같은 키를 덮어쓰지 않도록 분리
+const SESSION_KEY_HOST   = 'enc_game_session_host';
+const SESSION_KEY_CLIENT = 'enc_game_session_client';
+const GAMESTATE_KEY = 'enc_game_state';
+
+function saveSession() {
+  try {
+    const data = JSON.stringify({ nick: myNick, roomId, peerId: myId, isHost, ts: Date.now() });
+    if (isHost) {
+      localStorage.setItem(SESSION_KEY_HOST, data);
+    } else {
+      localStorage.setItem(SESSION_KEY_CLIENT, data);
+    }
+  } catch(e) {}
+}
+
+function saveGameState() {
+  try {
+    localStorage.setItem(GAMESTATE_KEY, JSON.stringify(gameState));
+  } catch(e) {}
+}
+
+function loadGameState() {
+  try {
+    const raw = localStorage.getItem(GAMESTATE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch(e) { return null; }
+}
+
+function clearGameState() {
+  try { localStorage.removeItem(GAMESTATE_KEY); } catch(e) {}
+}
+
+function clearSession() {
+  try {
+    localStorage.removeItem(SESSION_KEY_HOST);
+    localStorage.removeItem(SESSION_KEY_CLIENT);
+  } catch(e) {}
+  // gameState는 유지 — 새 호스트 ID(designatedNextHost) 참조에 필요
+  // 게임이 완전히 종료될 때만 clearGameState() 별도 호출
+}
+
+function loadSession() {
+  try {
+    // lobbyMode 기반으로 적절한 키 우선 읽기 (호스트 탭은 호스트 세션, 클라이언트 탭은 클라이언트 세션)
+    const hostRaw   = localStorage.getItem(SESSION_KEY_HOST);
+    const clientRaw = localStorage.getItem(SESSION_KEY_CLIENT);
+    const raw = (lobbyMode === 'host') ? (hostRaw || clientRaw) : (clientRaw || hostRaw);
+    if (!raw) return null;
+    const s = JSON.parse(raw);
+    if (Date.now() - s.ts > 30 * 60 * 1000) { clearSession(); return null; }
+    return s;
+  } catch(e) { return null; }
+}
+
+function doRecover() {
+  const s = loadSession();
+  if (!s) { dismissRecovery(); return; }
+  myNick = s.nick;
+  roomId = s.roomId;
+  document.getElementById('user-nick').value = myNick;
+  document.getElementById('room-id').value = roomId.replace(/^CGv4-/, '');
+  document.getElementById('recovery-banner').style.display = 'none';
+  if (s.isHost) {
+    switchTab('host');
+    setLobbyStatus('호스트 재접속 시도 중...', '');
+    becomeHost(true, s.peerId);
+  } else {
+    switchTab('join');
+    setLobbyStatus('재접속 시도 중...', '');
+    joinAsClient(s.peerId);
+  }
+}
+
+function dismissRecovery() {
+  clearSession();
+  document.getElementById('recovery-banner').style.display = 'none';
+}
+
+function showReconnectBanner() {
+  const nextHostId = gameState.designatedNextHost;
+  const gameStarted = gameState.status === 'playing';
+
+  if (!gameStarted) {
+    // ── 게임 시작 전: 호스트 이탈 → 재접속 대기 (localStorage 훼손 방지) ──
+    showToast('⏳ 호스트 연결이 끊겼습니다. 재접속을 기다립니다...', 'info');
+    const _myIdBeforeDisconnect = myId;
+    setTimeout(function() { joinAsClient(_myIdBeforeDisconnect); }, 2000);
+    return;
+  }
+
+  // ── 게임 진행 중: 호스트 인계 또는 재접속 ──────────────────────────────
+  if (nextHostId && myId === nextHostId) {
+    // 내가 지정된 다음 호스트 → 8초 대기 후 probe 3회 (최대 ~30초) → 원 호스트 미복귀 시 승격
+    showToast('⏳ 호스트 연결이 끊겼습니다. 복귀를 기다립니다...', 'info');
+    clientRetries = 0; // 재접속 카운터 초기화 (이전 시도와 독립)
+    let waited = 0;
+    const _savedRoomId = roomId;
+    const _myId = myId;
+    function checkHostReturn() {
+      if (waited >= 3) {
+        // 원 호스트 미복귀 → 승격
+        promoteToHost();
+        return;
+      }
+      waited++;
+      // CGv4-XXXX로 임시 연결 시도 — 원 호스트가 복귀해 있으면 연결됨
+      const testPeer = new Peer(undefined, { debug: 0 });
+      testPeer.on('open', testId => {
+        const tc = testPeer.connect(_savedRoomId, { reliable: true });
+        let resolved = false;
+        tc.on('open', () => {
+          resolved = true;
+          testPeer.destroy();
+          // 원 호스트 복귀 확인 → 정식 재접속
+          setTimeout(() => joinAsClient(_myId), 500);
+        });
+        tc.on('error', () => { if (!resolved) { testPeer.destroy(); setTimeout(checkHostReturn, 4000); } });
+        setTimeout(() => { if (!resolved) { try { testPeer.destroy(); } catch(e) {} setTimeout(checkHostReturn, 4000); } }, 3500);
+      });
+      testPeer.on('error', () => { setTimeout(checkHostReturn, 4000); });
+    }
+    setTimeout(checkHostReturn, 8000);
+  } else if (nextHostId) {
+    // 다른 플레이어가 새 호스트로 승격 → 방코드(CGv4-XXXX)로 재접속
+    showToast('🔄 호스트가 바뀌었습니다. 잠시 후 재접속합니다...', 'info');
+    saveSession();
+    clientRetries = 0; // 충분한 재시도 횟수 확보
+    const _myIdAtDisconnect = myId;
+    setTimeout(function() { joinAsClient(_myIdAtDisconnect); }, 1800);
+  } else {
+    // 백업 호스트 없음 (혼자 남음)
+    showToast('🚫 호스트와 연결이 끊겼습니다. 방이 종료되었습니다.', 'error');
+  }
+}
+
+function promoteToHost() {
+  // roomId = 구 호스트의 CGv4-XXXX, myId = 내 random peerId
+  const oldHostId = roomId;      // CGv4-XXXX
+  const myOldPeerId = myId;      // peer-abc123
+
+  // 로컬에 저장된 최신 gameState 확보 (호스트가 보낸 마지막 sync 시점)
+  const saved = loadGameState();
+  if (saved && saved.players) {
+    Object.assign(gameState, saved);
+  }
+
+  // 구 호스트를 오프라인으로 표시하기 전에 데이터 보존
+  const prevHostData = (oldHostId && gameState.players[oldHostId])
+    ? { ...gameState.players[oldHostId] } : null;
+  if (prevHostData) gameState.players[oldHostId].online = false;
+
+  // 구 호스트가 출제 중이었는지 key 마이그레이션 전에 확인
+  const prevHostWasEncoder = gameState.status === 'playing' &&
+    gameState.phase === 'encoding' &&
+    gameState.turnOrder[gameState.currentTurnIdx % Math.max(gameState.turnOrder.length, 1)] === oldHostId;
+  const oldNick = (prevHostData && prevHostData.nick) || '이전 호스트';
+
+  // 구 호스트를 turnOrder에서 먼저 제거 — 이후 내 키를 CGv4-XXXX로 이전 시 중복 방지
+  const oldHostTurnIdx = gameState.turnOrder.indexOf(oldHostId);
+  if (oldHostTurnIdx !== -1) gameState.turnOrder.splice(oldHostTurnIdx, 1);
+
+  // gameState.players에서 내 키를 random peerId → CGv4-XXXX 로 이전
+  // (승격 후 내 ID가 CGv4-XXXX가 되므로 점수·턴 순서 유지)
+  if (myOldPeerId !== oldHostId && gameState.players[myOldPeerId]) {
+    gameState.players[oldHostId] = { ...gameState.players[myOldPeerId], online: true };
+    delete gameState.players[myOldPeerId];
+    const tidx = gameState.turnOrder.indexOf(myOldPeerId);
+    if (tidx !== -1) gameState.turnOrder[tidx] = oldHostId;
+    else gameState.turnOrder.unshift(oldHostId);
+    if (gameState.guessResults && gameState.guessResults[myOldPeerId]) {
+      gameState.guessResults[oldHostId] = gameState.guessResults[myOldPeerId];
+      delete gameState.guessResults[myOldPeerId];
+    }
+  } else if (gameState.players[oldHostId]) {
+    gameState.players[oldHostId].online = true;
+  } else {
+    gameState.players[oldHostId] = { nick: myNick, score: 0, online: true };
+  }
+
+  // 구 호스트 오프라인 데이터를 별도 키로 보존 — 재접속 시 닉네임 기반으로 복구 가능
+  // (_evacuated_ 접두어는 유효한 PeerJS peer ID가 아님)
+  if (prevHostData && prevHostData.nick) {
+    gameState.players['_evacuated_' + oldHostId] = { ...prevHostData, online: false };
+    // turnOrder에는 추가하지 않음 — 재접속 시 동적으로 추가
+  }
+
+  const myNickSafe = (gameState.players[oldHostId] && gameState.players[oldHostId].nick) || '새 호스트';
+  gameState.pendingToast = {
+    msg: '👑 ' + myNickSafe + ' 님이 새 호스트가 되었습니다. (' + oldNick + ' 님 퇴장)',
+    type: 'info'
+  };
+
+  // 상태 설정 — roomId는 CGv4-XXXX 그대로 유지
+  isHost = true;
+  roomId = oldHostId;
+  myId = oldHostId;  // peer open 이전 미리 설정 (saveSession에서 사용)
+  connections = {};
+  saveSession();
+
+  // 기존 peer(random ID) destroy 후 CGv4-XXXX 로 새 peer 생성
+  // → 이전 호스트 포함 모든 클라이언트가 방코드로 재접속 가능
+  if (peer && !peer.destroyed) {
+    try { peer.destroy(); } catch(e) {}
+  }
+
+  let promoteRetries = 0;
+  function tryPromote() {
+    peer = new Peer(oldHostId, { debug: 0 });
+    peer.on('open', () => {
+      myId = oldHostId;
+      gameState.hostPeerId = oldHostId;
+      saveSession();
+      showToast('👑 호스트 역할을 인계받았습니다!', 'success');
+      attachHostListeners();
+
+      // 구 호스트가 출제자였다면 다음 턴으로 넘김
+      if (prevHostWasEncoder) {
+        gameState.pendingToast = {
+          msg: '🚪 ' + oldNick + ' 님(호스트)이 방을 나갔습니다. 다음 출제자로 넘어갑니다.',
+          type: 'info'
+        };
+        nextTurn();
+        return;
+      }
+
+      // 게임 진행 중이면 타이머 인계
+      if (gameState.status === 'playing' && (gameState.phase === 'encoding' || gameState.phase === 'guessing')) {
+        startHostTimer();
+      }
+      broadcast();
+      renderAll();
+    });
+    peer.on('error', () => {
+      promoteRetries++;
+      if (promoteRetries < 10) {
+        const wait = Math.min(3000 + promoteRetries * 2000, 10000);
+        const sec = Math.ceil(wait / 1000);
+        showToast('호스트 ID 취득 중... (' + promoteRetries + '/10, ' + sec + '초 후 재시도)', 'info');
+        setTimeout(tryPromote, wait);
+      } else {
+        showToast('호스트 역할 인계 실패. 새로고침 후 다시 시도해주세요.', 'error');
+        isHost = false;
+      }
+    });
+    peer.on('disconnected', () => {
+      if (isHost && peer && !peer.destroyed) {
+        try { peer.reconnect(); } catch(e) {}
+      }
+    });
+  }
+  tryPromote();
+}
+
+window.addEventListener('beforeunload', () => {
+  if (myId && roomId) saveSession();
+  // PeerJS 서버에 disconnect 신호를 보내서 ID를 즉시 해제
+  if (peer && !peer.destroyed) {
+    try { 
+      peer.disconnect(); // 연결 먼저 끊고
+      peer.destroy();    // ID 파괴
+    } catch(e) {}
+  }
+});
+
+// Init
+switchTab('host');
+
+(function checkRecovery() {
+  // 호스트 세션 우선 확인 (더 중요), 없으면 클라이언트 세션 확인
+  const hostRaw   = localStorage.getItem('enc_game_session_host');
+  const clientRaw = localStorage.getItem('enc_game_session_client');
+  const raw = hostRaw || clientRaw;
+  if (!raw) return;
+  let s; try { s = JSON.parse(raw); } catch(e) { return; }
+  if (!s || Date.now() - s.ts > 30 * 60 * 1000) return;
+  // 폼 필드 자동 채우기 + 올바른 탭으로 전환
+  document.getElementById('user-nick').value = s.nick;
+  document.getElementById('room-id').value = s.roomId.replace(/^CGv4-/, '');
+  if (s.isHost) switchTab('host');
+  else switchTab('join');
+  const banner = document.getElementById('recovery-banner');
+  if (!banner) return;
+  const roleLabel = s.isHost ? '호스트' : '참가자';
+  document.getElementById('recovery-info').textContent =
+    s.nick + ' (' + roleLabel + ') • 방: ' + s.roomId.replace(/^CGv4-/, '') + ' — 이전 세션을 복구하시겠습니까?';
+  banner.style.display = '';
+})();
+</script>
+</body>
+</html>
