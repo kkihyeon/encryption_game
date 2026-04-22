@@ -1562,6 +1562,21 @@ body {
 </div>
 
 <script>
+const PEER_CONFIG = {
+  debug: 1,
+  config: {
+    iceServers: [
+      { urls: 'stun:stun.l.google.com:19302' },
+      { urls: 'stun:stun1.l.google.com:19302' },
+      { urls: 'stun:stun2.l.google.com:19302' },
+      { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
+      { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
+      { urls: 'turn:openrelay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' }
+    ],
+    iceCandidatePoolSize: 10
+  }
+};
+
 // ════════════════════════════════════════
 //  CIPHER METHODS
 // ════════════════════════════════════════
@@ -1775,7 +1790,7 @@ function becomeHost(isRecover, fallbackPrevId) {
   function _probeRoom() {
     setLobbyStatus('이전 연결 확인 중...', '');
     if (peer && !peer.destroyed) { try { peer.destroy(); } catch(e) {} }
-    const probePeer = new Peer(undefined, { debug: 0 });
+    const probePeer = new Peer(undefined, PEER_CONFIG);
     let probeResolved = false;
 
     function _probeDone(alive) {
@@ -1811,7 +1826,7 @@ function becomeHost(isRecover, fallbackPrevId) {
     if (peer && !peer.destroyed) { try { peer.destroy(); } catch(e) {} }
     const delay = hostCreateRetries > 0 ? 300 : 0;
     setTimeout(() => {
-      peer = new Peer(roomId, { debug: 0 });
+      peer = new Peer(roomId, PEER_CONFIG);
       peer.on('open', () => {
         hostCreateRetries = 0;
         myId = roomId;
@@ -1904,7 +1919,7 @@ function joinAsClient(prevPeerId) {
   }
   // prevPeerId는 호출 시점에 캡처 (새 peer 생성 후 myId가 바뀌므로)
   const _prevId = prevPeerId || null;
-  peer = new Peer(undefined, { debug: 0 });
+  peer = new Peer(undefined, PEER_CONFIG);
   peer.on('open', id => {
     myId = id;
     saveSession();
@@ -3181,7 +3196,7 @@ function showReconnectBanner() {
       }
       waited++;
       // CGv4-XXXX로 임시 연결 시도 — 원 호스트가 복귀해 있으면 연결됨
-      const testPeer = new Peer(undefined, { debug: 0 });
+      const testPeer = new Peer(undefined, PEER_CONFIG);
       testPeer.on('open', testId => {
         const tc = testPeer.connect(_savedRoomId, { reliable: true });
         let resolved = false;
@@ -3282,7 +3297,7 @@ function promoteToHost() {
 
   let promoteRetries = 0;
   function tryPromote() {
-    peer = new Peer(oldHostId, { debug: 0 });
+    peer = new Peer(oldHostId, PEER_CONFIG);
     peer.on('open', () => {
       myId = oldHostId;
       gameState.hostPeerId = oldHostId;
