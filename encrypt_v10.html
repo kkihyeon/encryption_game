@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>암호화 대전 게임</title>
-<script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <style>
 :root {
@@ -37,8 +37,6 @@ body {
   background: var(--bg);
   color: var(--text);
 }
-
-/* scanline removed */
 
 /* ── LOBBY ── */
 #lobby {
@@ -101,6 +99,7 @@ body {
   font-family: 'Pretendard', sans-serif;
   outline: none;
   transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+  box-sizing: border-box;
 }
 .field-group input:focus, .field-group select:focus {
   border-color: var(--accent);
@@ -156,7 +155,6 @@ body {
 /* ── GAME UI ── */
 #game-ui { display: none; height: 100vh; flex-direction: column; }
 
-/* Header */
 .hdr {
   display: flex; align-items: stretch;
   border-bottom: 1px solid var(--border);
@@ -178,9 +176,7 @@ body {
   display: flex; align-items: center; justify-content: center;
   flex: 1; gap: 24px;
 }
-.hdr-stat {
-  text-align: center;
-}
+.hdr-stat { text-align: center; }
 .hdr-stat-label {
   font-size: 11px; letter-spacing: 0.5px; color: var(--text3);
   display: block; margin-bottom: 2px; font-weight: 500;
@@ -199,12 +195,8 @@ body {
   border-left: 1px solid var(--border);
 }
 
-/* Main layout */
-.main-layout {
-  display: flex; flex: 1; overflow: hidden;
-}
+.main-layout { display: flex; flex: 1; overflow: hidden; }
 
-/* Side panel */
 .side-panel {
   width: 230px; flex-shrink: 0;
   border-right: 1px solid var(--border);
@@ -220,7 +212,6 @@ body {
   text-align: center; text-transform: uppercase;
 }
 
-/* Player card - bigger, more readable */
 .player-card {
   padding: 12px 16px;
   border-bottom: 1px solid rgba(38,51,84,0.5);
@@ -230,9 +221,6 @@ body {
 .player-card.current-turn {
   background: rgba(26,127,212,0.08);
   border-left: 3px solid var(--accent);
-}
-.player-card.current-turn .player-name {
-  color: var(--accent2);
 }
 .player-card.ghost { opacity: 0.25; }
 
@@ -288,13 +276,11 @@ body {
   border-color: rgba(245,200,66,0.3);
 }
 
-/* Center */
 .center-area {
   flex: 1; display: flex; flex-direction: column;
   overflow: hidden; position: relative;
 }
 
-/* Phase banner */
 .phase-banner {
   padding: 10px 24px; text-align: center;
   font-size: 13px; font-weight: 700; letter-spacing: 1px;
@@ -305,7 +291,6 @@ body {
 .phase-banner.waiting { background: rgba(90,112,149,0.1); color: var(--text3); }
 .phase-banner.roundend { background: rgba(34,197,94,0.12); color: #15803d; }
 
-/* Cipher display */
 .cipher-overlay {
   position: absolute; inset: 0;
   display: flex; flex-direction: column;
@@ -336,16 +321,13 @@ body {
 }
 .cipher-text.muted { color: var(--text3); font-size: 21px; }
 
-.method-hints {
-  display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;
-}
+.method-hints { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
 .hint-chip {
   padding: 6px 16px; border-radius: 20px;
   font-size: 19px; font-weight: 700; letter-spacing: 1px;
   border: 1.5px solid var(--border2);
 }
 
-/* Toolbar */
 .toolbar {
   display: flex; align-items: center; gap: 8px;
   padding: 8px 16px; border-bottom: 1px solid var(--border);
@@ -370,24 +352,19 @@ body {
 .color-dot.selected { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
 .spacer { flex: 1; }
 
-/* Canvas */
-.canvas-wrapper {
-  position: relative; flex: 1; width: 100%; min-height: 0;
-}
+.canvas-wrapper { position: relative; flex: 1; width: 100%; min-height: 0; }
 #shared-canvas {
   position: absolute; inset: 0;
   width: 100%; height: 100%;
   touch-action: none; cursor: crosshair;
 }
 
-/* Action area */
 .action-area {
   border-top: 1px solid var(--border);
   background: var(--surface); padding: 16px 20px;
   flex-shrink: 0;
 }
 
-/* Encoding UI */
 .enc-ui { display: none; }
 .enc-ui.visible { display: block; }
 
@@ -415,7 +392,6 @@ body {
   60% { transform: translateX(6px); }
 }
 
-
 .key-reveal {
   background: #f0f7ff;
   border: 1.5px solid #bfdaff;
@@ -426,15 +402,6 @@ body {
   flex-wrap: wrap;
   gap: 8px;
   align-items: center;
-}
-.key-reveal-title {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  color: var(--text3);
-  text-transform: uppercase;
-  width: 100%;
-  margin-bottom: 2px;
 }
 .key-chip {
   display: inline-flex;
@@ -450,15 +417,9 @@ body {
 .key-chip.m2 { background: rgba(168,85,247,0.08); border-color: #a855f7; color: #a855f7; }
 .key-chip.m3 { background: rgba(34,197,94,0.08);  border-color: #22c55e; color: #22c55e; }
 .key-chip.m4 { background: rgba(77,166,255,0.08);  border-color: #4da6ff; color: #4da6ff; }
-.key-chip .key-val {
-  font-family: 'Pretendard', sans-serif;
-  font-size: 14px;
-  font-weight: 700;
-}
+.key-chip .key-val { font-family: 'Pretendard', sans-serif; font-size: 14px; font-weight: 700; }
 
-.enc-step {
-  display: flex; align-items: stretch; gap: 8px; margin-bottom: 10px;
-}
+.enc-step { display: flex; align-items: stretch; gap: 8px; margin-bottom: 10px; }
 .enc-label {
   background: rgba(26,127,212,0.04);
   border: 1px solid var(--border); border-radius: var(--radius);
@@ -509,7 +470,6 @@ body {
 .btn-action:active { transform: scale(0.97); }
 .btn-action:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
 
-/* Guessing UI */
 .guess-ui { display: none; }
 .guess-ui.visible { display: block; }
 
@@ -537,7 +497,6 @@ body {
 .guess-m-btn.sel.m3 { background: #22c55e; color: #000; }
 .guess-m-btn.sel.m4 { background: #4da6ff; color: #000; }
 
-/* Waiting UI */
 .wait-ui { display: none; }
 .wait-ui.visible { display: flex; flex-direction: column; align-items: center; gap: 12px; }
 .wait-text { font-size: 21px; color: var(--text2); text-align: center; }
@@ -559,7 +518,6 @@ body {
   100% { opacity: 0; transform: translateY(-160px) scale(1.5); }
 }
 
-/* Host button */
 .host-btn {
   background: var(--active-bg); border: 1px solid var(--accent);
   border-radius: var(--radius); color: var(--accent);
@@ -569,7 +527,6 @@ body {
 }
 .host-btn:hover { background: rgba(26,127,212,0.15); }
 
-/* Ranking on side */
 .rank-item {
   padding: 10px 16px;
   border-bottom: 1px solid rgba(38,51,84,0.35);
@@ -580,7 +537,6 @@ body {
 .rank-num.silver { color: var(--silver); }
 .rank-num.bronze { color: var(--bronze); }
 
-/* Game Over */
 #game-over {
   display: none; position: fixed; inset: 0; z-index: 200;
   background: rgba(236,242,248,0.97);
@@ -606,7 +562,6 @@ body {
 }
 .go-rank-item:last-child { border-bottom: none; }
 
-/* Toast */
 .toast {
   position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
   background: var(--surface); border: 1.5px solid var(--border);
@@ -625,7 +580,6 @@ body {
   to { opacity:1; transform: translateX(-50%) translateY(0); }
 }
 
-/* My badge */
 .my-badge {
   display: inline-flex; align-items: center;
   padding: 3px 10px; border-radius: 5px;
@@ -639,14 +593,6 @@ body {
 ::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
-/* Skytale hint display */
-.skytale-info {
-  font-size: 18px; color: var(--text3);
-  font-family: 'Pretendard', sans-serif;
-  margin-top: 6px;
-}
-
-/* Memo textarea */
 #memo-area {
   display: none;
   position: absolute; inset: 0;
@@ -660,274 +606,51 @@ body {
 }
 #memo-area::placeholder { color: var(--text3); }
 
-/* ── GUIDE OVERLAY ── */
-#guide-overlay {
-  display: none; position: fixed; inset: 0; z-index: 300;
-  background: rgba(236,242,248,0.97);
-  flex-direction: column;
+/* ── 연결 상태 표시 배지 ── */
+#conn-status-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 12px; border-radius: 20px;
+  font-size: 12px; font-weight: 700;
+  border: 1px solid var(--border);
+  transition: all 0.3s;
 }
-#guide-overlay.visible { display: flex; }
-.guide-header {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 0 32px; height: 60px; flex-shrink: 0;
-  border-bottom: 1px solid var(--border);
-  background: var(--surface);
+#conn-status-badge.connecting { background: rgba(240,169,24,0.1); border-color: var(--gold); color: var(--gold); }
+#conn-status-badge.connected  { background: rgba(34,197,94,0.1);  border-color: #22c55e; color: #15803d; }
+#conn-status-badge.error      { background: rgba(255,90,90,0.1);  border-color: #ff5a5a; color: #ff8080; }
+.conn-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: currentColor;
 }
-.guide-header-title {
-  font-family: 'Pretendard', sans-serif;
-  font-size: 22px; letter-spacing: 4px; color: var(--accent);
-}
-.guide-tabs {
-  display: flex; gap: 0;
-  border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden;
-}
-.guide-tab {
-  padding: 8px 20px; font-size: 19px; font-weight: 700; letter-spacing: 1px;
-  cursor: pointer; color: var(--text2); background: transparent;
-  border: none; transition: all 0.15s;
-  font-family: 'Pretendard', sans-serif;
-}
-.guide-tab:first-child { border-right: 1px solid var(--border); }
-.guide-tab.active { background: var(--active-bg); color: var(--active); }
-.guide-close-btn {
-  background: rgba(26,127,212,0.06); border: 1px solid var(--border);
-  border-radius: var(--radius); color: var(--text2);
-  padding: 8px 16px; font-size: 22px; cursor: pointer;
-  transition: all 0.15s; line-height: 1;
-}
-.guide-close-btn:hover { background: rgba(255,90,90,0.15); border-color: #ff5a5a; color: #ff8080; }
-.guide-body { flex: 1; overflow-y: auto; padding: 32px; }
-
-/* Game preview */
-.game-preview {
-  display: none; flex-direction: column; gap: 20px;
-  zoom: 1.25;
-}
-.game-preview.active { display: flex; }
-.preview-section {
-  background: var(--surface2); border: 1px solid var(--border);
-  border-radius: var(--radius-lg); padding: 20px 24px;
-}
-.preview-section-title {
-  font-size: 17px; font-weight: 700; letter-spacing: 3px; color: var(--accent);
-  margin-bottom: 14px; text-transform: uppercase;
-}
-.preview-section p { font-size: 20px; color: var(--text2); line-height: 1.7; }
-.preview-section .callout-list { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; }
-.callout-item {
-  display: flex; gap: 12px; align-items: flex-start;
-  padding: 10px 14px; background: rgba(26,127,212,0.03);
-  border-radius: var(--radius); border-left: 3px solid var(--accent);
-}
-.callout-item-icon { font-size: 24px; flex-shrink: 0; margin-top: 1px; }
-.callout-item-desc { font-size: 19px; color: var(--text2); line-height: 1.6; }
-.callout-item-desc strong { color: var(--text); }
-
-/* Cipher guide */
-.cipher-guide { display: none; flex-direction: column; gap: 20px; zoom: 1.25; }
-.cipher-guide.active { display: flex; }
-.cipher-card {
-  background: var(--surface2); border: 1px solid var(--border);
-  border-radius: var(--radius-lg); padding: 22px 26px;
-}
-.cipher-card-header { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
-.cipher-card-badge {
-  padding: 4px 14px; border-radius: 20px;
-  font-size: 18px; font-weight: 700; letter-spacing: 2px;
-}
-.cipher-card-name { font-size: 24px; font-weight: 700; color: var(--text); }
-.cipher-card-desc { font-size: 20px; color: var(--text2); line-height: 1.7; margin-bottom: 12px; }
-.cipher-card-key { font-size: 19px; color: var(--text3); margin-bottom: 12px; }
-.cipher-card-key span { font-family: 'Pretendard', sans-serif; color: var(--accent2); }
-.cipher-example {
-  background: rgba(26,127,212,0.03); border-radius: var(--radius);
-  padding: 12px 16px; font-family: 'Pretendard', sans-serif;
-  font-size: 19px; color: var(--text2); line-height: 1.8;
-}
-.cipher-example .arrow { color: var(--text3); }
-
-/* ── ANNOTATED GAME GUIDE MOCK ── */
-.ann-wrap { display: flex; flex-direction: column; gap: 16px; }
-.ann-mock {
-  width: 100%; height: 520px; display: flex; flex-direction: column;
-  background: var(--bg); border: 1px solid var(--border2);
-  border-radius: var(--radius-lg); overflow: hidden;
-  pointer-events: none; user-select: none; position: relative;
-}
-.ann-mock-hdr {
-  height: 42px; flex-shrink: 0; display: flex; align-items: center;
-  background: var(--surface); border-bottom: 1px solid var(--border);
-  padding: 0 12px;
-}
-.ann-mock-logo {
-  flex: 0 0 25%; font-family: 'Pretendard', sans-serif;
-  font-size: 17px; letter-spacing: 3px; color: var(--accent);
-  white-space: nowrap; overflow: hidden; text-overflow: clip;
-}
-.ann-mock-stats {
-  flex: 0 0 50%; display: flex; align-items: center; justify-content: space-around;
-}
-.ann-mock-hdr-right { flex: 0 0 25%; }
-.ann-mock-stat { text-align: center; }
-.ann-sl { display: block; font-size: 15px; letter-spacing: 2px; color: var(--text3); }
-.ann-sv { font-family: 'Pretendard', sans-serif; font-size: 21px; font-weight: 700; color: var(--accent); }
-.ann-mock-body { flex: 1; display: flex; overflow: hidden; min-height: 0; }
-.ann-mock-side {
-  width: 22%; flex-shrink: 0; border-right: 1px solid var(--border);
-  background: var(--surface); overflow: hidden; display: flex; flex-direction: column;
-}
-.ann-mock-ph-hdr {
-  font-size: 13px; letter-spacing: 2px; color: var(--text3); font-weight: 700;
-  text-align: center; padding: 4px 6px; border-bottom: 1px solid rgba(38,51,84,0.5);
-  flex-shrink: 0;
-}
-.ann-mock-pc {
-  display: flex; align-items: center; gap: 5px; padding: 5px 6px;
-  border-bottom: 1px solid rgba(38,51,84,0.3); flex-shrink: 0;
-}
-.ann-mock-pc.encoder { background: rgba(26,127,212,0.06); border-left: 2.5px solid var(--accent); }
-.ann-mock-pc.guessing { border-left: 2.5px solid var(--gold); }
-.ann-mock-av {
-  width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0;
-  background: rgba(26,127,212,0.15); border: 1.5px solid var(--border2);
-  color: var(--accent); font-size: 15px; font-weight: 700;
-  display: flex; align-items: center; justify-content: center;
-}
-.ann-mock-av.encoder { border-color: var(--accent); box-shadow: 0 0 5px rgba(26,127,212,0.5); }
-.ann-mock-av.guessing {
-  background: rgba(245,200,66,0.1); border-color: var(--gold);
-  color: var(--gold); box-shadow: 0 0 5px rgba(245,200,66,0.4);
-}
-.ann-mock-nm { font-size: 18px; font-weight: 700; color: var(--text); line-height: 1.2; }
-.ann-mock-sc { font-size: 16px; color: var(--text3); font-family: 'Pretendard', sans-serif; }
-.ann-mock-tbadge {
-  margin-left: auto; font-size: 13px; font-weight: 700; letter-spacing: 1px;
-  padding: 1px 5px; border-radius: 3px; white-space: nowrap; flex-shrink: 0;
-  background: var(--active-bg); color: var(--active); border: 1px solid rgba(26,127,212,0.2);
-}
-.ann-mock-tbadge.guessing {
-  background: rgba(245,200,66,0.1); color: var(--gold); border-color: rgba(245,200,66,0.2);
-}
-.ann-mock-rk-entry { font-size: 15px; color: var(--text2); padding: 3px 8px; flex-shrink: 0; }
-.ann-mock-col { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
-.ann-mock-banner {
-  flex-shrink: 0; padding: 8px 12px; text-align: center;
-  font-size: 18px; font-weight: 700; letter-spacing: 1px;
-  border-bottom: 1px solid var(--border);
-}
-.ann-mock-banner.encoding { background: rgba(26,127,212,0.1); color: var(--accent2); }
-.ann-mock-banner.guessing { background: rgba(245,200,66,0.1); color: var(--gold); }
-.ann-mock-toolbar {
-  flex-shrink: 0; display: flex; align-items: center; gap: 4px;
-  padding: 5px 8px; border-bottom: 1px solid var(--border);
-  background: var(--surface); overflow: hidden;
-}
-.ann-mock-tbtn {
-  background: rgba(26,127,212,0.04); border: 1px solid var(--border);
-  border-radius: 4px; color: var(--text2); padding: 3px 7px;
-  font-size: 15px; cursor: default; white-space: nowrap; flex-shrink: 0;
-  font-family: 'Pretendard', sans-serif;
-}
-.ann-mock-tbtn.active { background: var(--active-bg); border-color: var(--active); color: var(--active); }
-.ann-vsep { width: 1px; height: 14px; background: var(--border); margin: 0 2px; flex-shrink: 0; }
-.ann-dot-c { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-.ann-mock-spacer { flex: 1; min-width: 0; }
-.ann-mock-canvas {
-  flex: 1; position: relative; overflow: hidden;
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
-}
-.ann-mock-deco-svg {
-  position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none;
-}
-.ann-mock-cipher {
-  background: rgba(26,127,212,0.03); border: 1px solid var(--border);
-  border-radius: 8px; padding: 10px 20px; text-align: center;
-  z-index: 1; max-width: 80%;
-}
-.ann-mock-cl { font-size: 14px; letter-spacing: 2px; color: var(--text3); margin-bottom: 6px; }
-.ann-mock-ct {
-  font-family: 'Pretendard', sans-serif; font-size: 26px; font-weight: 700;
-  color: var(--accent2); letter-spacing: 2px;
-}
-.ann-mock-hints { display: flex; gap: 6px; z-index: 1; }
-.ann-mock-hchip {
-  padding: 4px 12px; border-radius: 12px; font-size: 18px; font-weight: 700; letter-spacing: 1px;
-  background: rgba(26,127,212,0.1); border: 1px solid rgba(26,127,212,0.3); color: var(--accent2);
-}
-.ann-mock-action {
-  flex-shrink: 0; border-top: 1px solid var(--border);
-  background: var(--surface); padding: 8px 10px;
-}
-.ann-mock-albl {
-  font-size: 14px; letter-spacing: 1.5px; color: var(--text3); font-weight: 700; margin-bottom: 6px;
-}
-.ann-mock-arow { display: flex; gap: 6px; align-items: center; overflow: hidden; }
-.ann-mock-order-chip {
-  font-size: 15px; font-weight: 700; padding: 3px 8px; border-radius: 4px; flex-shrink: 0;
-  background: rgba(26,127,212,0.1); border: 1px solid rgba(26,127,212,0.3); color: var(--accent2);
-}
-.ann-mock-ainput {
-  flex: 1; background: rgba(26,127,212,0.05); border: 1px solid var(--border);
-  border-radius: 4px; padding: 4px 8px; font-size: 15px; color: var(--text2);
-  font-family: 'Pretendard', sans-serif; min-width: 0; overflow: hidden;
-  text-overflow: ellipsis; white-space: nowrap;
-}
-.ann-mock-asub {
-  font-size: 15px; font-weight: 700; padding: 4px 10px; border-radius: 4px;
-  background: rgba(245,200,66,0.1); border: 1px solid rgba(245,200,66,0.3); color: var(--gold);
-  white-space: nowrap; flex-shrink: 0;
-}
-/* Annotation pins */
-.ann-pin {
-  position: absolute; width: 26px; height: 26px; border-radius: 50%;
-  background: var(--accent); color: #fff; font-size: 26px; font-weight: 700;
-  display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 0 0 3px rgba(26,127,212,0.45), 0 2px 8px rgba(0,0,0,0.25);
-  transform: translate(-50%, -50%); z-index: 10; pointer-events: none;
-  font-family: 'Pretendard', sans-serif; line-height: 1;
-}
-/* 설명 그리드 — 게임 화면 아래 3열 */
-.ann-legend { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 0; }
-.ann-entry {
-  display: flex; gap: 12px; align-items: flex-start;
-  padding: 14px 16px; background: rgba(26,127,212,0.04);
-  border-radius: var(--radius); border-left: 2px solid var(--accent);
-}
-.ann-num {
-  width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0; margin-top: 1px;
-  background: var(--accent); color: #fff; font-family: 'Pretendard', sans-serif;
-  font-size: 26px; font-weight: 700;
-  display: flex; align-items: center; justify-content: center;
-}
-.ann-entry-text { font-size: 19px; color: var(--text2); line-height: 1.55; }
-.ann-entry-text strong { color: var(--text); display: block; margin-bottom: 2px; }
-
-/* ── FLOW DIAGRAM ── */
-.flow-diagram {
-  display: flex; align-items: center; gap: 0;
-  overflow-x: auto; padding: 4px 0;
-}
-.flow-step {
-  flex: 1; min-width: 100px;
-  background: var(--surface2); border: 1px solid var(--border);
-  border-radius: var(--radius-lg); padding: 16px 14px;
-  text-align: center; position: relative;
-}
-.flow-step.enc { border-top: 3px solid var(--accent); }
-.flow-step.guess { border-top: 3px solid var(--gold); }
-.flow-step.end { border-top: 3px solid #15803d; }
-.flow-step-icon { font-size: 28px; margin-bottom: 6px; display: block; }
-.flow-step-title {
-  font-size: 18px; font-weight: 700; letter-spacing: 1px;
-  color: var(--text); margin-bottom: 4px;
-}
-.flow-step-sub { font-size: 17px; color: var(--text3); line-height: 1.5; }
-.flow-arrow {
-  width: 32px; flex-shrink: 0; text-align: center;
-  color: var(--text3); font-size: 26px; font-weight: 700;
+.conn-dot.pulse { animation: dotPulse 1.2s infinite; }
+@keyframes dotPulse {
+  0%,100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.4; transform: scale(0.7); }
 }
 
-/* ── SERVER SETTINGS ── */
+/* ── 디버그 로그 패널 ── */
+#debug-panel {
+  margin-top: 10px;
+  background: #0f1923;
+  border: 1px solid #1e3a5f;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-family: 'Consolas', 'Monaco', monospace;
+  font-size: 11px;
+  color: #4da6ff;
+  max-height: 130px;
+  overflow-y: auto;
+  display: none;
+}
+#debug-panel .dbg-hdr {
+  color: #4a6080; font-size: 10px; letter-spacing: 1.5px;
+  margin-bottom: 5px; font-weight: 700;
+}
+#debug-log .dbg-line { padding: 1px 0; line-height: 1.5; }
+#debug-log .dbg-line.ok  { color: #22c55e; }
+#debug-log .dbg-line.err { color: #ff8080; }
+#debug-log .dbg-line.inf { color: #4da6ff; }
+#debug-log .dbg-line.warn { color: var(--gold); }
+
 .srv-toggle-btn { width:100%; padding:9px 14px; background:rgba(26,127,212,0.05); border:1px solid var(--border); border-radius:var(--radius); color:var(--text3); font-size:17px; font-weight:700; letter-spacing:1px; cursor:pointer; text-align:left; font-family:'Pretendard',sans-serif; transition:all 0.15s; display:flex; align-items:center; gap:8px; }
 .srv-toggle-btn:hover { border-color:var(--border2); color:var(--text2); }
 .srv-panel-body { margin-top:8px; background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius); padding:14px 16px; }
@@ -955,10 +678,6 @@ body {
     <div class="lobby-title">
       <h1>암호화 대전 게임</h1>
       <p>전략적 암호화·해독 대전</p>
-    </div>
-
-    <div style="text-align:center;margin-bottom:20px">
-      <button onclick="openGuide()" style="background:rgba(26,127,212,0.08);border:1px solid var(--border);border-radius:var(--radius);color:var(--text2);padding:8px 20px;font-size: 19px;font-weight:700;letter-spacing:2px;cursor:pointer;font-family:'Pretendard', sans-serif;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text2)'">📖 게임 가이드</button>
     </div>
 
     <div class="role-tabs">
@@ -1010,15 +729,14 @@ body {
       <div id="srv-panel" style="display:none">
         <div class="srv-panel-body">
           <div class="srv-mode-row">
-            <button class="srv-mode-btn active" id="srv-pub-btn" onclick="setServerMode('public')">🌐 공용 서버 (기본)</button>
+            <button class="srv-mode-btn active" id="srv-pub-btn" onclick="setServerMode('public')">🌐 공용 서버</button>
             <button class="srv-mode-btn" id="srv-loc-btn" onclick="setServerMode('local')">🏠 로컬 서버</button>
-            <button class="srv-mode-btn" id="srv-dir-btn" onclick="setServerMode('direct')">🔗 직접 연결 (SDP)</button>
           </div>
           <div id="srv-pub-info">
-            <div class="srv-note">PeerJS 공용 시그널링 서버를 사용합니다.<br>초기 연결 시 인터넷이 잠깐 필요하며, 이후 게임 데이터는 같은 WiFi 안에서 P2P로 직접 전송됩니다.</div>
+            <div class="srv-note">PeerJS 공용 시그널링 서버 + TURN 릴레이 서버를 사용합니다.<br>인터넷 연결이 필요하며, 같은 WiFi 환경에서 가장 안정적으로 동작합니다.</div>
           </div>
           <div id="srv-local-cfg" style="display:none">
-            <div class="srv-note">같은 WiFi 내 한 대의 컴퓨터에서 아래 명령어로 로컬 서버를 실행하세요.<br>서버 실행: <code>npx peerjs --port 9000</code><br>나머지 컴퓨터는 서버 IP와 포트를 입력 후 저장하세요.</div>
+            <div class="srv-note">같은 WiFi 내 한 대의 컴퓨터에서 아래 명령어로 로컬 서버를 실행하세요.<br>서버 실행: <code>npx peerjs --port 9000</code></div>
             <div class="srv-input-row">
               <label>IP</label>
               <input class="srv-input" id="srv-host-input" type="text" placeholder="예: 192.168.0.10">
@@ -1032,12 +750,18 @@ body {
               <button class="srv-save-btn" onclick="saveSrvLocal()">저장</button>
             </div>
           </div>
-          <div id="srv-direct-cfg" style="display:none">
-            <div class="srv-note">인터넷 없이 같은 WiFi에서 직접 연결합니다.<br>① 호스트가 접속 코드 생성 → ② 참가자에게 전달 → ③ 참가자가 응답 코드 전달 → ④ 연결 완료.<br>HTML 파일은 <code>http://</code> 서버를 통해 열어야 합니다.</div>
-          </div>
         </div>
       </div>
     </div>
+
+    <!-- 디버그 패널 -->
+    <div id="debug-panel">
+      <div class="dbg-hdr">🐛 CONNECTION LOG</div>
+      <div id="debug-log"></div>
+    </div>
+    <button onclick="toggleDebug()" style="margin-top:6px;width:100%;padding:6px;background:transparent;border:1px dashed var(--border2);border-radius:8px;color:var(--text3);font-size:12px;cursor:pointer;font-family:'Pretendard',sans-serif">
+      🐛 디버그 로그 보기/숨기기
+    </button>
   </div>
 </div>
 
@@ -1052,7 +776,7 @@ body {
     <div class="hdr-center">
       <div class="hdr-stat">
         <span class="hdr-stat-label">PHASE</span>
-        <span class="hdr-stat-value" id="phase-label" style="font-size: 19px;letter-spacing:2px">대기 중</span>
+        <span class="hdr-stat-value" id="phase-label" style="font-size:19px;letter-spacing:2px">대기 중</span>
       </div>
       <div class="hdr-stat">
         <span class="hdr-stat-label">TIMER</span>
@@ -1062,10 +786,14 @@ body {
         <span class="hdr-stat-label">ROUND</span>
         <span class="hdr-stat-value" id="round-info">0 / 0</span>
       </div>
+      <!-- 연결 상태 배지 -->
+      <div id="conn-status-badge" class="connecting">
+        <span class="conn-dot pulse"></span>
+        <span id="conn-status-text">연결 중...</span>
+      </div>
     </div>
     <div class="hdr-right">
       <span id="my-role-badge" class="my-badge" style="display:none"></span>
-      <button id="direct-add-btn" class="host-btn" onclick="directAddClient()" style="display:none">+ 참가자 추가</button>
       <button id="host-start-btn" class="host-btn" onclick="hostStartGame()" style="display:none">▶ 게임 시작</button>
       <button class="host-btn" onclick="leaveRoom()" style="background:rgba(255,90,90,0.08);border-color:rgba(255,90,90,0.3);color:#ff8080">← 방 나가기</button>
     </div>
@@ -1074,7 +802,7 @@ body {
   <!-- Main -->
   <div class="main-layout">
 
-    <!-- Side: Players + Ranking -->
+    <!-- Side -->
     <div class="side-panel">
       <div class="panel-header">참가자</div>
       <div id="player-list"></div>
@@ -1087,7 +815,6 @@ body {
     <div class="center-area">
       <div class="phase-banner waiting" id="center-phase-banner">STANDBY — 플레이어 대기 중</div>
 
-      <!-- Toolbar -->
       <div class="toolbar">
         <button class="tool-btn active" id="btn-mode-draw" onclick="setBoardMode('draw')">🎨 그리기</button>
         <button class="tool-btn" id="btn-mode-memo" onclick="setBoardMode('memo')">📝 메모장</button>
@@ -1103,7 +830,6 @@ body {
         <div class="spacer"></div>
       </div>
 
-      <!-- Canvas + Cipher overlay -->
       <div class="canvas-wrapper">
         <canvas id="shared-canvas"></canvas>
         <textarea id="memo-area" placeholder="메모장 — 개인 메모를 자유롭게 입력하세요"></textarea>
@@ -1116,10 +842,8 @@ body {
         </div>
       </div>
 
-      <!-- Action area -->
       <div class="action-area">
 
-        <!-- ENCODING UI (출제자) -->
         <div class="enc-ui" id="enc-ui">
           <div class="section-label">암호화 입력 — 최대 2단계 조합 가능</div>
           <div id="enc-error-msg" class="enc-error-msg"></div>
@@ -1130,21 +854,21 @@ body {
             </div>
             <div class="enc-step" id="step1-row" style="display:none">
               <div class="enc-label" id="step1-label-wrap" style="width:auto;padding:0 10px">
-                <span id="step1-method-name" style="font-size: 18px;font-weight:700">✕</span>
+                <span id="step1-method-name" style="font-size:18px;font-weight:700">✕</span>
               </div>
               <span class="step-arrow">→</span>
               <input class="enc-input" id="enc-input-1" type="text" placeholder="1단계 암호화 결과" oninput="onEncInput()">
             </div>
             <div class="enc-step" id="step2-row" style="display:none">
               <div class="enc-label" style="width:auto;padding:0 10px">
-                <span id="step2-method-name" style="font-size: 18px;font-weight:700">✕</span>
+                <span id="step2-method-name" style="font-size:18px;font-weight:700">✕</span>
               </div>
               <span class="step-arrow">→</span>
               <input class="enc-input" id="enc-input-2" type="text" placeholder="2단계 암호화 결과">
             </div>
           </div>
           <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px">
-            <span style="font-size: 18px;color:var(--text3);font-weight:700;letter-spacing:1px">방식 추가:</span>
+            <span style="font-size:18px;color:var(--text3);font-weight:700;letter-spacing:1px">방식 추가:</span>
             <div class="method-grid" style="margin:0" id="method-selector"></div>
           </div>
           <div class="btn-row">
@@ -1160,7 +884,6 @@ body {
           </div>
         </div>
 
-        <!-- GUESSING UI (추측자들) -->
         <div class="guess-ui" id="guess-ui">
           <div class="section-label" id="guess-ui-label">복호화 순서 추측 및 원본 입력</div>
           <div id="guess-error-msg" class="enc-error-msg"></div>
@@ -1179,7 +902,6 @@ body {
           </div>
         </div>
 
-        <!-- WAITING UI -->
         <div class="wait-ui" id="wait-ui">
           <div class="wait-text" id="wait-text">대기 중...</div>
           <div class="reaction-btns">
@@ -1190,7 +912,7 @@ body {
             <button class="reaction-btn" onclick="sendReaction('🤯')">🤯</button>
             <button class="reaction-btn" onclick="sendReaction('⏳')">⏳</button>
           </div>
-          <div style="font-size: 18px;color:var(--text3)">리액션으로 분위기를 띄워보세요!</div>
+          <div style="font-size:18px;color:var(--text3)">리액션으로 분위기를 띄워보세요!</div>
         </div>
 
       </div>
@@ -1212,415 +934,30 @@ body {
   </div>
 </div>
 
-<!-- ══ GUIDE OVERLAY ══ -->
-<div id="guide-overlay">
-  <div class="guide-header">
-    <span class="guide-header-title">GUIDE</span>
-    <div class="guide-tabs">
-      <button class="guide-tab active" id="gtab-game" onclick="switchGuideTab('game')">🎮 게임 가이드</button>
-      <button class="guide-tab" id="gtab-cipher" onclick="switchGuideTab('cipher')">🔐 암호화 가이드</button>
-    </div>
-    <button class="guide-close-btn" onclick="closeGuide()">✕</button>
-  </div>
-  <div class="guide-body">
-
-    <!-- 게임 가이드 탭 -->
-    <div class="game-preview active" id="gpanel-game">
-
-      <!-- 어노테이션 목 스크린 -->
-      <div class="ann-wrap">
-
-        <!-- 게임 목업 화면: 전체 너비 -->
-        <div class="ann-mock">
-
-          <!-- 헤더 -->
-          <div class="ann-mock-hdr">
-            <span class="ann-mock-logo">⚔ 암호화 대전 게임</span>
-            <div class="ann-mock-stats">
-              <div class="ann-mock-stat"><span class="ann-sl">PHASE</span><span class="ann-sv">해독 중</span></div>
-              <div class="ann-mock-stat"><span class="ann-sl">TIMER</span><span class="ann-sv">01:45</span></div>
-              <div class="ann-mock-stat"><span class="ann-sl">ROUND</span><span class="ann-sv">2 / 5</span></div>
-            </div>
-            <div class="ann-mock-hdr-right"></div>
-          </div>
-
-          <!-- 본문 -->
-          <div class="ann-mock-body">
-
-            <!-- 좌측 플레이어 패널 -->
-            <div class="ann-mock-side">
-              <div class="ann-mock-ph-hdr">PLAYERS</div>
-              <div class="ann-mock-pc encoder">
-                <div class="ann-mock-av encoder">A</div>
-                <div><div class="ann-mock-nm">Alice</div><div class="ann-mock-sc">850 pts</div></div>
-                <span class="ann-mock-tbadge">출제</span>
-              </div>
-              <div class="ann-mock-pc guessing">
-                <div class="ann-mock-av guessing">B</div>
-                <div><div class="ann-mock-nm">Bob</div><div class="ann-mock-sc">400 pts</div></div>
-                <span class="ann-mock-tbadge guessing">해독</span>
-              </div>
-              <div class="ann-mock-pc guessing">
-                <div class="ann-mock-av guessing">C</div>
-                <div><div class="ann-mock-nm">Carol</div><div class="ann-mock-sc">200 pts</div></div>
-                <span class="ann-mock-tbadge guessing">해독</span>
-              </div>
-              <div class="ann-mock-ph-hdr" style="margin-top:6px">RANK</div>
-              <div class="ann-mock-rk-entry">🥇 Alice · 850</div>
-              <div class="ann-mock-rk-entry">🥈 Bob · 400</div>
-              <div class="ann-mock-rk-entry">🥉 Carol · 200</div>
-            </div>
-
-            <!-- 중앙 컬럼 -->
-            <div class="ann-mock-col">
-              <div class="ann-mock-banner guessing">🛡 해독 단계 — 암호문을 해독하고 원본 메시지를 입력하세요</div>
-              <div class="ann-mock-toolbar">
-                <button class="ann-mock-tbtn active">🎨 그리기</button>
-                <button class="ann-mock-tbtn">📝 메모장</button>
-                <span class="ann-vsep"></span>
-                <button class="ann-mock-tbtn active">✏ 펜</button>
-                <button class="ann-mock-tbtn">◻ 지우기</button>
-                <span class="ann-dot-c" style="background:#4da6ff"></span>
-                <span class="ann-dot-c" style="background:#f5c842"></span>
-                <span class="ann-dot-c" style="background:#15803d"></span>
-                <span class="ann-mock-spacer"></span>
-                <button class="ann-mock-tbtn">🗑 삭제</button>
-              </div>
-              <div class="ann-mock-canvas">
-                <svg class="ann-mock-deco-svg" viewBox="0 0 600 200" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
-                  <path d="M10 80 Q50 40 90 80 T170 80 T250 70 T330 85 T410 78" stroke="rgba(26,127,212,0.18)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-                  <path d="M30 130 L70 100 L120 125 L170 90 L220 120 L270 100" stroke="rgba(200,154,16,0.14)" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-                  <circle cx="500" cy="80" r="28" stroke="rgba(26,127,212,0.09)" stroke-width="1.5" fill="none"/>
-                </svg>
-                <div class="ann-mock-cipher">
-                  <div class="ann-mock-cl">ENCODED MESSAGE</div>
-                  <div class="ann-mock-ct">KHOOR · ZRUOG</div>
-                </div>
-                <div class="ann-mock-hints">
-                  <span class="ann-mock-hchip">CAESAR</span>
-                  <span class="ann-mock-hchip">KEY</span>
-                </div>
-              </div>
-              <div class="ann-mock-action">
-                <div class="ann-mock-albl">복호화 순서 추측 및 원본 입력</div>
-                <div class="ann-mock-arow">
-                  <span class="ann-mock-order-chip">① CAESAR</span>
-                  <span class="ann-mock-order-chip">② KEY</span>
-                  <span class="ann-mock-ainput">hello world</span>
-                  <span class="ann-mock-asub">해독 완료 🛡</span>
-                </div>
-              </div>
-            </div>
-          </div><!-- /body -->
-
-          <!-- 번호 뱃지: ann-mock(520px) 기준 절대 위치 -->
-          <span class="ann-pin" style="top:21px;left:33%">&#9312;</span>
-          <span class="ann-pin" style="top:21px;left:50%">&#9313;</span>
-          <span class="ann-pin" style="top:21px;left:68%">&#9314;</span>
-          <span class="ann-pin" style="top:230px;left:11%">&#9315;</span>
-          <span class="ann-pin" style="top:57px;left:61%">&#9316;</span>
-          <span class="ann-pin" style="top:84px;left:88%">&#9317;</span>
-          <span class="ann-pin" style="top:232px;left:78%">&#9318;</span>
-          <span class="ann-pin" style="top:305px;left:78%">&#9319;</span>
-          <span class="ann-pin" style="top:470px;left:78%">&#9320;</span>
-        </div><!-- /ann-mock -->
-
-        <!-- 설명 그리드: 3열 -->
-        <div class="ann-legend">
-          <div class="ann-entry">
-            <span class="ann-num">&#9312;</span>
-            <div class="ann-entry-text"><strong>현재 페이즈</strong>출제(⚔)&#183;해독(🛡)&#183;결과(✨) 단계를 실시간 표시합니다.</div>
-          </div>
-          <div class="ann-entry">
-            <span class="ann-num">&#9313;</span>
-            <div class="ann-entry-text"><strong>타이머</strong>남은 시간. 10초 이하면 빨간색으로 깜빡입니다.</div>
-          </div>
-          <div class="ann-entry">
-            <span class="ann-num">&#9314;</span>
-            <div class="ann-entry-text"><strong>라운드 진행</strong>현재 라운드&#160;/&#160;총 라운드 수를 표시합니다.</div>
-          </div>
-          <div class="ann-entry">
-            <span class="ann-num">&#9315;</span>
-            <div class="ann-entry-text"><strong>플레이어 패널</strong>참가자 목록과 점수 순위. <span style="color:var(--accent)">파란 아우라</span>=출제자, <span style="color:var(--gold)">골드 아우라</span>=해독 중.</div>
-          </div>
-          <div class="ann-entry">
-            <span class="ann-num">&#9316;</span>
-            <div class="ann-entry-text"><strong>페이즈 배너</strong>현재 단계 안내. 출제=파랑, 해독=골드, 결과=초록으로 색상이 바뀝니다.</div>
-          </div>
-          <div class="ann-entry">
-            <span class="ann-num">&#9317;</span>
-            <div class="ann-entry-text"><strong>캔버스 툴바</strong>그리기/메모장 전환, 펜&#183;지우기&#183;색상 선택. 그리기와 메모는 <strong>나에게만</strong> 보이며 다른 참가자와 공유되지 않습니다.</div>
-          </div>
-          <div class="ann-entry">
-            <span class="ann-num">&#9318;</span>
-            <div class="ann-entry-text"><strong>암호문</strong>출제자가 제출한 암호화 메시지. 배경 캔버스에 그림&#183;메모로 힌트를 남길 수 있습니다.</div>
-          </div>
-          <div class="ann-entry">
-            <span class="ann-num">&#9319;</span>
-            <div class="ann-entry-text"><strong>힌트 칩</strong>암호화 방식 2개 사용 시 종류만 표시(순서 비공개). 1개 방식 사용 시 힌트 없음.</div>
-          </div>
-          <div class="ann-entry">
-            <span class="ann-num">&#9320;</span>
-            <div class="ann-entry-text"><strong>액션 영역</strong>출제자: 방식&#183;키&#183;메시지 입력 / 해독자: 순서 추측 및 원본 메시지 입력 후 제출.</div>
-          </div>
-        </div><!-- /ann-legend -->
-
-      </div><!-- /ann-wrap -->
-
-      <!-- 게임 흐름 다이어그램 -->
-      <div class="preview-section">
-        <div class="preview-section-title">📋 게임 흐름</div>
-        <div class="flow-diagram">
-          <div class="flow-step enc">
-            <span class="flow-step-icon">⚔</span>
-            <div class="flow-step-title">출제 단계</div>
-            <div class="flow-step-sub">출제자가 암호화 방식(최대 2가지)·키·원본 메시지를 선택해 암호문을 만들고 제출<br><span style="color:var(--accent)">90초</span></div>
-          </div>
-          <div class="flow-arrow">→</div>
-          <div class="flow-step guess">
-            <span class="flow-step-icon">🔍</span>
-            <div class="flow-step-title">해독 단계</div>
-            <div class="flow-step-sub">해독자들이 암호문을 분석하고 복호화 순서와 원본 메시지를 추측해 제출<br><span style="color:var(--gold)">120초</span></div>
-          </div>
-          <div class="flow-arrow">→</div>
-          <div class="flow-step end">
-            <span class="flow-step-icon">✨</span>
-            <div class="flow-step-title">결과 공개</div>
-            <div class="flow-step-sub">원본 메시지 공개. 정답자·출제자에게만 키값 공개.<br>정답=<span style="color:#15803d">+10pt+보너스</span> 오답=0</div>
-          </div>
-          <div class="flow-arrow">→</div>
-          <div class="flow-step" style="border-top:3px solid var(--text3)">
-            <span class="flow-step-icon">🔄</span>
-            <div class="flow-step-title">다음 차례</div>
-            <div class="flow-step-sub">모든 플레이어가 한 번씩 출제한 후 라운드 종료. 설정한 라운드 수까지 반복.</div>
-          </div>
-        </div>
-        <div style="margin-top:12px;padding:10px 14px;background:rgba(245,200,66,0.06);border-radius:var(--radius);border-left:3px solid var(--gold);font-size: 18px;color:var(--text2)">
-          <strong style="color:var(--gold)">출제자 보너스:</strong> 해독자가 틀릴 때마다 출제자에게 <strong>+5pt</strong> 지급. 점수는 라운드가 끝날 때 최종 공개됩니다.
-        </div>
-      </div>
-
-    </div>
-
-    <!-- 암호화 가이드 탭 -->
-    <div class="cipher-guide" id="gpanel-cipher">
-      <div class="cipher-card">
-        <div class="cipher-card-header">
-          <div class="cipher-card-badge" style="background:#ff6b3522;border:1.5px solid #ff6b35;color:#ff6b35">KEY</div>
-          <div class="cipher-card-name">키 순서 암호화</div>
-        </div>
-        <div class="cipher-card-desc">원문을 <strong>키의 자릿수 크기</strong>만큼 단위로 자른 뒤, 각 단위의 글자를 <strong>키 숫자가 나타내는 순서</strong>로 재배열합니다.</div>
-        <div class="cipher-card-key">키 입력: 순열 숫자 (예: <span>21</span>, <span>312</span>, <span>4132</span>) — 각 자릿수는 1~n 범위의 중복 없는 위치 번호</div>
-        <!-- SVG 그림 -->
-        <svg viewBox="0 0 500 100" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:500px;margin:10px 0;display:block">
-          <!-- 원본 블록 -->
-          <g font-family="'Pretendard', sans-serif" font-size="14" font-weight="bold">
-            <rect x="10" y="30" width="36" height="36" rx="6" fill="#ff6b3522" stroke="#ff6b35" stroke-width="1.5"/>
-            <text x="28" y="53" text-anchor="middle" fill="#ff6b35">A</text>
-            <rect x="50" y="30" width="36" height="36" rx="6" fill="#ff6b3522" stroke="#ff6b35" stroke-width="1.5"/>
-            <text x="68" y="53" text-anchor="middle" fill="#ff6b35">B</text>
-            <rect x="90" y="30" width="36" height="36" rx="6" fill="#ff6b3522" stroke="#ff6b35" stroke-width="1.5"/>
-            <text x="108" y="53" text-anchor="middle" fill="#ff6b35">C</text>
-            <text x="28" y="20" text-anchor="middle" fill="#7a95b0" font-size="10">①</text>
-            <text x="68" y="20" text-anchor="middle" fill="#7a95b0" font-size="10">②</text>
-            <text x="108" y="20" text-anchor="middle" fill="#7a95b0" font-size="10">③</text>
-          </g>
-          <!-- 키 표시 -->
-          <text x="145" y="50" font-family="'Pretendard', sans-serif" font-size="12" fill="#7a95b0">키=312</text>
-          <!-- 화살표 -->
-          <text x="190" y="54" font-size="20" fill="#7a95b0" font-family="Pretendard, sans-serif">→</text>
-          <!-- 결과 블록 (3→C, 1→A, 2→B 순서로) -->
-          <g font-family="'Pretendard', sans-serif" font-size="14" font-weight="bold">
-            <rect x="220" y="30" width="36" height="36" rx="6" fill="#22c55e22" stroke="#22c55e" stroke-width="1.5"/>
-            <text x="238" y="53" text-anchor="middle" fill="#22c55e">C</text>
-            <rect x="260" y="30" width="36" height="36" rx="6" fill="#22c55e22" stroke="#22c55e" stroke-width="1.5"/>
-            <text x="278" y="53" text-anchor="middle" fill="#22c55e">A</text>
-            <rect x="300" y="30" width="36" height="36" rx="6" fill="#22c55e22" stroke="#22c55e" stroke-width="1.5"/>
-            <text x="318" y="53" text-anchor="middle" fill="#22c55e">B</text>
-            <text x="238" y="20" text-anchor="middle" fill="#7a95b0" font-size="10">③→1</text>
-            <text x="278" y="20" text-anchor="middle" fill="#7a95b0" font-size="10">①→2</text>
-            <text x="318" y="20" text-anchor="middle" fill="#7a95b0" font-size="10">②→3</text>
-          </g>
-          <text x="345" y="50" font-family="'Pretendard', sans-serif" font-size="11" fill="#4a6080">3번→1위</text>
-          <text x="345" y="65" font-family="'Pretendard', sans-serif" font-size="11" fill="#4a6080">1번→2위</text>
-          <text x="345" y="80" font-family="'Pretendard', sans-serif" font-size="11" fill="#4a6080">2번→3위</text>
-        </svg>
-        <div class="cipher-example">
-          원본: <span style="color:var(--accent2)">ABCDEF</span> &nbsp; 키=<span style="color:#ff6b35">312</span> (자릿수 3 → 3글자씩 자름)<br>
-          1번째 단위 [A B C] → 3위=C, 1위=A, 2위=B → <span style="color:#22c55e">C A B</span><br>
-          2번째 단위 [D E F] → 3위=F, 1위=D, 2위=E → <span style="color:#22c55e">F D E</span><br>
-          <span class="arrow">→</span> 암호문: <span style="color:#ff6b35">CABFDE</span>
-        </div>
-      </div>
-
-      <div class="cipher-card">
-        <div class="cipher-card-header">
-          <div class="cipher-card-badge" style="background:#a855f722;border:1.5px solid #a855f7;color:#a855f7">ANA</div>
-          <div class="cipher-card-name">애너그램 암호화</div>
-        </div>
-        <div class="cipher-card-desc">원문을 <strong>키값 크기의 단위</strong>로 자른 뒤, 각 단위를 <strong>역순으로 뒤집습니다</strong>. 키가 있어야 같은 단위로 복호화가 가능합니다. 복호화는 암호화와 같은 방법(각 단위를 다시 역순)으로 수행합니다.</div>
-        <div class="cipher-card-key">키 입력: 단위 크기 (정수, 권장 2–10) — <span>예: 키=3 → 3글자씩 단위로 역순</span></div>
-        <!-- SVG 그림 -->
-        <svg viewBox="0 0 460 90" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:460px;margin:10px 0;display:block">
-          <g font-family="'Pretendard', sans-serif" font-size="14" font-weight="bold">
-            <!-- 원본 블록 -->
-            <rect x="10" y="25" width="30" height="36" rx="5" fill="#a855f722" stroke="#a855f7" stroke-width="1.5"/>
-            <text x="25" y="48" text-anchor="middle" fill="#a855f7">H</text>
-            <rect x="44" y="25" width="30" height="36" rx="5" fill="#a855f722" stroke="#a855f7" stroke-width="1.5"/>
-            <text x="59" y="48" text-anchor="middle" fill="#a855f7">E</text>
-            <rect x="78" y="25" width="30" height="36" rx="5" fill="#a855f722" stroke="#a855f7" stroke-width="1.5"/>
-            <text x="93" y="48" text-anchor="middle" fill="#a855f7">L</text>
-            <!-- 단위 구분선 -->
-            <rect x="115" y="25" width="30" height="36" rx="5" fill="#a855f733" stroke="#a855f7" stroke-width="1.5" stroke-dasharray="4,2"/>
-            <text x="130" y="48" text-anchor="middle" fill="#a855f7">L</text>
-            <rect x="149" y="25" width="30" height="36" rx="5" fill="#a855f733" stroke="#a855f7" stroke-width="1.5" stroke-dasharray="4,2"/>
-            <text x="164" y="48" text-anchor="middle" fill="#a855f7">O</text>
-            <!-- 괄호 단위 표시 -->
-            <text x="59" y="15" text-anchor="middle" fill="#7a95b0" font-size="9">단위 1</text>
-            <text x="147" y="15" text-anchor="middle" fill="#7a95b0" font-size="9">단위 2</text>
-          </g>
-          <text x="190" y="48" font-size="20" fill="#7a95b0" font-family="Pretendard, sans-serif">→</text>
-          <g font-family="'Pretendard', sans-serif" font-size="14" font-weight="bold">
-            <!-- 역순 결과 -->
-            <rect x="220" y="25" width="30" height="36" rx="5" fill="#4da6ff22" stroke="#4da6ff" stroke-width="1.5"/>
-            <text x="235" y="48" text-anchor="middle" fill="#4da6ff">L</text>
-            <rect x="254" y="25" width="30" height="36" rx="5" fill="#4da6ff22" stroke="#4da6ff" stroke-width="1.5"/>
-            <text x="269" y="48" text-anchor="middle" fill="#4da6ff">E</text>
-            <rect x="288" y="25" width="30" height="36" rx="5" fill="#4da6ff22" stroke="#4da6ff" stroke-width="1.5"/>
-            <text x="303" y="48" text-anchor="middle" fill="#4da6ff">H</text>
-            <rect x="325" y="25" width="30" height="36" rx="5" fill="#4da6ff33" stroke="#4da6ff" stroke-width="1.5" stroke-dasharray="4,2"/>
-            <text x="340" y="48" text-anchor="middle" fill="#4da6ff">O</text>
-            <rect x="359" y="25" width="30" height="36" rx="5" fill="#4da6ff33" stroke="#4da6ff" stroke-width="1.5" stroke-dasharray="4,2"/>
-            <text x="374" y="48" text-anchor="middle" fill="#4da6ff">L</text>
-          </g>
-          <text x="400" y="42" font-family="'Pretendard', sans-serif" font-size="11" fill="#4a6080">각 단위</text>
-          <text x="400" y="57" font-family="'Pretendard', sans-serif" font-size="11" fill="#4a6080">역순</text>
-        </svg>
-        <div class="cipher-example">
-          원본: <span style="color:var(--accent2)">HELLO</span> &nbsp; 키=<span style="color:#a855f7">3</span> (3글자씩 자름)<br>
-          단위 1: [H E L] → 역순 → <span style="color:#4da6ff">L E H</span><br>
-          단위 2: [L O] &nbsp; → 역순 → <span style="color:#4da6ff">O L</span><br>
-          <span class="arrow">→</span> 암호문: <span style="color:#a855f7">LEHOL</span>
-        </div>
-      </div>
-
-      <div class="cipher-card">
-        <div class="cipher-card-header">
-          <div class="cipher-card-badge" style="background:#22c55e22;border:1.5px solid #22c55e;color:#22c55e">CAE</div>
-          <div class="cipher-card-name">카이사르 암호화</div>
-        </div>
-        <div class="cipher-card-desc">알파벳 각 글자를 <strong>오른쪽으로 키값만큼 이동</strong>합니다. 알파벳 순서에서 Z를 넘으면 A로 순환합니다.</div>
-        <div class="cipher-card-key">키 입력: 이동(시프트) 칸 수 (1–25) — <span>예: 키=3 → A는 오른쪽 3칸 → D</span></div>
-        <!-- SVG 그림 -->
-        <svg viewBox="0 0 316 170" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:316px;margin:10px 0;display:block">
-  <defs>
-  <marker id="cmarr-b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><polygon points="0,0 10,5 0,10" fill="#1a7fd4"/></marker>
-  <marker id="cmarr-o" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><polygon points="0,0 10,5 0,10" fill="#d97706"/></marker>
-</defs>
-  <rect x="13" y="71" width="219" height="32" rx="4" fill="none" stroke="#dde5ed" stroke-width="1"/>
-  <rect x="232" y="71" width="68" height="32" rx="4" fill="#fffbeb" stroke="#d97706" stroke-width="1.3" stroke-dasharray="4,2"/>
-  <text x="2" y="84" font-family="'Pretendard', sans-serif" font-size="10" fill="#4a6080">알</text>
-  <text x="2" y="95" font-family="'Pretendard', sans-serif" font-size="10" fill="#4a6080">파</text>
-  <text x="2" y="106" font-family="'Pretendard', sans-serif" font-size="10" fill="#4a6080">벳</text>
-  <rect x="15" y="75" width="20" height="24" rx="3" fill="#1a7fd4" stroke="#1565b8" stroke-width="1.5"/><text x="25" y="94" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#ffffff">A</text>
-  <rect x="37" y="75" width="20" height="24" rx="3" fill="#e8eef5" stroke="#b0c4d8" stroke-width="1.5"/><text x="47" y="94" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#1a2340">B</text>
-  <rect x="59" y="75" width="20" height="24" rx="3" fill="#e8eef5" stroke="#b0c4d8" stroke-width="1.5"/><text x="69" y="94" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#1a2340">C</text>
-  <rect x="81" y="75" width="20" height="24" rx="3" fill="#1a7fd4" stroke="#1565b8" stroke-width="1.5"/><text x="91" y="94" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#ffffff">D</text>
-  <rect x="103" y="75" width="20" height="24" rx="3" fill="#e8eef5" stroke="#b0c4d8" stroke-width="1.5"/><text x="113" y="94" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#1a2340">E</text>
-  <rect x="125" y="75" width="20" height="24" rx="3" fill="#e8eef5" stroke="#b0c4d8" stroke-width="1.5"/><text x="135" y="94" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#1a2340">F</text>
-  <text x="157" y="94" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="14" fill="#7a95b0">⋯</text>
-  <rect x="169" y="75" width="20" height="24" rx="3" fill="#d97706" stroke="#b45309" stroke-width="1.5"/><text x="179" y="94" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#ffffff">X</text>
-  <rect x="191" y="75" width="20" height="24" rx="3" fill="#d97706" stroke="#b45309" stroke-width="1.5"/><text x="201" y="94" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#ffffff">Y</text>
-  <rect x="213" y="75" width="20" height="24" rx="3" fill="#d97706" stroke="#b45309" stroke-width="1.5"/><text x="223" y="94" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#ffffff">Z</text>
-  <line x1="234" y1="55" x2="234" y2="129" stroke="#d97706" stroke-width="1.5" stroke-dasharray="4,2"/>
-  <rect x="235" y="75" width="20" height="24" rx="3" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/><text x="245" y="94" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#7c3a00">A</text>
-  <rect x="257" y="75" width="20" height="24" rx="3" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/><text x="267" y="94" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#7c3a00">B</text>
-  <rect x="279" y="75" width="20" height="24" rx="3" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/><text x="289" y="94" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#7c3a00">C</text>
-  <path d="M25,71 Q58,37 91,71" stroke="#1a7fd4" stroke-width="2" fill="none" marker-end="url(#cmarr-b)"/>
-  <text x="58" y="33" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#1a7fd4">+3</text>
-  <text x="58" y="116" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="11" fill="#1a7fd4">A → D</text>
-  <path d="M223,71 Q256,33 289,71" stroke="#d97706" stroke-width="2" fill="none" stroke-dasharray="5,2" marker-end="url(#cmarr-o)"/>
-  <text x="256" y="29" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#d97706">+3</text>
-  <text x="158" y="116" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="12" fill="#4a6080">예시: key=3 → 각 글자를 오른쪽으로 3칸 이동</text>
-        </svg>
-        <div class="cipher-example">
-          원본: <span style="color:var(--accent2)">ATTACK</span> &nbsp; 키=<span style="color:#22c55e">3</span> (오른쪽으로 3칸)<br>
-          A→D, T→W, T→W, A→D, C→F, K→N<br>
-          <span class="arrow">→</span> 암호문: <span style="color:#22c55e">DWWDFN</span>
-        </div>
-      </div>
-
-      <div class="cipher-card">
-        <div class="cipher-card-header">
-          <div class="cipher-card-badge" style="background:#4da6ff22;border:1.5px solid #4da6ff;color:#4da6ff">SKY</div>
-          <div class="cipher-card-name">스키테일 암호화</div>
-        </div>
-        <div class="cipher-card-desc">고대 그리스의 암호 도구에서 유래한 방식입니다. 메시지를 <strong>키값(행 수)개의 행</strong>으로 이루어진 격자에 가로(행) 방향으로 채운 뒤, <strong>세로(열) 방향으로 읽어</strong> 암호문을 만듭니다.</div>
-        <div class="cipher-card-key">키 입력: 레일(행) 수 (2–10) — <span>예: 키=3 → 3행 격자 사용</span></div>
-        <!-- SVG 그림 -->
-        <svg viewBox="0 0 500 130" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:500px;margin:10px 0;display:block">
-          <text x="10" y="16" font-family="'Pretendard', sans-serif" font-size="11" fill="#4a6080">원본: HELLOWORLD (키=3) → 3행으로 채움 → 열 방향으로 읽기</text>
-          <!-- 격자 -->
-          <g font-family="'Pretendard', sans-serif" font-size="13" font-weight="bold">
-            <!-- 행 라벨 -->
-            <text x="10" y="42" fill="#7a95b0" font-size="10">행1</text>
-            <text x="10" y="76" fill="#7a95b0" font-size="10">행2</text>
-            <text x="10" y="110" fill="#7a95b0" font-size="10">행3</text>
-            <!-- 격자 셀 -->
-            <!-- 행 1: H E L L -->
-            <rect x="30" y="26" width="28" height="28" rx="4" fill="#4da6ff22" stroke="#4da6ff" stroke-width="1.5"/>
-            <text x="44" y="45" text-anchor="middle" fill="#4da6ff">H</text>
-            <rect x="62" y="26" width="28" height="28" rx="4" fill="#4da6ff22" stroke="#4da6ff" stroke-width="1.5"/>
-            <text x="76" y="45" text-anchor="middle" fill="#4da6ff">E</text>
-            <rect x="94" y="26" width="28" height="28" rx="4" fill="#4da6ff22" stroke="#4da6ff" stroke-width="1.5"/>
-            <text x="108" y="45" text-anchor="middle" fill="#4da6ff">L</text>
-            <rect x="126" y="26" width="28" height="28" rx="4" fill="#4da6ff22" stroke="#4da6ff" stroke-width="1.5"/>
-            <text x="140" y="45" text-anchor="middle" fill="#4da6ff">L</text>
-            <!-- 행 2: O W O R -->
-            <rect x="30" y="58" width="28" height="28" rx="4" fill="#4da6ff22" stroke="#4da6ff" stroke-width="1.5"/>
-            <text x="44" y="77" text-anchor="middle" fill="#4da6ff">O</text>
-            <rect x="62" y="58" width="28" height="28" rx="4" fill="#4da6ff22" stroke="#4da6ff" stroke-width="1.5"/>
-            <text x="76" y="77" text-anchor="middle" fill="#4da6ff">W</text>
-            <rect x="94" y="58" width="28" height="28" rx="4" fill="#4da6ff22" stroke="#4da6ff" stroke-width="1.5"/>
-            <text x="108" y="77" text-anchor="middle" fill="#4da6ff">O</text>
-            <rect x="126" y="58" width="28" height="28" rx="4" fill="#4da6ff22" stroke="#4da6ff" stroke-width="1.5"/>
-            <text x="140" y="77" text-anchor="middle" fill="#4da6ff">R</text>
-            <!-- 행 3: L D -->
-            <rect x="30" y="90" width="28" height="28" rx="4" fill="#4da6ff22" stroke="#4da6ff" stroke-width="1.5"/>
-            <text x="44" y="109" text-anchor="middle" fill="#4da6ff">L</text>
-            <rect x="62" y="90" width="28" height="28" rx="4" fill="#4da6ff22" stroke="#4da6ff" stroke-width="1.5"/>
-            <text x="76" y="109" text-anchor="middle" fill="#4da6ff">D</text>
-            <rect x="94" y="90" width="28" height="28" rx="4" fill="rgba(200,214,229,0.4)" stroke="#c8d6e5" stroke-width="1" stroke-dasharray="3,2"/>
-            <text x="108" y="109" text-anchor="middle" fill="#7a95b0">_</text>
-            <rect x="126" y="90" width="28" height="28" rx="4" fill="rgba(200,214,229,0.4)" stroke="#c8d6e5" stroke-width="1" stroke-dasharray="3,2"/>
-            <text x="140" y="109" text-anchor="middle" fill="#7a95b0">_</text>
-            <!-- 열 방향 화살표 -->
-            <text x="38" y="124" text-anchor="middle" fill="#22c55e" font-size="9">↓</text>
-            <text x="70" y="124" text-anchor="middle" fill="#22c55e" font-size="9">↓</text>
-            <text x="102" y="124" text-anchor="middle" fill="#22c55e" font-size="9">↓</text>
-            <text x="134" y="124" text-anchor="middle" fill="#22c55e" font-size="9">↓</text>
-          </g>
-          <text x="165" y="72" font-size="20" fill="#7a95b0" font-family="Pretendard, sans-serif">→</text>
-          <!-- 결과 -->
-          <text x="192" y="50" font-family="'Pretendard', sans-serif" font-size="11" fill="#4a6080">열 방향으로 읽기:</text>
-          <text x="192" y="70" font-family="'Pretendard', sans-serif" font-size="14" font-weight="bold" fill="#4da6ff">HOL</text>
-          <text x="192" y="88" font-family="'Pretendard', sans-serif" font-size="14" font-weight="bold" fill="#4da6ff">WED</text>
-          <text x="192" y="106" font-family="'Pretendard', sans-serif" font-size="14" font-weight="bold" fill="#4da6ff">LOR</text>
-          <text x="240" y="72" font-size="16" fill="#7a95b0">→</text>
-          <text x="260" y="78" font-family="'Pretendard', sans-serif" font-size="16" font-weight="bold" fill="#22c55e">HOLWEDLOR</text>
-        </svg>
-        <div class="cipher-example">
-          원본: <span style="color:var(--accent2)">HELLOWORLD</span> (레일=3)<br>
-          격자 배치(가로 방향): H E L L / O W O R / L D _ _<br>
-          세로 방향으로 읽기: <span class="arrow">→</span> <span style="color:#4da6ff">HOLWEDLOR</span>
-        </div>
-      </div>
-    </div>
-
-  </div>
-</div>
-
 <script>
+// ════════════════════════════════════════
+//  DEBUG LOGGER
+// ════════════════════════════════════════
+function dbLog(msg, type) {
+  try {
+    const el = document.getElementById('debug-log');
+    if (!el) return;
+    const line = document.createElement('div');
+    line.className = 'dbg-line ' + (type || 'inf');
+    const t = new Date().toLocaleTimeString('ko-KR', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    line.textContent = '[' + t + '] ' + msg;
+    el.appendChild(line);
+    el.scrollTop = el.scrollHeight;
+    // 최대 100줄 유지
+    while (el.children.length > 100) el.removeChild(el.firstChild);
+  } catch(e) {}
+}
+
+function toggleDebug() {
+  const p = document.getElementById('debug-panel');
+  p.style.display = p.style.display === 'none' ? 'block' : 'none';
+}
+
 // ════════════════════════════════════════
 //  CIPHER METHODS
 // ════════════════════════════════════════
@@ -1631,7 +968,6 @@ const METHODS = {
   4: { name: '스키테일', color: '#4da6ff', short: 'SKY' }
 };
 
-// Caesar (variable shift)
 function caesarEnc(s, shift) {
   shift = ((shift % 26) + 26) % 26;
   return s.split('').map(c => {
@@ -1640,7 +976,6 @@ function caesarEnc(s, shift) {
     return c;
   }).join('');
 }
-// Anagram (unit-based reverse) — 키 = 단위 크기
 function anagramEnc(s, unit) {
   unit = Math.max(1, parseInt(unit) || 3);
   let result = '';
@@ -1649,7 +984,6 @@ function anagramEnc(s, unit) {
   }
   return result;
 }
-// Key order (columnar transposition) — 키 = 순열 숫자(예: "312")
 function _keyOrder(keyNum) {
   return String(keyNum).split('').map(Number).filter(n => n >= 1);
 }
@@ -1670,7 +1004,6 @@ function keyEnc(s, keyNum) {
   }
   return result;
 }
-// Scytale (variable rails)
 function scytaleEnc(s, rails) {
   rails = Math.max(2, rails || 3);
   const len = s.length;
@@ -1692,6 +1025,93 @@ function applyEnc(s, m, key) {
   if (m===4) return scytaleEnc(s, key);
   return s;
 }
+
+// ════════════════════════════════════════
+//  ICE / PEER CONFIG
+//  ★ 핵심 변경: TURN 서버 추가로 NAT·AP Isolation 우회
+// ════════════════════════════════════════
+const DEFAULT_ICE_SERVERS = [
+  // STUN — 직접 연결 우선 시도
+  { urls: 'stun:stun.l.google.com:19302' },
+  { urls: 'stun:stun1.l.google.com:19302' },
+  { urls: 'stun:stun.relay.metered.ca:80' },
+  // TURN UDP (80 포트) — STUN 실패 시 릴레이
+  {
+    urls: 'turn:a.relay.metered.ca:80',
+    username: 'openrelayproject',
+    credential: 'openrelayproject'
+  },
+  // TURN TCP (80 포트) — UDP 차단 환경
+  {
+    urls: 'turn:a.relay.metered.ca:80?transport=tcp',
+    username: 'openrelayproject',
+    credential: 'openrelayproject'
+  },
+  // TURN TLS (443 포트) — 엄격한 방화벽 환경
+  {
+    urls: 'turn:a.relay.metered.ca:443',
+    username: 'openrelayproject',
+    credential: 'openrelayproject'
+  },
+  // TURN TLS+TCP (443 포트) — 최후 수단
+  {
+    urls: 'turn:a.relay.metered.ca:443?transport=tcp',
+    username: 'openrelayproject',
+    credential: 'openrelayproject'
+  }
+];
+
+const PEER_DEBUG_LEVEL = 2; // 2 = verbose (콘솔에서 PeerJS 내부 로그 확인 가능)
+
+function formatPeerError(e) {
+  if (!e) return 'unknown';
+  const t = e.type || 'error';
+  const m = e.message || e.msg || '';
+  return m ? `${t}: ${m}` : t;
+}
+
+function logPeerError(context, e) {
+  const text = `[P2P:${context}] ${formatPeerError(e)}`;
+  try { console.warn(text, e || ''); } catch(_) {}
+  dbLog('❌ ' + text, 'err');
+  return text;
+}
+
+function getPeerOptions() {
+  const opts = {
+    debug: PEER_DEBUG_LEVEL,
+    config: {
+      iceServers: DEFAULT_ICE_SERVERS,
+      iceTransportPolicy: 'all',  // STUN 우선, 필요 시 TURN 자동 전환
+      bundlePolicy: 'max-bundle',
+      rtcpMuxPolicy: 'require'
+    }
+  };
+
+  // localStorage에 커스텀 ICE 설정이 있으면 덮어쓰기
+  const iceRaw = (localStorage.getItem('enc_peer_ice_json') || '').trim();
+  if (iceRaw) {
+    try {
+      const iceServers = JSON.parse(iceRaw);
+      if (Array.isArray(iceServers) && iceServers.length > 0) {
+        opts.config.iceServers = iceServers;
+        dbLog('커스텀 ICE 서버 사용', 'warn');
+      }
+    } catch(e) { logPeerError('peer-config-ice-parse', e); }
+  }
+
+  // 로컬 PeerJS 서버 설정
+  const host = (localStorage.getItem('enc_peer_host') || '').trim();
+  if (!host) return opts;
+  opts.host = host;
+  const port = parseInt(localStorage.getItem('enc_peer_port') || '443', 10);
+  if (!isNaN(port) && port > 0) opts.port = port;
+  opts.path = (localStorage.getItem('enc_peer_path') || '/peerjs').trim() || '/peerjs';
+  opts.secure = String(localStorage.getItem('enc_peer_secure') || '1') !== '0';
+  dbLog(`로컬 PeerJS 서버: ${host}:${opts.port}`, 'warn');
+  return opts;
+}
+
 // ════════════════════════════════════════
 //  STATE
 // ════════════════════════════════════════
@@ -1708,113 +1128,58 @@ const ctx = canvas.getContext('2d');
 let gameState = {
   status: 'lobby',
   phase: 'idle',
-  players: {},       // peerId -> { nick, score, online }
-  turnOrder: [],     // peerId[] rotation
+  players: {},
+  turnOrder: [],
   currentTurnIdx: 0,
   currentRaw: '',
   currentMethods: [],
   currentEncSteps: [],
-  currentKeys: {},   // methodId -> keyValue
+  currentKeys: {},
   lastEncResult: '',
   clueSet: [],
   totalRounds: 1,
   currentRound: 1,
   turnTimer: 90,
   turnTimerStart: 0,
-  guessResults: {},  // peerId -> {correct, points} for current turn
-  pendingToast: null, // { msg, type } — 다음 sync 수신 시 클라이언트에게 표시
-  designatedNextHost: null, // 호스트 이탈 시 인계받을 클라이언트 peerId
+  guessResults: {},
+  pendingToast: null,
+  designatedNextHost: null,
 };
 
 const ENC_TIME = 90;
 const GUESS_TIME = 120;
 let timerInterval = null;
-let clientTimerInterval = null; // 클라이언트 독립 타이머 (broadcast 지연 무관)
+let clientTimerInterval = null;
 
-const PEER_DEBUG_LEVEL = 1;
-const DEFAULT_ICE_SERVERS = [
-  { urls: 'stun:stun.l.google.com:19302' },
-  { urls: 'stun:stun1.l.google.com:19302' }
-];
-
-// localStorage 설정값으로 자체 PeerServer를 선택적으로 사용 가능
-// enc_peer_host, enc_peer_port, enc_peer_path, enc_peer_secure(0/1)
-function getPeerOptions() {
-  const opts = {
-    debug: PEER_DEBUG_LEVEL,
-    config: { iceServers: DEFAULT_ICE_SERVERS }
-  };
-  const iceRaw = (localStorage.getItem('enc_peer_ice_json') || '').trim();
-  if (iceRaw) {
-    try {
-      const iceServers = JSON.parse(iceRaw);
-      if (Array.isArray(iceServers) && iceServers.length > 0) {
-        opts.config = { iceServers };
-      }
-    } catch(e) {
-      logPeerError('peer-config-ice-parse', e);
-    }
-  }
-  const host = (localStorage.getItem('enc_peer_host') || '').trim();
-  if (!host) return opts;
-  opts.host = host;
-  const port = parseInt(localStorage.getItem('enc_peer_port') || '443', 10);
-  if (!isNaN(port) && port > 0) opts.port = port;
-  opts.path = (localStorage.getItem('enc_peer_path') || '/peerjs').trim() || '/peerjs';
-  opts.secure = String(localStorage.getItem('enc_peer_secure') || '1') !== '0';
-  return opts;
-}
-
-function createPeer(id) {
-  return id === undefined ? new Peer(undefined, getPeerOptions()) : new Peer(id, getPeerOptions());
-}
-
-function formatPeerError(e) {
-  if (!e) return 'unknown';
-  const t = e.type || 'error';
-  const m = e.message || e.msg || '';
-  return m ? `${t}: ${m}` : t;
-}
-
-function logPeerError(context, e) {
-  const text = `[P2P:${context}] ${formatPeerError(e)}`;
-  try { console.warn(text, e || ''); } catch(_) {}
-  return text;
+// ════════════════════════════════════════
+//  연결 상태 UI 업데이트
+// ════════════════════════════════════════
+function setConnStatus(state, text) {
+  const badge = document.getElementById('conn-status-badge');
+  const textEl = document.getElementById('conn-status-text');
+  const dot = badge && badge.querySelector('.conn-dot');
+  if (!badge || !textEl) return;
+  badge.className = 'conn-status-badge ' + state;
+  textEl.textContent = text;
+  if (dot) dot.className = 'conn-dot' + (state === 'connecting' ? ' pulse' : '');
+  dbLog('[연결상태] ' + text, state === 'connected' ? 'ok' : state === 'error' ? 'err' : 'warn');
 }
 
 function startClientTimer() {
   if (clientTimerInterval) clearInterval(clientTimerInterval);
-  if (isHost) return; // 호스트는 startHostTimer() 사용
+  if (isHost) return;
   clientTimerInterval = setInterval(() => {
     if (!gameState.turnTimerStart || gameState.status !== 'playing') return;
     const limit = gameState.phase === 'encoding' ? ENC_TIME : GUESS_TIME;
     const elapsed = Math.floor((Date.now() - gameState.turnTimerStart) / 1000);
     const left = Math.max(0, limit - elapsed);
-    // 로컬 표시만 업데이트 (서버 상태는 호스트가 관리)
     const timerEl = document.getElementById('timer-display');
     if (!timerEl) return;
     const min = Math.floor(left/60).toString().padStart(2,'0');
     const sec = (left%60).toString().padStart(2,'0');
     timerEl.textContent = `${min}:${sec}`;
     timerEl.classList.toggle('timer-urgent', left <= 15);
-  }, 250); // 250ms 간격으로 체크 → 건너뜀 없음
-}
-
-// ════════════════════════════════════════
-//  GUIDE
-// ════════════════════════════════════════
-function openGuide() {
-  document.getElementById('guide-overlay').classList.add('visible');
-  switchGuideTab('game');
-}
-function closeGuide() {
-  document.getElementById('guide-overlay').classList.remove('visible');
-}
-function switchGuideTab(tab) {
-  ['game','cipher'].forEach(t => {
-    document.getElementById(`gtab-${t}`).classList.toggle('active', t===tab);
-    document.getElementById(`gpanel-${t}`).classList.toggle('active', t===tab);
-  });
+  }, 250);
 }
 
 // ════════════════════════════════════════
@@ -1840,21 +1205,14 @@ function enterGame() {
   const val = document.getElementById('room-id').value.trim().toUpperCase();
   if (!myNick || !val) { setLobbyStatus('닉네임과 방 코드를 입력하세요', 'error'); return; }
   roomId = 'CGv4-' + val;
-
-  const prevSession = loadSession();
-  const sameSession = prevSession && prevSession.roomId === roomId && prevSession.nick === myNick;
-  const prevPeerId = sameSession ? prevSession.peerId : null;
+  dbLog('접속 시도: ' + roomId + ' (' + lobbyMode + ')', 'inf');
 
   if (lobbyMode === 'host') {
-    // 방 만들기 탭: 항상 신규 방 생성 (이전 호스트였어도 재접속 시 참가자로)
     setLobbyStatus('방 생성 중...', '');
     becomeHost();
   } else {
-    // 방 참가하기 탭: 사용자 선택을 무조건 존중 — joinAsClient로 접속
-    // promoteToHost() 후 새 호스트는 CGv4-XXXX(=roomId)를 차지하므로
-    // designatedNextHost(승격 전 random peerId)로 리다이렉트하면 안 됨
     setLobbyStatus('접속 시도 중...', '');
-    joinAsClient(prevPeerId);
+    joinAsClient(null);
   }
 }
 
@@ -1863,38 +1221,29 @@ let hostRetryTimer = null;
 
 function becomeHost() {
   if (hostRetryTimer) { clearTimeout(hostRetryTimer); hostRetryTimer = null; }
-
-  // ── 직접 연결 모드: 시그널링 서버 없이 SDP 교환 ──
-  if (isDirectMode()) {
-    isHost = true;
-    myId = roomId;
-    gameState.hostPeerId = myId;
-    gameState.players[myId] = { nick: myNick, score: 0, online: true };
-    gameState.totalRounds = selectedRounds;
-    saveSession();
-    showGameUI();
-    // 참가자 추가는 게임 화면의 "+ 참가자 추가" 버튼으로 처리
-    return;
-  }
-
   _acquireHostId();
 
   function _acquireHostId() {
     if (peer && !peer.destroyed) { try { peer.destroy(); } catch(e) {} }
     const delay = hostCreateRetries > 0 ? 300 : 0;
     setTimeout(() => {
+      dbLog('PeerJS 호스트 ID 획득 시도: ' + roomId, 'inf');
       peer = createPeer(roomId);
-      peer.on('open', () => {
+
+      peer.on('open', id => {
         hostCreateRetries = 0;
-        myId = roomId;
+        myId = id;
         isHost = true;
         gameState.hostPeerId = myId;
         gameState.players[myId] = { nick: myNick, score: 0, online: true };
         gameState.totalRounds = selectedRounds;
         saveSession();
+        dbLog('✅ 호스트 준비 완료: ' + myId, 'ok');
+        setConnStatus('connected', '호스트 대기 중');
         showGameUI();
         attachHostListeners();
       });
+
       peer.on('error', e => {
         logPeerError('host-acquire', e);
         if (e.type === 'unavailable-id' || e.type === 'peer-unavailable') {
@@ -1903,19 +1252,29 @@ function becomeHost() {
             const wait = Math.min(800 + hostCreateRetries * 800, 4000);
             const sec = Math.ceil(wait / 1000);
             setLobbyStatus(`이전 연결 해제 대기 중... (${hostCreateRetries}/8, ${sec}초 후 재시도)`, '');
+            dbLog('ID 충돌, ' + sec + '초 후 재시도', 'warn');
             hostRetryTimer = setTimeout(_acquireHostId, wait);
           } else {
             hostCreateRetries = 0;
-            setLobbyStatus('방 생성 실패. 이전 연결이 아직 해제되지 않았습니다. 잠시 후 다시 시도하거나 다른 방 코드를 사용하세요.', 'error');
+            setLobbyStatus('방 생성 실패. 다른 방 코드를 사용하거나 잠시 후 다시 시도하세요.', 'error');
           }
+        } else if (e.type === 'network' || e.type === 'server-error') {
+          setLobbyStatus('PeerJS 서버 연결 실패. 인터넷 연결을 확인하세요. (' + formatPeerError(e) + ')', 'error');
         } else {
-          setLobbyStatus('방 코드 충돌 또는 오류 (' + formatPeerError(e) + '). 다른 코드를 사용하세요.', 'error');
+          setLobbyStatus('오류: ' + formatPeerError(e), 'error');
         }
       });
+
       peer.on('disconnected', () => {
+        dbLog('PeerJS 서버 연결 끊김, 재연결 시도', 'warn');
+        setConnStatus('connecting', '재연결 중...');
         if (isHost && peer && !peer.destroyed) {
-          try { peer.reconnect(); } catch(e) {}
+          try { peer.reconnect(); } catch(e) { dbLog('재연결 실패: ' + e.message, 'err'); }
         }
+      });
+
+      peer.on('close', () => {
+        dbLog('Peer 종료됨', 'warn');
       });
     }, delay);
   }
@@ -1923,28 +1282,39 @@ function becomeHost() {
 
 function attachHostListeners() {
   peer.on('connection', c => {
+    dbLog('새 참가자 연결 시도: ' + c.peer, 'inf');
+
     c.on('open', () => {
       connections[c.peer] = c;
+      dbLog('✅ 참가자 연결됨: ' + c.peer, 'ok');
+      setConnStatus('connected', Object.keys(connections).length + '명 연결됨');
       c.send({ type: 'sync', state: gameState });
     });
+
     c.on('data', d => handleData(d, c.peer));
+
     c.on('close', () => {
       delete connections[c.peer];
+      dbLog('참가자 연결 해제: ' + c.peer, 'warn');
+      setConnStatus('connected', Object.keys(connections).length + '명 연결됨');
       if (gameState.players[c.peer]) {
         gameState.players[c.peer].online = false;
-        // If the disconnected player is the current encoder, advance the turn
         if (isHost && gameState.status === 'playing' && gameState.phase === 'encoding') {
           const encoder = gameState.turnOrder[gameState.currentTurnIdx % Math.max(gameState.turnOrder.length, 1)];
           if (encoder === c.peer) {
             const nick = (gameState.players[c.peer] && gameState.players[c.peer].nick) || '출제자';
             gameState.pendingToast = { msg: '🚪 ' + nick + ' 님이 방을 나갔습니다. 다음 출제자로 넘어갑니다.', type: 'info' };
-            showToast('🚪 ' + nick + ' 님이 방을 나갔습니다. 다음 출제자로 넘어갑니다.', 'info');
+            showToast('🚪 ' + nick + ' 님이 방을 나갔습니다.', 'info');
             nextTurn();
             return;
           }
         }
         broadcast();
       }
+    });
+
+    c.on('error', e => {
+      logPeerError('host-conn-' + c.peer, e);
     });
   });
 }
@@ -1957,38 +1327,57 @@ function joinAsClient(prevPeerId) {
   saveSession();
   if (clientRetryTimer) { clearTimeout(clientRetryTimer); clientRetryTimer = null; }
 
-  // ── 직접 연결 모드: SDP 모달로 접속 ──
-  if (isDirectMode()) {
-    if (peer && !peer.destroyed) { try { peer.destroy(); } catch(e) {} }
-    peer = null;
-    myId = 'p-' + Math.random().toString(36).substr(2, 8);
-    saveSession();
-    directShowJoinModal(prevPeerId);
-    return;
-  }
-
-  // 기존 peer가 있으면 정리 후 재생성
   if (peer && !peer.destroyed) {
     try { peer.destroy(); } catch(e) {}
   }
-  // prevPeerId는 호출 시점에 캡처 (새 peer 생성 후 myId가 바뀌므로)
+
   const _prevId = prevPeerId || null;
+  dbLog('클라이언트 peer 생성 중...', 'inf');
   peer = createPeer(undefined);
+
   peer.on('open', id => {
     myId = id;
     saveSession();
-    const c = peer.connect(roomId, { reliable: true });
+    dbLog('내 peer ID: ' + myId, 'ok');
+    dbLog('호스트(' + roomId + ')에 연결 시도...', 'inf');
+    setConnStatus('connecting', '호스트 연결 중...');
+
+    const c = peer.connect(roomId, {
+      reliable: true,
+      serialization: 'json'
+    });
+
     let ok = false;
+
+    // ★ 연결 타임아웃을 넉넉하게 (TURN 릴레이 협상 시간 고려)
+    const timeout = setTimeout(() => {
+      if (!ok) {
+        dbLog('연결 타임아웃 (8초). 재시도...', 'warn');
+        retryJoinAsClient(_prevId);
+      }
+    }, 8000);
+
     c.on('open', () => {
-      ok = true; conn = c;
+      clearTimeout(timeout);
+      ok = true;
+      conn = c;
       clientRetries = 0;
+      dbLog('✅ 호스트 연결 성공!', 'ok');
+      setConnStatus('connected', '호스트 연결됨');
+
       conn.on('data', d => handleData(d, 'host'));
       conn.on('close', () => {
-        // 호스트가 나갔을 때: 클라이언트 상태를 명시적으로 participant로 보장 후 세션 저장
+        dbLog('호스트 연결 해제됨', 'warn');
+        setConnStatus('error', '호스트 연결 끊김');
         isHost = false;
         saveSession();
         showReconnectBanner();
       });
+      conn.on('error', e => {
+        logPeerError('client-conn', e);
+        setConnStatus('error', '연결 오류');
+      });
+
       if (_prevId && _prevId !== myId) {
         conn.send({ type: 'rejoin', nick: myNick, peerId: myId, prevPeerId: _prevId });
       } else {
@@ -1996,46 +1385,59 @@ function joinAsClient(prevPeerId) {
       }
       showGameUI();
     });
+
     c.on('error', e => {
+      clearTimeout(timeout);
       logPeerError('client-connect', e);
+      setConnStatus('error', '연결 실패');
       if (!ok) retryJoinAsClient(_prevId);
     });
-    setTimeout(() => {
-      if (!ok) retryJoinAsClient(_prevId);
-    }, 4000);
   });
+
   peer.on('error', e => {
     logPeerError('client-peer', e);
     retryJoinAsClient(_prevId);
   });
+
+  peer.on('disconnected', () => {
+    dbLog('PeerJS 서버 연결 끊김', 'warn');
+    if (!isHost && peer && !peer.destroyed) {
+      try { peer.reconnect(); } catch(e) {}
+    }
+  });
 }
 
 function retryJoinAsClient(prevId) {
-  // 이미 재시도 타이머가 있으면 중복 방지
   if (clientRetryTimer) return;
   clientRetries++;
   if (clientRetries <= 12) {
-    const wait = Math.min(2000 + clientRetries * 1000, 5000);
+    const wait = Math.min(2000 + clientRetries * 1000, 6000);
     const sec = Math.ceil(wait / 1000);
     const inGame = document.getElementById('game-ui').style.display !== 'none';
+    const msg = `호스트 재접속 대기 중... (${clientRetries}/12, ${sec}초 후 재시도)`;
     if (inGame) {
-      // 게임 화면에서는 toast로 피드백
-      if (clientRetries <= 2 || clientRetries % 3 === 0) {
-        showToast(`🔄 호스트 재접속 대기 중... (${clientRetries}/12)`, 'info');
-      }
+      if (clientRetries <= 2 || clientRetries % 3 === 0) showToast('🔄 ' + msg, 'info');
     } else {
-      setLobbyStatus('호스트 접속 대기 중... (' + clientRetries + '/12, ' + sec + '초 후 재시도)', '');
+      setLobbyStatus(msg, '');
     }
-    clientRetryTimer = setTimeout(function() { joinAsClient(prevId); }, wait);
+    dbLog(msg, 'warn');
+    clientRetryTimer = setTimeout(function() {
+      clientRetryTimer = null;
+      joinAsClient(prevId);
+    }, wait);
   } else {
     clientRetries = 0;
     const inGame = document.getElementById('game-ui').style.display !== 'none';
-    if (inGame) {
-      showToast('🚫 호스트를 찾을 수 없습니다. 방이 종료되었을 수 있습니다.', 'error');
-    } else {
-      setLobbyStatus('방을 찾을 수 없습니다. 호스트가 아직 접속하지 않았거나 방 코드를 확인하세요.', 'error');
-    }
+    const msg = '호스트를 찾을 수 없습니다. 방 코드를 확인하거나 호스트가 먼저 접속했는지 확인하세요.';
+    if (inGame) showToast('🚫 ' + msg, 'error');
+    else setLobbyStatus(msg, 'error');
+    dbLog('❌ 최대 재시도 초과', 'err');
+    setConnStatus('error', '연결 실패');
   }
+}
+
+function createPeer(id) {
+  return id === undefined ? new Peer(undefined, getPeerOptions()) : new Peer(id, getPeerOptions());
 }
 
 function setLobbyStatus(msg, type) {
@@ -2067,22 +1469,17 @@ function handleData(data, fromId) {
     if (gameState.currentTurnIdx !== prevTurnIdx && gameState.phase === 'encoding') {
       resetLocalState();
     }
-    // 새 턴 또는 페이즈가 바뀌면 클라이언트 독립 타이머 시작
     if (!isHost && (gameState.phase === 'encoding' || gameState.phase === 'guessing')) {
       if (gameState.currentTurnIdx !== prevTurnIdx || gameState.phase !== prevPhase) {
         startClientTimer();
       }
     }
-    // 페이즈 변경 시 세션 저장 — localStorage와 UI 상태를 동기화
-    if (!isHost && gameState.phase !== prevPhase) {
-      saveSession();
-    }
+    if (!isHost && gameState.phase !== prevPhase) saveSession();
     saveGameState();
     renderAll();
     return;
   }
 
-  // 클라이언트 전용 수신 처리
   if (!isHost) {
     if (data.type === 'enc_invalid') {
       showEncError('❌ 암호화 결과가 올바르지 않습니다. 다시 확인해주세요.');
@@ -2093,24 +1490,19 @@ function handleData(data, fromId) {
         showToast(`✅ 정답! +${data.points}pt 획득!`, 'success');
       } else {
         showGuessError('❌ 오답! 계속 시도할 수 있습니다.');
-        // 오답이면 버튼 다시 활성화
         const btn = document.getElementById('btn-guess-submit');
         if (btn) { btn.disabled = false; btn.textContent = '해독 완료 🛡'; }
       }
       return;
     }
-    if (data.type === 'reaction') {
-      showFloatingReaction(data.emoji);
-      return;
-    }
+    if (data.type === 'reaction') { showFloatingReaction(data.emoji); return; }
     return;
   }
 
-  // ── 이하 호스트 전용 처리 ──
+  // ── 호스트 전용 처리 ──
   if (data.type === 'rejoin') {
     const prev = data.prevPeerId;
     const existing = gameState.players[prev];
-    // nick이 일치할 때만 기존 데이터 인계 — 불일치 시 다른 플레이어가 같은 키를 점유한 것
     if (existing && existing.nick === data.nick) {
       gameState.players[fromId] = { ...existing, nick: data.nick, online: true };
       delete gameState.players[prev];
@@ -2122,7 +1514,6 @@ function handleData(data, fromId) {
         delete gameState.guessResults[prev];
       }
     } else {
-      // prevPeerId가 다른 플레이어(승격된 새 호스트 등)에게 재할당됨 → 닉네임 기반 검색
       let merged = false;
       for (const [pid, p] of Object.entries(gameState.players)) {
         if (pid !== fromId && p.nick === data.nick && p.online === false) {
@@ -2136,8 +1527,7 @@ function handleData(data, fromId) {
             delete gameState.guessResults[pid];
           }
           if (connections[pid]) delete connections[pid];
-          merged = true;
-          break;
+          merged = true; break;
         }
       }
       if (!merged) {
@@ -2147,13 +1537,12 @@ function handleData(data, fromId) {
         }
       }
     }
+    dbLog('rejoin 처리: ' + data.nick + ' → ' + fromId, 'ok');
     broadcast();
     return;
   }
 
   if (data.type === 'join') {
-    // 같은 닉네임의 오프라인 플레이어가 있으면 기존 데이터 인계 (닉네임 기반 병합)
-    // _prev_ 접두어 키(구 호스트 보존 데이터) 포함하여 검색
     let merged = false;
     for (const [pid, p] of Object.entries(gameState.players)) {
       if (pid !== fromId && p.nick === data.nick && p.online === false) {
@@ -2161,24 +1550,22 @@ function handleData(data, fromId) {
         delete gameState.players[pid];
         const idx = gameState.turnOrder.indexOf(pid);
         if (idx !== -1) gameState.turnOrder[idx] = fromId;
-        // _prev_ 키는 turnOrder에 없으므로 끝에 추가
         else if (!gameState.turnOrder.includes(fromId)) gameState.turnOrder.push(fromId);
         if (gameState.guessResults && gameState.guessResults[pid]) {
           gameState.guessResults[fromId] = gameState.guessResults[pid];
           delete gameState.guessResults[pid];
         }
         if (connections[pid]) delete connections[pid];
-        merged = true;
-        break;
+        merged = true; break;
       }
     }
     if (!merged) {
       gameState.players[fromId] = { nick: data.nick, score: 0, online: true };
-      // 게임 진행 중 참여 시 턴 순서에도 추가
       if (gameState.status === 'playing' && !gameState.turnOrder.includes(fromId)) {
         gameState.turnOrder.push(fromId);
       }
     }
+    dbLog('join: ' + data.nick + ' (' + fromId + ')', 'ok');
     broadcast();
     return;
   }
@@ -2200,7 +1587,7 @@ function handleData(data, fromId) {
       broadcast();
       const c = connections[fromId];
       if (c) c.send({ type: 'enc_invalid' });
-      else showEncError('❌ 암호화 결과가 올바르지 않습니다. 다시 확인해주세요.');
+      else showEncError('❌ 암호화 결과가 올바르지 않습니다.');
       return;
     }
     gameState.currentRaw = raw;
@@ -2208,9 +1595,7 @@ function handleData(data, fromId) {
     gameState.currentEncSteps = steps;
     gameState.lastEncResult = data.finalResult;
     gameState.currentKeys = keys || {};
-    gameState.clueSet = methods.length >= 2
-      ? [...methods].sort((a, b) => a - b)  // UI 표시 순서 (키 순서→애너그램→카이사르→스키테일)
-      : [];
+    gameState.clueSet = methods.length >= 2 ? [...methods].sort((a, b) => a - b) : [];
     gameState.guessResults = {};
     gameState.phase = 'guessing';
     gameState.turnTimerStart = Date.now();
@@ -2268,14 +1653,12 @@ function handleData(data, fromId) {
 
 function broadcast() {
   if (!isHost) return;
-  // 온라인 상태인 첫 번째 비호스트 플레이어를 백업 호스트로 지정
   const nextHost = gameState.turnOrder.find(function(pid) {
     return pid !== myId && gameState.players[pid] && gameState.players[pid].online !== false;
   });
   gameState.designatedNextHost = nextHost || null;
   const msg = { type: 'sync', state: gameState };
-  Object.values(connections).forEach(c => c.send(msg));
-  // pendingToast는 1회만 전송 후 초기화
+  Object.values(connections).forEach(c => { try { c.send(msg); } catch(e) {} });
   if (gameState.pendingToast) gameState.pendingToast = null;
   saveGameState();
   renderAll();
@@ -2283,7 +1666,14 @@ function broadcast() {
 
 function send(data) {
   if (isHost) handleData(data, myId);
-  else conn.send(data);
+  else {
+    if (!conn || !conn.open) {
+      dbLog('send() 실패: 연결 없음', 'err');
+      showToast('연결이 끊겼습니다. 재접속 중...', 'error');
+      return;
+    }
+    conn.send(data);
+  }
 }
 
 // ════════════════════════════════════════
@@ -2296,7 +1686,6 @@ function hostStartGame() {
   if (online.length > 6) { showToast('최대 6명까지 가능합니다', 'error'); return; }
 
   const order = online.map(([id]) => id);
-  // Shuffle turn order
   for (let i = order.length-1; i>0; i--) {
     const j = Math.floor(Math.random()*(i+1));
     [order[i],order[j]] = [order[j],order[i]];
@@ -2328,19 +1717,15 @@ function startHostTimer() {
     if (left <= 0) {
       clearInterval(timerInterval);
       if (gameState.phase === 'encoding') {
-        const encoder = gameState.turnOrder[gameState.currentTurnIdx % gameState.turnOrder.length];
         gameState.currentRaw = '⏰ 출제 시간 초과';
         gameState.phase = 'round_end';
         broadcast();
         setTimeout(() => nextTurn(), 5000);
       } else if (gameState.phase === 'guessing') {
-        // 시간 초과 시 아직 제출 안 한 해독자도 정답 실패 처리
         const encoder = gameState.turnOrder[gameState.currentTurnIdx % gameState.turnOrder.length];
         const guessers = gameState.turnOrder.filter(id => id !== encoder && gameState.players[id]?.online!==false);
         guessers.forEach(id => {
-          if (!gameState.guessResults[id]) {
-            gameState.guessResults[id] = { correct: false, points: 0 };
-          }
+          if (!gameState.guessResults[id]) gameState.guessResults[id] = { correct: false, points: 0 };
         });
         gameState.phase = 'round_end';
         broadcast();
@@ -2382,13 +1767,9 @@ function nextTurn() {
   startHostTimer();
 }
 
-// 로컬 상태 초기화 — 새 턴 시작 시 호출 (host/client 공통)
 function resetLocalState() {
-  // 캔버스 초기화
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  // 메모 초기화
   document.getElementById('memo-area').value = '';
-  // 암호화 입력 초기화
   document.getElementById('raw-input').value = '';
   document.getElementById('enc-input-1').value = '';
   document.getElementById('enc-input-2').value = '';
@@ -2401,16 +1782,12 @@ function resetLocalState() {
   encStepMethods = [];
   renderEncSteps();
   checkEncReady();
-  // 해독 입력 초기화
   document.getElementById('guess-answer').value = '';
   guessMethodOrder = [];
   guessUIBuiltForTurn = -1;
-  // 보드 모드 초기화
   setBoardMode('draw');
-  // 암호화 에러 메시지 초기화
   const encErr = document.getElementById('enc-error-msg');
   if (encErr) { encErr.style.display='none'; clearTimeout(encErr._timer); }
-  // 해독 에러 메시지 초기화
   const guessErr = document.getElementById('guess-error-msg');
   if (guessErr) { guessErr.style.display='none'; clearTimeout(guessErr._timer); }
 }
@@ -2435,11 +1812,7 @@ function initMethodSelector() {
 }
 
 function addEncStep(methodId) {
-  if (encStepMethods.includes(methodId)) {
-    // 이미 선택된 경우 토글 취소
-    removeEncStep(encStepMethods.indexOf(methodId));
-    return;
-  }
+  if (encStepMethods.includes(methodId)) { removeEncStep(encStepMethods.indexOf(methodId)); return; }
   if (encStepMethods.length >= 2) { showToast('최대 2단계까지 가능합니다', 'error'); return; }
   encStepMethods.push(methodId);
   renderEncSteps();
@@ -2449,14 +1822,9 @@ function addEncStep(methodId) {
 
 function removeEncStep(idx) {
   encStepMethods.splice(idx, 1);
-  // 해당 인덱스의 key-input만 제거 (다른 단계 입력값 보존)
   const ki = document.getElementById(`key-input-${idx}`);
   if (ki) ki.remove();
-  // 2단계가 사라지는 경우 enc-input-2 초기화
-  if (idx === 0) {
-    const ki1 = document.getElementById('key-input-1');
-    if (ki1) ki1.remove();
-  }
+  if (idx === 0) { const ki1 = document.getElementById('key-input-1'); if (ki1) ki1.remove(); }
   renderEncSteps();
   updateMethodBtnSelected();
   checkEncReady();
@@ -2477,26 +1845,22 @@ function renderEncSteps() {
   if (encStepMethods[0]) {
     const m = METHODS[encStepMethods[0]];
     document.getElementById('step1-method-name').textContent = `1단계 ${m.name}`;
-    document.getElementById('step1-method-name').style.color = '';
     document.getElementById('enc-input-1').placeholder = `${m.name} 암호화 결과`;
     renderKeyInput(0, encStepMethods[0]);
   }
   if (encStepMethods[1]) {
     const m = METHODS[encStepMethods[1]];
     document.getElementById('step2-method-name').textContent = `2단계 ${m.name}`;
-    document.getElementById('step2-method-name').style.color = '';
     document.getElementById('enc-input-2').placeholder = `${m.name} 암호화 결과`;
     renderKeyInput(1, encStepMethods[1]);
   }
 }
 
-// 키 입력 필드를 각 단계 행 옆에 동적 렌더링
 function renderKeyInput(stepIdx, methodId) {
   const rowId = stepIdx === 0 ? 'step1-row' : 'step2-row';
   const keyInputId = `key-input-${stepIdx}`;
   const row = document.getElementById(rowId);
   const old = document.getElementById(keyInputId);
-  // 같은 방식이면 기존 입력값 유지
   if (old && parseInt(old.dataset.methodId) === methodId) return;
   if (old) old.remove();
   const keyInput = document.createElement('input');
@@ -2504,32 +1868,14 @@ function renderKeyInput(stepIdx, methodId) {
   keyInput.id = keyInputId;
   keyInput.dataset.methodId = methodId;
   keyInput.style.cssText = 'width:90px;flex:none;-moz-appearance:textfield;';
-  // 모든 방식 키를 텍스트 입력으로 통일 (스피너 없음)
   keyInput.type = 'text';
   keyInput.inputMode = 'text';
-  if (methodId === 1) {
-    keyInput.placeholder = '예: 312';
-    keyInput.value = '21';
-    keyInput.maxLength = 9;
-  } else if (methodId === 2) {
-    keyInput.placeholder = '단위';
-    keyInput.value = '3';
-    keyInput.maxLength = 3;
-    keyInput.inputMode = 'numeric';
-  } else if (methodId === 3) {
-    keyInput.placeholder = '시프트';
-    keyInput.value = '3';
-    keyInput.maxLength = 2;
-    keyInput.inputMode = 'numeric';
-  } else if (methodId === 4) {
-    keyInput.placeholder = '레일';
-    keyInput.value = '3';
-    keyInput.maxLength = 2;
-    keyInput.inputMode = 'numeric';
-  } else {
-    return;
-  }
-  keyInput.oninput = () => { checkEncReady(); };
+  if (methodId === 1) { keyInput.placeholder = '예: 312'; keyInput.value = '21'; keyInput.maxLength = 9; }
+  else if (methodId === 2) { keyInput.placeholder = '단위'; keyInput.value = '3'; keyInput.maxLength = 3; keyInput.inputMode = 'numeric'; }
+  else if (methodId === 3) { keyInput.placeholder = '시프트'; keyInput.value = '3'; keyInput.maxLength = 2; keyInput.inputMode = 'numeric'; }
+  else if (methodId === 4) { keyInput.placeholder = '레일'; keyInput.value = '3'; keyInput.maxLength = 2; keyInput.inputMode = 'numeric'; }
+  else return;
+  keyInput.oninput = () => checkEncReady();
   const encInput = document.getElementById(`enc-input-${stepIdx+1}`);
   row.insertBefore(keyInput, encInput);
 }
@@ -2539,27 +1885,10 @@ function getEncKey(stepIdx) {
   if (!ki) return undefined;
   const val = ki.value.trim();
   if (!val) return undefined;
-  // 키 순서(m1)는 문자열 그대로, 나머지는 정수로 변환
   const mId = encStepMethods[stepIdx];
   if (mId === 1) return val;
   const n = parseInt(val, 10);
   return isNaN(n) ? undefined : n;
-}
-
-function autoFillEnc() {
-  const raw = document.getElementById('raw-input').value;
-  if (!raw || !encStepMethods[0]) return;
-  const k0 = getEncKey(0);
-  const r1 = applyEnc(raw, encStepMethods[0], k0);
-  const el1 = document.getElementById('enc-input-1');
-  if (!el1.dataset.manual) el1.value = r1;
-  if (encStepMethods[1]) {
-    const k1 = getEncKey(1);
-    const r2 = applyEnc(el1.value || r1, encStepMethods[1], k1);
-    const el2 = document.getElementById('enc-input-2');
-    if (!el2.dataset.manual) el2.value = r2;
-  }
-  checkEncReady();
 }
 
 function onRawInput() { checkEncReady(); }
@@ -2593,7 +1922,6 @@ function submitEncoding() {
   }
   const finalResult = steps[steps.length-1].result;
   send({ type: 'enc_submit', raw, methods: [...encStepMethods], steps, finalResult, keys });
-  // Reset
   document.getElementById('raw-input').value = '';
   document.getElementById('enc-input-1').value = '';
   document.getElementById('enc-input-2').value = '';
@@ -2616,16 +1944,11 @@ let guessUIBuiltForTurn = -1;
 
 function renderGuessUI() {
   const steps = document.getElementById('guess-steps');
-
-  // 이미 현재 턴에 대해 빌드했으면 재빌드 방지 (타이머 리렌더링에 의한 초기화 방지)
-  if (guessUIBuiltForTurn === gameState.currentTurnIdx && steps.childElementCount > 0) {
-    return;
-  }
+  if (guessUIBuiltForTurn === gameState.currentTurnIdx && steps.childElementCount > 0) return;
   guessUIBuiltForTurn = gameState.currentTurnIdx;
   steps.innerHTML = '';
 
   const isSingle = gameState.currentMethods.length === 1;
-  // 1개 방식이면 라벨 변경, 순서 선택 UI 불필요
   const label = document.getElementById('guess-ui-label');
   if (label) label.textContent = isSingle ? '원본 메시지 입력' : '복호화 순서 추측 및 원본 입력';
   const num = gameState.clueSet.length;
@@ -2666,14 +1989,11 @@ function submitGuess() {
   const btn = document.getElementById('btn-guess-submit');
   btn.disabled = true;
   btn.textContent = '확인 중...';
-  // 결과 수신 후 버튼 상태 복원 (오답이면 클라이언트 이벤트로 처리됨)
   send({ type: 'guess_submit', methodOrder: isSingle ? [] : guessMethodOrder, answer });
-  // 호스트 직접 제출의 경우 즉시 처리되므로 이미 결과가 왔을 수 있음
-  // 오답 시엔 renderActionArea 에서 버튼을 다시 활성화함
 }
 
 // ════════════════════════════════════════
-//  CANVAS (개인용 — 공유 없음, 부드러운 선)
+//  CANVAS
 // ════════════════════════════════════════
 let lastDrawX = 0, lastDrawY = 0;
 
@@ -2690,7 +2010,6 @@ function initCanvas() {
     const rect = canvas.getBoundingClientRect();
     lastDrawX = (e.clientX - rect.left) * (canvas.width / rect.width);
     lastDrawY = (e.clientY - rect.top) * (canvas.height / rect.height);
-    // 시작점 점 찍기
     if (currentMode !== 'erase') {
       ctx.fillStyle = drawColor;
       ctx.beginPath();
@@ -2715,26 +2034,13 @@ function handleDraw(e) {
   const rect = canvas.getBoundingClientRect();
   const x = (e.clientX - rect.left) * (canvas.width / rect.width);
   const y = (e.clientY - rect.top) * (canvas.height / rect.height);
-  if (currentMode === 'erase') {
-    ctx.clearRect(x - 12, y - 12, 24, 24);
-    lastDrawX = x; lastDrawY = y;
-    return;
-  }
-  ctx.strokeStyle = drawColor;
-  ctx.lineWidth = 3;
-  ctx.lineCap = 'round';
-  ctx.lineJoin = 'round';
-  ctx.beginPath();
-  ctx.moveTo(lastDrawX, lastDrawY);
-  ctx.lineTo(x, y);
-  ctx.stroke();
-  lastDrawX = x;
-  lastDrawY = y;
+  if (currentMode === 'erase') { ctx.clearRect(x-12, y-12, 24, 24); lastDrawX=x; lastDrawY=y; return; }
+  ctx.strokeStyle = drawColor; ctx.lineWidth = 3; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  ctx.beginPath(); ctx.moveTo(lastDrawX, lastDrawY); ctx.lineTo(x, y); ctx.stroke();
+  lastDrawX = x; lastDrawY = y;
 }
 
-function clearCanvas() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-}
+function clearCanvas() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
 
 function setMode(m) {
   currentMode = m;
@@ -2751,12 +2057,10 @@ function setBoardMode(mode) {
   document.getElementById('btn-mode-memo').classList.toggle('active', !isDraw);
   canvas.style.display = isDraw ? '' : 'none';
   document.getElementById('memo-area').style.display = isDraw ? 'none' : 'block';
-  // 그리기 도구 버튼들 표시/숨김
   ['btn-draw','btn-erase','btn-clear-draw'].forEach(id => {
     document.getElementById(id).style.display = isDraw ? '' : 'none';
   });
   document.querySelectorAll('.color-dot').forEach(d => { d.style.display = isDraw ? '' : 'none'; });
-  document.querySelector('.toolbar .divider-draw')?.style && (document.querySelector('.toolbar div[style*="1px"]').style.display = isDraw ? '' : 'none');
 }
 
 function setColor(el) {
@@ -2773,7 +2077,7 @@ function sendReaction(emoji) {
   showFloatingReaction(emoji);
   const data = { type:'reaction', emoji };
   if (isHost) Object.values(connections).forEach(c => c.send(data));
-  else conn.send(data);
+  else if (conn && conn.open) conn.send(data);
 }
 
 function showFloatingReaction(emoji) {
@@ -2797,7 +2101,6 @@ function showGameUI() {
   resizeCanvas();
   initMethodSelector();
   if (isHost) document.getElementById('host-start-btn').style.display = '';
-  if (isHost && isDirectMode()) document.getElementById('direct-add-btn').style.display = '';
   renderAll();
 }
 
@@ -2815,8 +2118,6 @@ function renderHeader() {
   document.getElementById('phase-label').textContent = phases[gameState.phase]||'대기 중';
 
   const timerEl = document.getElementById('timer-display');
-  // 클라이언트는 startClientTimer()가 250ms마다 독립적으로 업데이트하므로
-  // renderAll() 호출 시 broadcast 지연에 의한 덮어쓰기를 방지
   if (isHost || !clientTimerInterval) {
     const left = gameState.status === 'playing' && gameState.turnTimerStart
       ? Math.max(0, (gameState.phase === 'encoding' ? ENC_TIME : GUESS_TIME) -
@@ -2828,11 +2129,9 @@ function renderHeader() {
     timerEl.classList.toggle('timer-urgent', left<=15 && gameState.status==='playing');
   }
 
-  const numP = gameState.turnOrder.length||1;
   document.getElementById('round-info').textContent =
     gameState.status==='playing' ? `${gameState.currentRound} / ${gameState.totalRounds}` : '0 / 0';
 
-  // My badge
   const me = gameState.players[myId];
   if (me) {
     const b = document.getElementById('my-role-badge');
@@ -2851,7 +2150,8 @@ function renderPlayerList() {
 
   const allPlayers = Object.entries(gameState.players).filter(([,p])=>p && p.online!==false);
   const displayOrder = gameState.turnOrder.length>0
-    ? [...gameState.turnOrder.map(id => [id, gameState.players[id]]).filter(([,p])=>p && p.online!==false), ...allPlayers.filter(([id])=>!gameState.turnOrder.includes(id))]
+    ? [...gameState.turnOrder.map(id => [id, gameState.players[id]]).filter(([,p])=>p && p.online!==false),
+       ...allPlayers.filter(([id])=>!gameState.turnOrder.includes(id))]
     : allPlayers;
 
   displayOrder.forEach(([id, p]) => {
@@ -2881,7 +2181,7 @@ function renderPlayerList() {
     card.innerHTML = `
       <div class="player-avatar ${avClass}">${initials}</div>
       <div class="player-info-block">
-        <div class="player-name">${p.nick}${isMe?`<span class="my-badge" style="font-size: 16px;padding:1px 6px">나</span>`:''}</div>
+        <div class="player-name">${p.nick}${isMe?`<span class="my-badge" style="font-size:16px;padding:1px 6px">나</span>`:''}</div>
         <div class="player-score-line">${p.score}pt</div>
       </div>
       ${badge}
@@ -2889,7 +2189,6 @@ function renderPlayerList() {
     list.appendChild(card);
   });
 
-  // Ghost
   const shown = displayOrder.length;
   for (let i=shown; i<Math.max(shown,2); i++) {
     const g = document.createElement('div');
@@ -2910,9 +2209,9 @@ function renderRankList() {
     const initials = p.nick.slice(0,2).toUpperCase();
     item.innerHTML = `
       <div class="rank-num ${nc}">${i+1}</div>
-      <div class="player-avatar" style="width:26px;height:26px;font-size: 17px">${initials}</div>
-      <div style="flex:1;font-size: 19px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)">${p.nick}</div>
-      <div style="font-family:'Pretendard', sans-serif;font-size: 18px;color:var(--text3)">${p.score}</div>
+      <div class="player-avatar" style="width:26px;height:26px;font-size:17px">${initials}</div>
+      <div style="flex:1;font-size:19px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)">${p.nick}</div>
+      <div style="font-family:'Pretendard',sans-serif;font-size:18px;color:var(--text3)">${p.score}</div>
     `;
     el.appendChild(item);
   });
@@ -2953,21 +2252,16 @@ function renderCenter() {
     cText.className = 'cipher-text';
     cBox.className = 'cipher-box active';
     cLabel.textContent = 'ENCRYPTED MESSAGE';
-    // 2개 이상 방식 사용 시에만 방식 힌트 공개 — "사용됨" 없이 위 키 힌트에 통합
-    // 키값 힌트 — 방식 수에 따라 표시 형식 다름
     const _keys = gameState.currentKeys || {};
     const _keyLabels = { 1: '순열', 2: '단위', 3: '시프트', 4: '레일' };
     if (gameState.currentMethods.length === 1) {
-      // 단일 암호화: 방식명 없이 "키: 값"만 표시
       const mId = gameState.currentMethods[0];
-      const m = METHODS[mId];
       const keyVal = (_keys[mId] !== undefined && _keys[mId] !== null) ? _keys[mId] : '?';
       const chip = document.createElement('div');
       chip.className = 'hint-chip';
       chip.textContent = `키: ${keyVal}`;
       hints.appendChild(chip);
     } else {
-      // 복수 암호화: "방식명 키종류: 값" 형식, 버튼 선택 순(clueSet 순서)
       gameState.clueSet.forEach(mId => {
         const m = METHODS[mId];
         const keyVal = (_keys[mId] !== undefined && _keys[mId] !== null) ? _keys[mId] : '?';
@@ -2993,7 +2287,6 @@ function renderCenter() {
     cText.className = 'cipher-text';
     cBox.className = 'cipher-box active';
     cLabel.textContent = '회차 결과';
-    // 정답자에게만 키값 공개
     const myResult = gameState.guessResults[myId];
     const iAmEncoder = myId === gameState.turnOrder[gameState.currentTurnIdx % Math.max(gameState.turnOrder.length,1)];
     if ((myResult?.correct || iAmEncoder) && gameState.currentKeys && Object.keys(gameState.currentKeys).length > 0) {
@@ -3006,14 +2299,6 @@ function renderCenter() {
       }).join(' → ');
       keyChip.textContent = `🔑 ${keyDesc}`;
       hints.appendChild(keyChip);
-    }
-    // Show encoder bonus if any
-    if (gameState.guessResults && gameState.guessResults['_encoder_bonus']) {
-      const chip = document.createElement('div');
-      chip.className = 'hint-chip';
-      chip.style.cssText = `background:rgba(255,107,53,0.15);border:1.5px solid #ff6b35;color:#ff6b35`;
-      chip.textContent = `출제자 +${gameState.guessResults['_encoder_bonus']}pt`;
-      hints.appendChild(chip);
     }
   }
 }
@@ -3040,9 +2325,8 @@ function renderActionArea() {
   const iAmEncoder = myId===encoder;
 
   if (gameState.phase==='encoding') {
-    if (iAmEncoder) {
-      encUI.classList.add('visible');
-    } else {
+    if (iAmEncoder) { encUI.classList.add('visible'); }
+    else {
       waitUI.classList.add('visible');
       document.getElementById('wait-text').textContent = `⏳ ${gameState.players[encoder]?.nick||'출제자'}님이 암호화 문제를 만들고 있습니다. 잠시 기다려주세요!`;
     }
@@ -3058,7 +2342,6 @@ function renderActionArea() {
       } else {
         guessUI.classList.add('visible');
         renderGuessUI();
-        // Reset submit button
         const btn = document.getElementById('btn-guess-submit');
         btn.disabled = false;
         btn.textContent = '해독 완료 🛡';
@@ -3081,13 +2364,11 @@ function renderActionArea() {
 function showGameOver() {
   const el = document.getElementById('game-over');
   el.style.display = 'flex';
-
   const sorted = Object.entries(gameState.players).filter(([,p])=>p && p.online!==false).sort(([,a],[,b])=>b.score-a.score);
   const winner = sorted[0];
   const goWin = document.getElementById('go-winner');
   goWin.textContent = winner ? `🏆 ${winner[1].nick} 우승!` : '게임 종료';
   goWin.style.color = 'var(--gold)';
-
   const rl = document.getElementById('go-rank-list');
   rl.innerHTML = '';
   const medals = ['🥇','🥈','🥉'];
@@ -3096,23 +2377,21 @@ function showGameOver() {
     div.className = 'go-rank-item';
     const initials = p.nick.slice(0,2).toUpperCase();
     div.innerHTML = `
-      <span style="font-size: 26px">${medals[i]||`${i+1}.`}</span>
-      <div class="player-avatar" style="width:32px;height:32px;font-size: 19px">${initials}</div>
-      <span style="flex:1;font-size: 21px;font-weight:700;color:var(--text)">${p.nick}</span>
-      <span style="font-family:'Pretendard', sans-serif;font-size: 21px;color:var(--gold)">${p.score}pt</span>
+      <span style="font-size:26px">${medals[i]||`${i+1}.`}</span>
+      <div class="player-avatar" style="width:32px;height:32px;font-size:19px">${initials}</div>
+      <span style="flex:1;font-size:21px;font-weight:700;color:var(--text)">${p.nick}</span>
+      <span style="font-family:'Pretendard',sans-serif;font-size:21px;color:var(--gold)">${p.score}pt</span>
     `;
     rl.appendChild(div);
   });
 }
 
 // ════════════════════════════════════════
-//  TOAST
+//  TOAST & ERRORS
 // ════════════════════════════════════════
 function showEncError(msg) {
   const el = document.getElementById('enc-error-msg');
-  el.textContent = msg;
-  el.style.display = 'block';
-  // 5초 후 자동 사라짐
+  el.textContent = msg; el.style.display = 'block';
   clearTimeout(el._timer);
   el._timer = setTimeout(() => { el.style.display = 'none'; }, 5000);
 }
@@ -3120,8 +2399,7 @@ function showEncError(msg) {
 function showGuessError(msg) {
   const el = document.getElementById('guess-error-msg');
   if (!el) return;
-  el.textContent = msg;
-  el.style.display = 'block';
+  el.textContent = msg; el.style.display = 'block';
   clearTimeout(el._timer);
   el._timer = setTimeout(() => { el.style.display = 'none'; }, 5000);
 }
@@ -3146,7 +2424,6 @@ window.addEventListener('resize', () => {
 // ════════════════════════════════════════
 //  SESSION RECOVERY
 // ════════════════════════════════════════
-// 호스트와 클라이언트가 같은 키를 덮어쓰지 않도록 분리
 const SESSION_KEY_HOST   = 'enc_game_session_host';
 const SESSION_KEY_CLIENT = 'enc_game_session_client';
 const GAMESTATE_KEY = 'enc_game_state';
@@ -3154,31 +2431,16 @@ const SESSION_TTL_MS = 30 * 60 * 1000;
 
 function parseSession(raw) {
   if (!raw) return null;
-  try {
-    const s = JSON.parse(raw);
-    if (!s || typeof s !== 'object') return null;
-    if (Number.isNaN(Number(s.ts))) return null;
-    return s;
-  } catch(e) {
-    return null;
-  }
+  try { const s = JSON.parse(raw); return (s && typeof s==='object' && !Number.isNaN(Number(s.ts))) ? s : null; }
+  catch(e) { return null; }
 }
-
-function isSessionFresh(s) {
-  return !!s && (Date.now() - Number(s.ts) <= SESSION_TTL_MS);
-}
+function isSessionFresh(s) { return !!s && (Date.now() - Number(s.ts) <= SESSION_TTL_MS); }
 
 function getFreshSessions() {
-  const hostParsed = parseSession(localStorage.getItem(SESSION_KEY_HOST));
-  const clientParsed = parseSession(localStorage.getItem(SESSION_KEY_CLIENT));
-  const host = isSessionFresh(hostParsed) ? hostParsed : null;
-  const client = isSessionFresh(clientParsed) ? clientParsed : null;
-  if (!host) {
-    try { localStorage.removeItem(SESSION_KEY_HOST); } catch(e) {}
-  }
-  if (!client) {
-    try { localStorage.removeItem(SESSION_KEY_CLIENT); } catch(e) {}
-  }
+  const host = isSessionFresh(parseSession(localStorage.getItem(SESSION_KEY_HOST))) ? parseSession(localStorage.getItem(SESSION_KEY_HOST)) : null;
+  const client = isSessionFresh(parseSession(localStorage.getItem(SESSION_KEY_CLIENT))) ? parseSession(localStorage.getItem(SESSION_KEY_CLIENT)) : null;
+  if (!host) { try { localStorage.removeItem(SESSION_KEY_HOST); } catch(e) {} }
+  if (!client) { try { localStorage.removeItem(SESSION_KEY_CLIENT); } catch(e) {} }
   return { host, client };
 }
 
@@ -3193,28 +2455,13 @@ function loadLatestSession() {
 function saveSession() {
   try {
     const data = JSON.stringify({ nick: myNick, roomId, peerId: myId, isHost, ts: Date.now() });
-    if (isHost) {
-      localStorage.setItem(SESSION_KEY_HOST, data);
-      localStorage.removeItem(SESSION_KEY_CLIENT);
-    } else {
-      localStorage.setItem(SESSION_KEY_CLIENT, data);
-      localStorage.removeItem(SESSION_KEY_HOST);
-    }
+    if (isHost) { localStorage.setItem(SESSION_KEY_HOST, data); localStorage.removeItem(SESSION_KEY_CLIENT); }
+    else { localStorage.setItem(SESSION_KEY_CLIENT, data); localStorage.removeItem(SESSION_KEY_HOST); }
   } catch(e) {}
 }
 
 function saveGameState() {
-  try {
-    localStorage.setItem(GAMESTATE_KEY, JSON.stringify(gameState));
-  } catch(e) {}
-}
-
-function loadGameState() {
-  try {
-    const raw = localStorage.getItem(GAMESTATE_KEY);
-    if (!raw) return null;
-    return JSON.parse(raw);
-  } catch(e) { return null; }
+  try { localStorage.setItem(GAMESTATE_KEY, JSON.stringify(gameState)); } catch(e) {}
 }
 
 function clearGameState() {
@@ -3222,17 +2469,11 @@ function clearGameState() {
 }
 
 function clearSession() {
-  try {
-    localStorage.removeItem(SESSION_KEY_HOST);
-    localStorage.removeItem(SESSION_KEY_CLIENT);
-  } catch(e) {}
-  // gameState는 유지 — 새 호스트 ID(designatedNextHost) 참조에 필요
-  // 게임이 완전히 종료될 때만 clearGameState() 별도 호출
+  try { localStorage.removeItem(SESSION_KEY_HOST); localStorage.removeItem(SESSION_KEY_CLIENT); } catch(e) {}
 }
 
 function loadSession() {
   try {
-    // lobbyMode 우선 복구 (호스트 탭은 host 우선, 참가 탭은 client 우선)
     const fresh = getFreshSessions();
     return (lobbyMode === 'host') ? (fresh.host || fresh.client) : (fresh.client || fresh.host);
   } catch(e) { return null; }
@@ -3246,7 +2487,6 @@ function doRecover() {
   document.getElementById('user-nick').value = myNick;
   document.getElementById('room-id').value = roomId.replace(/^CGv4-/, '');
   document.getElementById('recovery-banner').style.display = 'none';
-  // 이전 호스트였어도 재접속 시 항상 참가자로 접속
   switchTab('join');
   setLobbyStatus('재접속 시도 중...', '');
   joinAsClient(s.isHost ? null : s.peerId);
@@ -3258,368 +2498,25 @@ function dismissRecovery() {
 }
 
 function showReconnectBanner() {
-  // 직접 연결 모드에서는 자동 재접속 불가
-  if (isDirectMode()) {
-    showToast('🚫 호스트와 연결이 끊겼습니다.', 'error');
-    return;
-  }
   const nextHostId = gameState.designatedNextHost;
   const gameStarted = gameState.status === 'playing';
-
   if (!gameStarted) {
-    // ── 게임 시작 전: 호스트 이탈 → 재접속 대기 (localStorage 훼손 방지) ──
     showToast('⏳ 호스트 연결이 끊겼습니다. 재접속을 기다립니다...', 'info');
     const _myIdBeforeDisconnect = myId;
+    clientRetries = 0;
     setTimeout(function() { joinAsClient(_myIdBeforeDisconnect); }, 2000);
     return;
   }
-
-  // ── 게임 진행 중: 호스트 인계 또는 재접속 ──────────────────────────────
-  if (nextHostId && myId === nextHostId) {
-    // 내가 지정된 다음 호스트 → 즉시 승격
-    promoteToHost();
-  } else if (nextHostId) {
-    // 다른 플레이어가 새 호스트로 승격 → 방코드(CGv4-XXXX)로 재접속
-    showToast('🔄 호스트가 바뀌었습니다. 잠시 후 재접속합니다...', 'info');
-    saveSession();
-    clientRetries = 0; // 충분한 재시도 횟수 확보
-    const _myIdAtDisconnect = myId;
-    setTimeout(function() { joinAsClient(_myIdAtDisconnect); }, 3000);
-  } else {
-    // 백업 호스트 없음 (혼자 남음)
-    showToast('🚫 호스트와 연결이 끊겼습니다. 방이 종료되었습니다.', 'error');
-  }
-}
-
-function promoteToHost() {
-  // roomId = 구 호스트의 CGv4-XXXX, myId = 내 random peerId
-  const oldHostId = roomId;      // CGv4-XXXX
-  const myOldPeerId = myId;      // peer-abc123
-
-  // 로컬에 저장된 최신 gameState 확보 (호스트가 보낸 마지막 sync 시점)
-  const saved = loadGameState();
-  if (saved && saved.players) {
-    Object.assign(gameState, saved);
-  }
-
-  // 구 호스트를 오프라인으로 표시하기 전에 데이터 보존
-  const prevHostData = (oldHostId && gameState.players[oldHostId])
-    ? { ...gameState.players[oldHostId] } : null;
-  // 구 호스트 데이터를 players에 online:false로 유지 — 재접속 시 닉네임 기반 병합에 활용
-  if (prevHostData) {
-    gameState.players[oldHostId] = { ...prevHostData, online: false };
-  }
-
-  // 구 호스트가 출제 중이었는지 key 마이그레이션 전에 확인
-  const prevHostWasEncoder = gameState.status === 'playing' &&
-    gameState.phase === 'encoding' &&
-    gameState.turnOrder[gameState.currentTurnIdx % Math.max(gameState.turnOrder.length, 1)] === oldHostId;
-  const oldNick = (prevHostData && prevHostData.nick) || '이전 호스트';
-
-  // 구 호스트를 turnOrder에서 먼저 제거
-  const oldHostTurnIdx = gameState.turnOrder.indexOf(oldHostId);
-  if (oldHostTurnIdx !== -1) gameState.turnOrder.splice(oldHostTurnIdx, 1);
-
-  // 구 호스트 데이터를 임시 키(_prev_)로 옮겨 보존 — 새 호스트가 oldHostId 키를 차지하기 전에
-  // 나중에 구 호스트가 같은 닉네임으로 join 시 닉네임 기반 병합에 사용됨
-  if (prevHostData && prevHostData.nick) {
-    const preserveKey = '_prev_' + oldHostId;
-    gameState.players[preserveKey] = { ...prevHostData, online: false };
-    delete gameState.players[oldHostId];
-  }
-
-  // gameState.players에서 내 키를 random peerId → CGv4-XXXX 로 이전
-  // (승격 후 내 ID가 CGv4-XXXX가 되므로 점수·턴 순서 유지)
-  if (myOldPeerId !== oldHostId && gameState.players[myOldPeerId]) {
-    gameState.players[oldHostId] = { ...gameState.players[myOldPeerId], online: true };
-    delete gameState.players[myOldPeerId];
-    const tidx = gameState.turnOrder.indexOf(myOldPeerId);
-    if (tidx !== -1) gameState.turnOrder[tidx] = oldHostId;
-    else gameState.turnOrder.unshift(oldHostId);
-    if (gameState.guessResults && gameState.guessResults[myOldPeerId]) {
-      gameState.guessResults[oldHostId] = gameState.guessResults[myOldPeerId];
-      delete gameState.guessResults[myOldPeerId];
-    }
-  } else if (gameState.players[oldHostId]) {
-    gameState.players[oldHostId].online = true;
-  } else {
-    gameState.players[oldHostId] = { nick: myNick, score: 0, online: true };
-  }
-
-  const myNickSafe = (gameState.players[oldHostId] && gameState.players[oldHostId].nick) || '새 호스트';
-  gameState.pendingToast = {
-    msg: '👑 ' + myNickSafe + ' 님이 새 호스트가 되었습니다. (' + oldNick + ' 님 퇴장)',
-    type: 'info'
-  };
-
-  // 상태 설정 — roomId는 CGv4-XXXX 그대로 유지
-  isHost = true;
-  roomId = oldHostId;
-  myId = oldHostId;  // peer open 이전 미리 설정 (saveSession에서 사용)
-  connections = {};
-  saveSession();
-
-  // 기존 peer(random ID) destroy 후 CGv4-XXXX 로 새 peer 생성
-  // → 이전 호스트 포함 모든 클라이언트가 방코드로 재접속 가능
-  if (peer && !peer.destroyed) {
-    try { peer.destroy(); } catch(e) {}
-  }
-
-  let promoteRetries = 0;
-  function tryPromote() {
-    peer = createPeer(oldHostId);
-    peer.on('open', () => {
-      myId = oldHostId;
-      gameState.hostPeerId = oldHostId;
-      saveSession();
-      showToast('👑 호스트 역할을 인계받았습니다!', 'success');
-      attachHostListeners();
-
-      // 구 호스트가 출제자였다면 다음 턴으로 넘김
-      if (prevHostWasEncoder) {
-        gameState.pendingToast = {
-          msg: '🚪 ' + oldNick + ' 님(호스트)이 방을 나갔습니다. 다음 출제자로 넘어갑니다.',
-          type: 'info'
-        };
-        nextTurn();
-        return;
-      }
-
-      // 게임 진행 중이면 타이머 인계
-      if (gameState.status === 'playing' && (gameState.phase === 'encoding' || gameState.phase === 'guessing')) {
-        startHostTimer();
-      }
-      broadcast();
-      renderAll();
-    });
-    peer.on('error', e => {
-      logPeerError('promote-host', e);
-      promoteRetries++;
-      if (promoteRetries < 10) {
-        const wait = Math.min(3000 + promoteRetries * 2000, 10000);
-        const sec = Math.ceil(wait / 1000);
-        showToast('호스트 ID 취득 중... (' + promoteRetries + '/10, ' + sec + '초 후 재시도)', 'info');
-        setTimeout(tryPromote, wait);
-      } else {
-        showToast('호스트 역할 인계 실패. 새로고침 후 다시 시도해주세요.', 'error');
-        isHost = false;
-        saveSession();
-      }
-    });
-    peer.on('disconnected', () => {
-      if (isHost && peer && !peer.destroyed) {
-        try { peer.reconnect(); } catch(e) {}
-      }
-    });
-  }
-  tryPromote();
+  showToast('🔄 호스트 연결이 끊겼습니다. 재접속 시도 중...', 'info');
+  clientRetries = 0;
+  const _myId = myId;
+  setTimeout(function() { joinAsClient(_myId); }, 3000);
 }
 
 window.addEventListener('beforeunload', () => {
   if (myId && roomId) saveSession();
-  // PeerJS 서버에 disconnect 신호를 보내서 ID를 즉시 해제
-  if (peer && !peer.destroyed) {
-    try { peer.destroy(); } catch(e) {}
-  }
+  if (peer && !peer.destroyed) { try { peer.destroy(); } catch(e) {} }
 });
-
-// Init
-switchTab('host');
-
-// ════════════════════════════════════════
-//  DIRECT CONNECTION (Manual SDP / No Server)
-// ════════════════════════════════════════
-function isDirectMode() {
-  return localStorage.getItem('enc_server_mode') === 'direct';
-}
-
-class DirectConn {
-  constructor() {
-    // No STUN/TURN needed for same-LAN: host candidates (LAN IP) are sufficient
-    this.pc = new RTCPeerConnection({ iceServers: [] });
-    this.dc = null; this._evts = {}; this.open = false; this.peer = null;
-  }
-  on(evt, cb) { this._evts[evt] = cb; return this; }
-  _fire(evt, ...args) { try { if (this._evts[evt]) this._evts[evt](...args); } catch(e) {} }
-  send(data) {
-    if (this.dc && this.dc.readyState === 'open') this.dc.send(JSON.stringify(data));
-  }
-  close() { try { this.pc.close(); } catch(e) {} }
-}
-
-function _waitIce(pc) {
-  return new Promise(function(resolve) {
-    if (pc.iceGatheringState === 'complete') { resolve(); return; }
-    var t = setTimeout(resolve, 5000);
-    pc.onicegatheringstatechange = function() {
-      if (pc.iceGatheringState === 'complete') { clearTimeout(t); resolve(); }
-    };
-  });
-}
-
-async function _directMakeOffer() {
-  var dc = new DirectConn();
-  dc.dc = dc.pc.createDataChannel('game', { ordered: true });
-  dc.dc.onopen = function() { dc.open = true; dc._fire('open'); };
-  dc.dc.onclose = function() { dc.open = false; dc._fire('close'); };
-  dc.dc.onmessage = function(e) { try { dc._fire('data', JSON.parse(e.data)); } catch(ex) {} };
-  var offer = await dc.pc.createOffer();
-  await dc.pc.setLocalDescription(offer);
-  await _waitIce(dc.pc);
-  return dc;
-}
-
-async function _directMakeAnswer(offerStr) {
-  var offerSdp = JSON.parse(offerStr);
-  var dc = new DirectConn();
-  dc.pc.ondatachannel = function(e) {
-    dc.dc = e.channel;
-    dc.dc.onopen = function() { dc.open = true; dc._fire('open'); };
-    dc.dc.onclose = function() { dc.open = false; dc._fire('close'); };
-    dc.dc.onmessage = function(ev) { try { dc._fire('data', JSON.parse(ev.data)); } catch(ex) {} };
-  };
-  await dc.pc.setRemoteDescription(new RTCSessionDescription(offerSdp));
-  var answer = await dc.pc.createAnswer();
-  await dc.pc.setLocalDescription(answer);
-  await _waitIce(dc.pc);
-  return dc;
-}
-
-async function _directAcceptAnswer(hostConn, answerStr) {
-  var answerSdp = JSON.parse(answerStr);
-  await hostConn.pc.setRemoteDescription(new RTCSessionDescription(answerSdp));
-}
-
-function _onDirectClientConnected(c, clientId) {
-  c.send({ type: 'sync', state: gameState });
-  c.on('data', function(d) { handleData(d, clientId); });
-  c.on('close', function() {
-    delete connections[clientId];
-    if (gameState.players[clientId]) {
-      gameState.players[clientId].online = false;
-      if (isHost && gameState.status === 'playing' && gameState.phase === 'encoding') {
-        var encoder = gameState.turnOrder[gameState.currentTurnIdx % Math.max(gameState.turnOrder.length, 1)];
-        if (encoder === clientId) {
-          var nick2 = (gameState.players[clientId] && gameState.players[clientId].nick) || '출제자';
-          gameState.pendingToast = { msg: '🚪 ' + nick2 + ' 님이 방을 나갔습니다. 다음 출제자로 넘어갑니다.', type: 'info' };
-          showToast('🚪 ' + nick2 + ' 님이 방을 나갔습니다. 다음 출제자로 넘어갑니다.', 'info');
-          nextTurn(); return;
-        }
-      }
-      broadcast();
-    }
-  });
-}
-
-// ── SDP Modal Control ──────────────────────────────────────────────
-var _sdpState = null;
-
-function _sdpEl(id) { return document.getElementById(id); }
-function _sdpStatus(msg) { _sdpEl('sdp-m-status').textContent = msg; }
-
-function sdpCopy() {
-  var txt = _sdpEl('sdp-m-show-txt').value;
-  if (navigator.clipboard) {
-    navigator.clipboard.writeText(txt).then(function() { showToast('📋 복사 완료!', 'success'); });
-  } else {
-    _sdpEl('sdp-m-show-txt').select(); document.execCommand('copy');
-    showToast('📋 복사 완료!', 'success');
-  }
-}
-
-async function sdpSubmit() {
-  var txt = (_sdpEl('sdp-m-paste-txt').value || '').trim();
-  if (!txt) { showToast('코드를 붙여넣기 해주세요.', 'error'); return; }
-  var btn = _sdpEl('sdp-m-ok');
-  btn.disabled = true;
-  _sdpStatus('처리 중...');
-  try {
-    if (_sdpState.stage === 'client-paste-offer') {
-      // 클라이언트: 호스트의 offer → answer 생성
-      var answerConn = await _directMakeAnswer(txt);
-      var answerStr = JSON.stringify(answerConn.pc.localDescription);
-      _sdpEl('sdp-m-title').textContent = '📤 응답 코드';
-      _sdpEl('sdp-m-desc').textContent = '아래 코드를 호스트에게 전달하세요. 호스트가 수락하면 자동으로 연결됩니다.';
-      _sdpEl('sdp-m-show').style.display = 'block';
-      _sdpEl('sdp-m-show-txt').value = answerStr;
-      _sdpEl('sdp-m-paste').style.display = 'none';
-      var savedPrevId = _sdpState._prevId;
-      _sdpState = { stage: 'client-answer-shown', conn: answerConn, _prevId: savedPrevId };
-      answerConn.on('open', function() {
-        _sdpEl('sdp-m-show').style.display = 'none';
-        _sdpEl('sdp-m-done').style.display = 'block';
-        conn = answerConn;
-        answerConn.peer = 'host';
-        var _prevId = savedPrevId || null;
-        setTimeout(function() {
-          _sdpEl('sdp-modal').style.display = 'none';
-          conn.on('data', function(d) { handleData(d, 'host'); });
-          conn.on('close', function() { isHost = false; saveSession(); showReconnectBanner(); });
-          if (_prevId && _prevId !== myId) {
-            conn.send({ type: 'rejoin', nick: myNick, peerId: myId, prevPeerId: _prevId });
-          } else {
-            conn.send({ type: 'join', nick: myNick, peerId: myId });
-          }
-          showGameUI();
-        }, 800);
-      });
-
-    } else if (_sdpState.stage === 'host-paste-answer') {
-      // 호스트: 클라이언트의 answer SDP 수락
-      await _directAcceptAnswer(_sdpState.conn, txt);
-      _sdpStatus('연결 대기 중...');
-      var pendingConn = _sdpState.conn;
-      pendingConn.on('open', function() {
-        var clientId = 'dc-' + Math.random().toString(36).substr(2, 6);
-        pendingConn.peer = clientId;
-        connections[clientId] = pendingConn;
-        _onDirectClientConnected(pendingConn, clientId);
-        _sdpEl('sdp-modal').style.display = 'none';
-        showToast('✅ 참가자가 연결되었습니다!', 'success');
-        renderAll();
-      });
-    }
-  } catch(e) {
-    _sdpStatus('오류: ' + (e.message || '잘못된 코드입니다.'));
-    btn.disabled = false;
-  }
-}
-
-async function directAddClient() {
-  showToast('접속 코드 생성 중...', 'info');
-  try {
-    var offerConn = await _directMakeOffer();
-    var offerStr = JSON.stringify(offerConn.pc.localDescription);
-    _sdpEl('sdp-m-title').textContent = '📡 접속 코드';
-    _sdpEl('sdp-m-desc').textContent = '아래 코드를 참가자에게 전달하세요. 참가자의 응답 코드를 받으면 아래에 붙여넣기 하세요.';
-    _sdpEl('sdp-m-show').style.display = 'block';
-    _sdpEl('sdp-m-show-txt').value = offerStr;
-    _sdpEl('sdp-m-paste').style.display = 'block';
-    _sdpEl('sdp-m-paste-lbl').textContent = '참가자의 응답 코드';
-    _sdpEl('sdp-m-paste-txt').value = '';
-    _sdpEl('sdp-m-done').style.display = 'none';
-    _sdpEl('sdp-m-ok').disabled = false;
-    _sdpStatus('응답 코드를 기다리는 중...');
-    _sdpEl('sdp-modal').style.display = 'flex';
-    _sdpState = { stage: 'host-paste-answer', conn: offerConn };
-  } catch(e) {
-    showToast('접속 코드 생성 실패: ' + (e.message || '오류'), 'error');
-  }
-}
-
-function directShowJoinModal(prevPeerId) {
-  _sdpEl('sdp-m-title').textContent = '🔗 접속 코드 입력';
-  _sdpEl('sdp-m-desc').textContent = '호스트에게 받은 접속 코드를 붙여넣기 해주세요.';
-  _sdpEl('sdp-m-show').style.display = 'none';
-  _sdpEl('sdp-m-paste').style.display = 'block';
-  _sdpEl('sdp-m-paste-lbl').textContent = '호스트의 접속 코드';
-  _sdpEl('sdp-m-paste-txt').value = '';
-  _sdpEl('sdp-m-done').style.display = 'none';
-  _sdpEl('sdp-m-ok').disabled = false;
-  _sdpStatus('');
-  _sdpEl('sdp-modal').style.display = 'flex';
-  _sdpState = { stage: 'client-paste-offer', _prevId: prevPeerId };
-}
 
 // ════════════════════════════════════════
 //  SERVER SETTINGS UI
@@ -3636,17 +2533,11 @@ function setServerMode(mode) {
   localStorage.setItem('enc_server_mode', mode);
   document.getElementById('srv-pub-btn').classList.toggle('active', mode === 'public');
   document.getElementById('srv-loc-btn').classList.toggle('active', mode === 'local');
-  document.getElementById('srv-dir-btn').classList.toggle('active', mode === 'direct');
   document.getElementById('srv-pub-info').style.display = mode === 'public' ? 'block' : 'none';
   document.getElementById('srv-local-cfg').style.display = mode === 'local' ? 'block' : 'none';
-  document.getElementById('srv-direct-cfg').style.display = mode === 'direct' ? 'block' : 'none';
   const dot = document.getElementById('srv-dot');
-  if (dot) {
-    if (mode === 'local') dot.className = 'srv-dot local';
-    else if (mode === 'direct') dot.className = 'srv-dot direct';
-    else dot.className = 'srv-dot';
-  }
-  if (mode === 'public' || mode === 'direct') {
+  if (dot) dot.className = mode === 'local' ? 'srv-dot local' : 'srv-dot';
+  if (mode === 'public') {
     localStorage.removeItem('enc_peer_host');
     localStorage.removeItem('enc_peer_port');
     localStorage.removeItem('enc_peer_path');
@@ -3668,75 +2559,41 @@ function saveSrvLocal() {
 
 function initServerSettings() {
   const mode = localStorage.getItem('enc_server_mode') || 'public';
-  const host = localStorage.getItem('enc_peer_host') || '';
-  const port = localStorage.getItem('enc_peer_port') || '9000';
-  const secure = String(localStorage.getItem('enc_peer_secure') || '0') !== '0';
   document.getElementById('srv-pub-btn').classList.toggle('active', mode === 'public');
   document.getElementById('srv-loc-btn').classList.toggle('active', mode === 'local');
-  document.getElementById('srv-dir-btn').classList.toggle('active', mode === 'direct');
   document.getElementById('srv-pub-info').style.display = mode === 'public' ? 'block' : 'none';
   document.getElementById('srv-local-cfg').style.display = mode === 'local' ? 'block' : 'none';
-  document.getElementById('srv-direct-cfg').style.display = mode === 'direct' ? 'block' : 'none';
   const dot = document.getElementById('srv-dot');
-  if (dot) {
-    if (mode === 'local') dot.className = 'srv-dot local';
-    else if (mode === 'direct') dot.className = 'srv-dot direct';
-    else dot.className = 'srv-dot';
-  }
+  if (dot) dot.className = mode === 'local' ? 'srv-dot local' : 'srv-dot';
   const hostEl = document.getElementById('srv-host-input');
   const portEl = document.getElementById('srv-port-input');
   const secEl = document.getElementById('srv-secure-chk');
-  if (hostEl) hostEl.value = host;
-  if (portEl) portEl.value = port;
-  if (secEl) secEl.checked = secure;
+  if (hostEl) hostEl.value = localStorage.getItem('enc_peer_host') || '';
+  if (portEl) portEl.value = localStorage.getItem('enc_peer_port') || '9000';
+  if (secEl) secEl.checked = String(localStorage.getItem('enc_peer_secure') || '0') !== '0';
 }
 
+// ════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════
+switchTab('host');
+initServerSettings();
+
 (function checkRecovery() {
-  // 두 세션이 공존하면 최신 타임스탬프를 우선 선택
   const s = loadLatestSession();
   if (!s) return;
-  // 폼 필드 자동 채우기 + 올바른 탭으로 전환
   document.getElementById('user-nick').value = s.nick;
   document.getElementById('room-id').value = s.roomId.replace(/^CGv4-/, '');
-  // 이전 호스트였어도 재접속 시 항상 참가자로
   switchTab('join');
   const banner = document.getElementById('recovery-banner');
   if (!banner) return;
-  const roleLabel = '참가자';
   document.getElementById('recovery-info').textContent =
-    s.nick + ' (' + roleLabel + ') • 방: ' + s.roomId.replace(/^CGv4-/, '') + ' — 이전 세션을 복구하시겠습니까?';
+    s.nick + ' • 방: ' + s.roomId.replace(/^CGv4-/, '') + ' — 이전 세션을 복구하시겠습니까?';
   banner.style.display = '';
 })();
 
-initServerSettings();
+dbLog('페이지 로드 완료. TURN 서버 포함 ICE 설정 적용됨.', 'ok');
+dbLog('PeerJS v1.5.4 로드됨.', 'inf');
 </script>
-
-<!-- ══ SDP DIRECT CONNECTION MODAL ══ -->
-<div id="sdp-modal" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(10,14,23,0.88);align-items:center;justify-content:center">
-  <div style="background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius-lg);padding:28px 32px;width:540px;max-width:92vw;max-height:92vh;overflow-y:auto">
-    <div id="sdp-m-title" style="font-family:'Pretendard',sans-serif;font-size:21px;font-weight:700;color:var(--accent);letter-spacing:2px;margin-bottom:8px"></div>
-    <div id="sdp-m-desc" style="font-size:17px;color:var(--text2);line-height:1.65;margin-bottom:16px"></div>
-    <!-- 코드 표시 영역 (복사용) -->
-    <div id="sdp-m-show" style="display:none;margin-bottom:14px">
-      <div style="font-size:14px;font-weight:700;letter-spacing:1.5px;color:var(--text3);margin-bottom:6px">접속 코드</div>
-      <textarea id="sdp-m-show-txt" readonly style="width:100%;height:140px;font-family:'Pretendard',sans-serif;font-size:12px;border:1px solid var(--border);border-radius:var(--radius);padding:10px;background:rgba(26,127,212,0.04);color:var(--text2);resize:none;outline:none;box-sizing:border-box"></textarea>
-      <button onclick="sdpCopy()" style="margin-top:8px;padding:7px 20px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius);font-size:16px;font-weight:700;cursor:pointer;font-family:'Pretendard',sans-serif">📋 코드 복사</button>
-    </div>
-    <!-- 코드 입력 영역 (붙여넣기용) -->
-    <div id="sdp-m-paste" style="display:none">
-      <div id="sdp-m-paste-lbl" style="font-size:14px;font-weight:700;letter-spacing:1.5px;color:var(--text3);margin-bottom:6px"></div>
-      <textarea id="sdp-m-paste-txt" style="width:100%;height:140px;font-family:'Pretendard',sans-serif;font-size:12px;border:1px solid var(--border);border-radius:var(--radius);padding:10px;background:var(--bg);color:var(--text);resize:none;outline:none;box-sizing:border-box" placeholder="여기에 붙여넣기..."></textarea>
-      <div style="display:flex;gap:10px;margin-top:8px;align-items:center">
-        <button id="sdp-m-ok" onclick="sdpSubmit()" style="padding:8px 24px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius);font-size:17px;font-weight:700;cursor:pointer;font-family:'Pretendard',sans-serif">확인</button>
-        <span id="sdp-m-status" style="font-size:16px;color:var(--text3)"></span>
-      </div>
-    </div>
-    <!-- 연결 완료 표시 -->
-    <div id="sdp-m-done" style="display:none;text-align:center;padding:16px 0">
-      <div style="font-size:36px;margin-bottom:10px">✅</div>
-      <div style="font-size:19px;font-weight:700;color:var(--text)">연결 완료!</div>
-    </div>
-  </div>
-</div>
 </body>
 </html>
