@@ -926,6 +926,24 @@ body {
   width: 32px; flex-shrink: 0; text-align: center;
   color: var(--text3); font-size: 26px; font-weight: 700;
 }
+
+/* ── SERVER SETTINGS ── */
+.srv-toggle-btn { width:100%; padding:9px 14px; background:rgba(26,127,212,0.05); border:1px solid var(--border); border-radius:var(--radius); color:var(--text3); font-size:17px; font-weight:700; letter-spacing:1px; cursor:pointer; text-align:left; font-family:'Pretendard',sans-serif; transition:all 0.15s; display:flex; align-items:center; gap:8px; }
+.srv-toggle-btn:hover { border-color:var(--border2); color:var(--text2); }
+.srv-panel-body { margin-top:8px; background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius); padding:14px 16px; }
+.srv-mode-row { display:flex; gap:8px; margin-bottom:12px; }
+.srv-mode-btn { flex:1; padding:8px 10px; border-radius:var(--radius); border:1px solid var(--border); background:transparent; color:var(--text2); font-size:17px; font-weight:700; cursor:pointer; font-family:'Pretendard',sans-serif; transition:all 0.15s; }
+.srv-mode-btn.active { background:var(--active-bg); border-color:var(--active); color:var(--active); }
+.srv-note { font-size:15px; color:var(--text3); padding:8px 12px; background:rgba(26,127,212,0.04); border:1px solid var(--border); border-radius:var(--radius); line-height:1.65; }
+.srv-note code { font-family:'Pretendard',sans-serif; color:var(--gold); background:rgba(245,200,66,0.1); padding:1px 6px; border-radius:3px; }
+.srv-input-row { display:flex; gap:8px; align-items:center; margin-top:8px; }
+.srv-input-row label { font-size:16px; color:var(--text3); font-weight:700; min-width:40px; flex-shrink:0; }
+.srv-input { flex:1; padding:7px 12px; border:1px solid var(--border); border-radius:var(--radius); background:var(--bg); color:var(--text); font-size:17px; font-family:'Pretendard',sans-serif; outline:none; }
+.srv-input:focus { border-color:var(--accent); }
+.srv-save-btn { padding:8px 18px; background:var(--accent); color:#fff; border:none; border-radius:var(--radius); font-size:17px; font-weight:700; cursor:pointer; font-family:'Pretendard',sans-serif; }
+.srv-save-btn:hover { opacity:0.85; }
+.srv-dot { width:8px; height:8px; border-radius:50%; background:#22c55e; display:inline-block; flex-shrink:0; }
+.srv-dot.local { background:var(--gold); }
 </style>
 </head>
 <body>
@@ -978,6 +996,41 @@ body {
       <div style="display:flex;gap:10px;justify-content:center">
         <button onclick="doRecover()" style="padding:8px 20px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-weight:700;font-size:14px;cursor:pointer;font-family:'Pretendard',sans-serif">🔄 복구하기</button>
         <button onclick="dismissRecovery()" style="padding:8px 20px;background:var(--surface2);color:var(--text3);border:1px solid var(--border);border-radius:8px;font-weight:700;font-size:14px;cursor:pointer;font-family:'Pretendard',sans-serif">✕ 무시</button>
+      </div>
+    </div>
+
+    <!-- 서버 설정 패널 -->
+    <div style="margin-top:14px">
+      <button class="srv-toggle-btn" onclick="toggleServerSettings()">
+        <span class="srv-dot" id="srv-dot"></span>
+        <span style="flex:1">⚙️ 서버 설정</span>
+        <span id="srv-arrow">▼</span>
+      </button>
+      <div id="srv-panel" style="display:none">
+        <div class="srv-panel-body">
+          <div class="srv-mode-row">
+            <button class="srv-mode-btn active" id="srv-pub-btn" onclick="setServerMode('public')">🌐 공용 서버 (기본)</button>
+            <button class="srv-mode-btn" id="srv-loc-btn" onclick="setServerMode('local')">🏠 로컬 서버</button>
+          </div>
+          <div id="srv-pub-info">
+            <div class="srv-note">PeerJS 공용 시그널링 서버를 사용합니다.<br>초기 연결 시 인터넷이 잠깐 필요하며, 이후 게임 데이터는 같은 WiFi 안에서 P2P로 직접 전송됩니다.</div>
+          </div>
+          <div id="srv-local-cfg" style="display:none">
+            <div class="srv-note">같은 WiFi 내 한 대의 컴퓨터에서 아래 명령어로 로컬 서버를 실행하세요.<br>서버 실행: <code>npx peerjs --port 9000</code><br>나머지 컴퓨터는 서버 IP와 포트를 입력 후 저장하세요.</div>
+            <div class="srv-input-row">
+              <label>IP</label>
+              <input class="srv-input" id="srv-host-input" type="text" placeholder="예: 192.168.0.10">
+            </div>
+            <div class="srv-input-row">
+              <label>포트</label>
+              <input class="srv-input" id="srv-port-input" type="number" placeholder="9000" style="max-width:120px">
+              <label style="font-size:16px;color:var(--text3);cursor:pointer;display:flex;align-items:center;gap:4px;min-width:unset">
+                <input type="checkbox" id="srv-secure-chk"> HTTPS
+              </label>
+              <button class="srv-save-btn" onclick="saveSrvLocal()">저장</button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -1672,6 +1725,57 @@ const GUESS_TIME = 120;
 let timerInterval = null;
 let clientTimerInterval = null; // 클라이언트 독립 타이머 (broadcast 지연 무관)
 
+const PEER_DEBUG_LEVEL = 1;
+const DEFAULT_ICE_SERVERS = [
+  { urls: 'stun:stun.l.google.com:19302' },
+  { urls: 'stun:stun1.l.google.com:19302' }
+];
+
+// localStorage 설정값으로 자체 PeerServer를 선택적으로 사용 가능
+// enc_peer_host, enc_peer_port, enc_peer_path, enc_peer_secure(0/1)
+function getPeerOptions() {
+  const opts = {
+    debug: PEER_DEBUG_LEVEL,
+    config: { iceServers: DEFAULT_ICE_SERVERS }
+  };
+  const iceRaw = (localStorage.getItem('enc_peer_ice_json') || '').trim();
+  if (iceRaw) {
+    try {
+      const iceServers = JSON.parse(iceRaw);
+      if (Array.isArray(iceServers) && iceServers.length > 0) {
+        opts.config = { iceServers };
+      }
+    } catch(e) {
+      logPeerError('peer-config-ice-parse', e);
+    }
+  }
+  const host = (localStorage.getItem('enc_peer_host') || '').trim();
+  if (!host) return opts;
+  opts.host = host;
+  const port = parseInt(localStorage.getItem('enc_peer_port') || '443', 10);
+  if (!isNaN(port) && port > 0) opts.port = port;
+  opts.path = (localStorage.getItem('enc_peer_path') || '/peerjs').trim() || '/peerjs';
+  opts.secure = String(localStorage.getItem('enc_peer_secure') || '1') !== '0';
+  return opts;
+}
+
+function createPeer(id) {
+  return id === undefined ? new Peer(undefined, getPeerOptions()) : new Peer(id, getPeerOptions());
+}
+
+function formatPeerError(e) {
+  if (!e) return 'unknown';
+  const t = e.type || 'error';
+  const m = e.message || e.msg || '';
+  return m ? `${t}: ${m}` : t;
+}
+
+function logPeerError(context, e) {
+  const text = `[P2P:${context}] ${formatPeerError(e)}`;
+  try { console.warn(text, e || ''); } catch(_) {}
+  return text;
+}
+
 function startClientTimer() {
   if (clientTimerInterval) clearInterval(clientTimerInterval);
   if (isHost) return; // 호스트는 startHostTimer() 사용
@@ -1736,10 +1840,9 @@ function enterGame() {
   const prevPeerId = sameSession ? prevSession.peerId : null;
 
   if (lobbyMode === 'host') {
-    // 방 만들기 탭: 이전 호스트 세션이면 복구, 아니면 신규 생성
-    const isRecover = !!(sameSession && prevSession.isHost);
-    setLobbyStatus(isRecover ? '재접속 확인 중...' : '방 생성 중...', '');
-    becomeHost(isRecover, prevPeerId);
+    // 방 만들기 탭: 항상 신규 방 생성 (이전 호스트였어도 재접속 시 참가자로)
+    setLobbyStatus('방 생성 중...', '');
+    becomeHost();
   } else {
     // 방 참가하기 탭: 사용자 선택을 무조건 존중 — joinAsClient로 접속
     // promoteToHost() 후 새 호스트는 CGv4-XXXX(=roomId)를 차지하므로
@@ -1752,107 +1855,41 @@ function enterGame() {
 let hostCreateRetries = 0;
 let hostRetryTimer = null;
 
-function becomeHost(isRecover, fallbackPrevId) {
-  // 재접속 의도를 즉시 HOST 키로 기록 — isHost가 아직 false여도 올바른 키에 저장
-  if (isRecover) {
-    try {
-      localStorage.setItem(SESSION_KEY_HOST, JSON.stringify({
-        nick: myNick, roomId, peerId: fallbackPrevId || roomId, isHost: true, ts: Date.now()
-      }));
-    } catch(e) {}
-  }
+function becomeHost() {
   if (hostRetryTimer) { clearTimeout(hostRetryTimer); hostRetryTimer = null; }
-
-  // ── 재접속 시: probe(방 생존 여부 확인) → 실패 시 ID 취득 시도 ──
-  // ── ID 취득 실패 시: 대기 후 다시 probe → 반복 (누군가 먼저 올라오면 join으로 전환) ──
-  if (isRecover) {
-    _probeRoom();
-    return;
-  }
-  // 신규 방 생성 (isRecover=false)
   _acquireHostId();
-
-  function _probeRoom() {
-    setLobbyStatus('이전 연결 확인 중...', '');
-    if (peer && !peer.destroyed) { try { peer.destroy(); } catch(e) {} }
-    const probePeer = new Peer(undefined, { debug: 0 });
-    let probeResolved = false;
-
-    function _probeDone(alive) {
-      if (probeResolved) return;
-      probeResolved = true;
-      try { probePeer.destroy(); } catch(e) {}
-      if (alive) {
-        // 방 살아있음 → 다른 호스트가 이미 올라옴 → 클라이언트로 참가
-        hostCreateRetries = 0;
-        isHost = false;
-        setLobbyStatus('새 호스트에 접속 중...', '');
-        saveSession();
-        switchTab('join');
-        joinAsClient(fallbackPrevId);
-      } else {
-        // 방 없음 → ID 취득 시도
-        _acquireHostId();
-      }
-    }
-
-    const overallTimeout = setTimeout(() => _probeDone(false), 2500);
-
-    probePeer.on('open', () => {
-      // reliable:true — false positive 방지
-      const tc = probePeer.connect(roomId, { reliable: true });
-      tc.on('open', () => { clearTimeout(overallTimeout); _probeDone(true); });
-      tc.on('error', () => { clearTimeout(overallTimeout); _probeDone(false); });
-    });
-    probePeer.on('error', () => { clearTimeout(overallTimeout); _probeDone(false); });
-  }
 
   function _acquireHostId() {
     if (peer && !peer.destroyed) { try { peer.destroy(); } catch(e) {} }
     const delay = hostCreateRetries > 0 ? 300 : 0;
     setTimeout(() => {
-      peer = new Peer(roomId, { debug: 0 });
+      peer = createPeer(roomId);
       peer.on('open', () => {
         hostCreateRetries = 0;
         myId = roomId;
         isHost = true;
         gameState.hostPeerId = myId;
-        if (!isRecover) {
-          gameState.players[myId] = { nick: myNick, score: 0, online: true };
-          gameState.totalRounds = selectedRounds;
-        } else {
-          const saved = loadGameState();
-          if (saved && saved.players) {
-            Object.assign(gameState, saved);
-            Object.keys(gameState.players).forEach(pid => {
-              if (pid !== myId) gameState.players[pid].online = false;
-            });
-          }
-          if (gameState.players[myId]) gameState.players[myId].online = true;
-          else gameState.players[myId] = { nick: myNick, score: 0, online: true };
-        }
+        gameState.players[myId] = { nick: myNick, score: 0, online: true };
+        gameState.totalRounds = selectedRounds;
         saveSession();
         showGameUI();
         attachHostListeners();
-        if (isRecover) broadcast();
       });
       peer.on('error', e => {
+        logPeerError('host-acquire', e);
         if (e.type === 'unavailable-id' || e.type === 'peer-unavailable') {
           hostCreateRetries++;
           if (hostCreateRetries < 8) {
-            // 대기 후 다시 probe — 그 사이 새 호스트가 올라왔을 수 있음
             const wait = Math.min(800 + hostCreateRetries * 800, 4000);
             const sec = Math.ceil(wait / 1000);
             setLobbyStatus(`이전 연결 해제 대기 중... (${hostCreateRetries}/8, ${sec}초 후 재시도)`, '');
-            hostRetryTimer = setTimeout(() => {
-              if (isRecover) _probeRoom(); else _acquireHostId();
-            }, wait);
+            hostRetryTimer = setTimeout(_acquireHostId, wait);
           } else {
             hostCreateRetries = 0;
             setLobbyStatus('방 생성 실패. 이전 연결이 아직 해제되지 않았습니다. 잠시 후 다시 시도하거나 다른 방 코드를 사용하세요.', 'error');
           }
         } else {
-          setLobbyStatus('방 코드 충돌 또는 오류. 다른 코드를 사용하세요.', 'error');
+          setLobbyStatus('방 코드 충돌 또는 오류 (' + formatPeerError(e) + '). 다른 코드를 사용하세요.', 'error');
         }
       });
       peer.on('disconnected', () => {
@@ -1896,6 +1933,7 @@ let clientRetries = 0;
 let clientRetryTimer = null;
 
 function joinAsClient(prevPeerId) {
+  isHost = false;
   saveSession();
   if (clientRetryTimer) { clearTimeout(clientRetryTimer); clientRetryTimer = null; }
   // 기존 peer가 있으면 정리 후 재생성
@@ -1904,7 +1942,7 @@ function joinAsClient(prevPeerId) {
   }
   // prevPeerId는 호출 시점에 캡처 (새 peer 생성 후 myId가 바뀌므로)
   const _prevId = prevPeerId || null;
-  peer = new Peer(undefined, { debug: 0 });
+  peer = createPeer(undefined);
   peer.on('open', id => {
     myId = id;
     saveSession();
@@ -1927,14 +1965,16 @@ function joinAsClient(prevPeerId) {
       }
       showGameUI();
     });
-    c.on('error', () => {
+    c.on('error', e => {
+      logPeerError('client-connect', e);
       if (!ok) retryJoinAsClient(_prevId);
     });
     setTimeout(() => {
       if (!ok) retryJoinAsClient(_prevId);
     }, 4000);
   });
-  peer.on('error', () => {
+  peer.on('error', e => {
+    logPeerError('client-peer', e);
     retryJoinAsClient(_prevId);
   });
 }
@@ -2082,6 +2122,7 @@ function handleData(data, fromId) {
 
   if (data.type === 'join') {
     // 같은 닉네임의 오프라인 플레이어가 있으면 기존 데이터 인계 (닉네임 기반 병합)
+    // _prev_ 접두어 키(구 호스트 보존 데이터) 포함하여 검색
     let merged = false;
     for (const [pid, p] of Object.entries(gameState.players)) {
       if (pid !== fromId && p.nick === data.nick && p.online === false) {
@@ -2089,7 +2130,7 @@ function handleData(data, fromId) {
         delete gameState.players[pid];
         const idx = gameState.turnOrder.indexOf(pid);
         if (idx !== -1) gameState.turnOrder[idx] = fromId;
-        // _evacuated_ 키는 turnOrder에 없으므로 끝에 추가
+        // _prev_ 키는 turnOrder에 없으므로 끝에 추가
         else if (!gameState.turnOrder.includes(fromId)) gameState.turnOrder.push(fromId);
         if (gameState.guessResults && gameState.guessResults[pid]) {
           gameState.guessResults[fromId] = gameState.guessResults[pid];
@@ -3077,14 +3118,55 @@ window.addEventListener('resize', () => {
 const SESSION_KEY_HOST   = 'enc_game_session_host';
 const SESSION_KEY_CLIENT = 'enc_game_session_client';
 const GAMESTATE_KEY = 'enc_game_state';
+const SESSION_TTL_MS = 30 * 60 * 1000;
+
+function parseSession(raw) {
+  if (!raw) return null;
+  try {
+    const s = JSON.parse(raw);
+    if (!s || typeof s !== 'object') return null;
+    if (Number.isNaN(Number(s.ts))) return null;
+    return s;
+  } catch(e) {
+    return null;
+  }
+}
+
+function isSessionFresh(s) {
+  return !!s && (Date.now() - Number(s.ts) <= SESSION_TTL_MS);
+}
+
+function getFreshSessions() {
+  const hostParsed = parseSession(localStorage.getItem(SESSION_KEY_HOST));
+  const clientParsed = parseSession(localStorage.getItem(SESSION_KEY_CLIENT));
+  const host = isSessionFresh(hostParsed) ? hostParsed : null;
+  const client = isSessionFresh(clientParsed) ? clientParsed : null;
+  if (!host) {
+    try { localStorage.removeItem(SESSION_KEY_HOST); } catch(e) {}
+  }
+  if (!client) {
+    try { localStorage.removeItem(SESSION_KEY_CLIENT); } catch(e) {}
+  }
+  return { host, client };
+}
+
+function loadLatestSession() {
+  const fresh = getFreshSessions();
+  if (!fresh.host && !fresh.client) return null;
+  if (fresh.host && !fresh.client) return fresh.host;
+  if (!fresh.host && fresh.client) return fresh.client;
+  return Number(fresh.host.ts) >= Number(fresh.client.ts) ? fresh.host : fresh.client;
+}
 
 function saveSession() {
   try {
     const data = JSON.stringify({ nick: myNick, roomId, peerId: myId, isHost, ts: Date.now() });
     if (isHost) {
       localStorage.setItem(SESSION_KEY_HOST, data);
+      localStorage.removeItem(SESSION_KEY_CLIENT);
     } else {
       localStorage.setItem(SESSION_KEY_CLIENT, data);
+      localStorage.removeItem(SESSION_KEY_HOST);
     }
   } catch(e) {}
 }
@@ -3118,14 +3200,9 @@ function clearSession() {
 
 function loadSession() {
   try {
-    // lobbyMode 기반으로 적절한 키 우선 읽기 (호스트 탭은 호스트 세션, 클라이언트 탭은 클라이언트 세션)
-    const hostRaw   = localStorage.getItem(SESSION_KEY_HOST);
-    const clientRaw = localStorage.getItem(SESSION_KEY_CLIENT);
-    const raw = (lobbyMode === 'host') ? (hostRaw || clientRaw) : (clientRaw || hostRaw);
-    if (!raw) return null;
-    const s = JSON.parse(raw);
-    if (Date.now() - s.ts > 30 * 60 * 1000) { clearSession(); return null; }
-    return s;
+    // lobbyMode 우선 복구 (호스트 탭은 host 우선, 참가 탭은 client 우선)
+    const fresh = getFreshSessions();
+    return (lobbyMode === 'host') ? (fresh.host || fresh.client) : (fresh.client || fresh.host);
   } catch(e) { return null; }
 }
 
@@ -3137,15 +3214,10 @@ function doRecover() {
   document.getElementById('user-nick').value = myNick;
   document.getElementById('room-id').value = roomId.replace(/^CGv4-/, '');
   document.getElementById('recovery-banner').style.display = 'none';
-  if (s.isHost) {
-    switchTab('host');
-    setLobbyStatus('호스트 재접속 시도 중...', '');
-    becomeHost(true, s.peerId);
-  } else {
-    switchTab('join');
-    setLobbyStatus('재접속 시도 중...', '');
-    joinAsClient(s.peerId);
-  }
+  // 이전 호스트였어도 재접속 시 항상 참가자로 접속
+  switchTab('join');
+  setLobbyStatus('재접속 시도 중...', '');
+  joinAsClient(s.isHost ? null : s.peerId);
 }
 
 function dismissRecovery() {
@@ -3167,43 +3239,15 @@ function showReconnectBanner() {
 
   // ── 게임 진행 중: 호스트 인계 또는 재접속 ──────────────────────────────
   if (nextHostId && myId === nextHostId) {
-    // 내가 지정된 다음 호스트 → 8초 대기 후 probe 3회 (최대 ~30초) → 원 호스트 미복귀 시 승격
-    showToast('⏳ 호스트 연결이 끊겼습니다. 복귀를 기다립니다...', 'info');
-    clientRetries = 0; // 재접속 카운터 초기화 (이전 시도와 독립)
-    let waited = 0;
-    const _savedRoomId = roomId;
-    const _myId = myId;
-    function checkHostReturn() {
-      if (waited >= 3) {
-        // 원 호스트 미복귀 → 승격
-        promoteToHost();
-        return;
-      }
-      waited++;
-      // CGv4-XXXX로 임시 연결 시도 — 원 호스트가 복귀해 있으면 연결됨
-      const testPeer = new Peer(undefined, { debug: 0 });
-      testPeer.on('open', testId => {
-        const tc = testPeer.connect(_savedRoomId, { reliable: true });
-        let resolved = false;
-        tc.on('open', () => {
-          resolved = true;
-          testPeer.destroy();
-          // 원 호스트 복귀 확인 → 정식 재접속
-          setTimeout(() => joinAsClient(_myId), 500);
-        });
-        tc.on('error', () => { if (!resolved) { testPeer.destroy(); setTimeout(checkHostReturn, 4000); } });
-        setTimeout(() => { if (!resolved) { try { testPeer.destroy(); } catch(e) {} setTimeout(checkHostReturn, 4000); } }, 3500);
-      });
-      testPeer.on('error', () => { setTimeout(checkHostReturn, 4000); });
-    }
-    setTimeout(checkHostReturn, 8000);
+    // 내가 지정된 다음 호스트 → 즉시 승격
+    promoteToHost();
   } else if (nextHostId) {
     // 다른 플레이어가 새 호스트로 승격 → 방코드(CGv4-XXXX)로 재접속
     showToast('🔄 호스트가 바뀌었습니다. 잠시 후 재접속합니다...', 'info');
     saveSession();
     clientRetries = 0; // 충분한 재시도 횟수 확보
     const _myIdAtDisconnect = myId;
-    setTimeout(function() { joinAsClient(_myIdAtDisconnect); }, 1800);
+    setTimeout(function() { joinAsClient(_myIdAtDisconnect); }, 3000);
   } else {
     // 백업 호스트 없음 (혼자 남음)
     showToast('🚫 호스트와 연결이 끊겼습니다. 방이 종료되었습니다.', 'error');
@@ -3224,7 +3268,10 @@ function promoteToHost() {
   // 구 호스트를 오프라인으로 표시하기 전에 데이터 보존
   const prevHostData = (oldHostId && gameState.players[oldHostId])
     ? { ...gameState.players[oldHostId] } : null;
-  if (prevHostData) gameState.players[oldHostId].online = false;
+  // 구 호스트 데이터를 players에 online:false로 유지 — 재접속 시 닉네임 기반 병합에 활용
+  if (prevHostData) {
+    gameState.players[oldHostId] = { ...prevHostData, online: false };
+  }
 
   // 구 호스트가 출제 중이었는지 key 마이그레이션 전에 확인
   const prevHostWasEncoder = gameState.status === 'playing' &&
@@ -3232,9 +3279,17 @@ function promoteToHost() {
     gameState.turnOrder[gameState.currentTurnIdx % Math.max(gameState.turnOrder.length, 1)] === oldHostId;
   const oldNick = (prevHostData && prevHostData.nick) || '이전 호스트';
 
-  // 구 호스트를 turnOrder에서 먼저 제거 — 이후 내 키를 CGv4-XXXX로 이전 시 중복 방지
+  // 구 호스트를 turnOrder에서 먼저 제거
   const oldHostTurnIdx = gameState.turnOrder.indexOf(oldHostId);
   if (oldHostTurnIdx !== -1) gameState.turnOrder.splice(oldHostTurnIdx, 1);
+
+  // 구 호스트 데이터를 임시 키(_prev_)로 옮겨 보존 — 새 호스트가 oldHostId 키를 차지하기 전에
+  // 나중에 구 호스트가 같은 닉네임으로 join 시 닉네임 기반 병합에 사용됨
+  if (prevHostData && prevHostData.nick) {
+    const preserveKey = '_prev_' + oldHostId;
+    gameState.players[preserveKey] = { ...prevHostData, online: false };
+    delete gameState.players[oldHostId];
+  }
 
   // gameState.players에서 내 키를 random peerId → CGv4-XXXX 로 이전
   // (승격 후 내 ID가 CGv4-XXXX가 되므로 점수·턴 순서 유지)
@@ -3252,13 +3307,6 @@ function promoteToHost() {
     gameState.players[oldHostId].online = true;
   } else {
     gameState.players[oldHostId] = { nick: myNick, score: 0, online: true };
-  }
-
-  // 구 호스트 오프라인 데이터를 별도 키로 보존 — 재접속 시 닉네임 기반으로 복구 가능
-  // (_evacuated_ 접두어는 유효한 PeerJS peer ID가 아님)
-  if (prevHostData && prevHostData.nick) {
-    gameState.players['_evacuated_' + oldHostId] = { ...prevHostData, online: false };
-    // turnOrder에는 추가하지 않음 — 재접속 시 동적으로 추가
   }
 
   const myNickSafe = (gameState.players[oldHostId] && gameState.players[oldHostId].nick) || '새 호스트';
@@ -3282,7 +3330,7 @@ function promoteToHost() {
 
   let promoteRetries = 0;
   function tryPromote() {
-    peer = new Peer(oldHostId, { debug: 0 });
+    peer = createPeer(oldHostId);
     peer.on('open', () => {
       myId = oldHostId;
       gameState.hostPeerId = oldHostId;
@@ -3307,7 +3355,8 @@ function promoteToHost() {
       broadcast();
       renderAll();
     });
-    peer.on('error', () => {
+    peer.on('error', e => {
+      logPeerError('promote-host', e);
       promoteRetries++;
       if (promoteRetries < 10) {
         const wait = Math.min(3000 + promoteRetries * 2000, 10000);
@@ -3317,6 +3366,7 @@ function promoteToHost() {
       } else {
         showToast('호스트 역할 인계 실패. 새로고침 후 다시 시도해주세요.', 'error');
         isHost = false;
+        saveSession();
       }
     });
     peer.on('disconnected', () => {
@@ -3339,26 +3389,82 @@ window.addEventListener('beforeunload', () => {
 // Init
 switchTab('host');
 
+// ════════════════════════════════════════
+//  SERVER SETTINGS UI
+// ════════════════════════════════════════
+let _srvPanelOpen = false;
+
+function toggleServerSettings() {
+  _srvPanelOpen = !_srvPanelOpen;
+  document.getElementById('srv-panel').style.display = _srvPanelOpen ? 'block' : 'none';
+  document.getElementById('srv-arrow').textContent = _srvPanelOpen ? '▲' : '▼';
+}
+
+function setServerMode(mode) {
+  localStorage.setItem('enc_server_mode', mode);
+  document.getElementById('srv-pub-btn').classList.toggle('active', mode === 'public');
+  document.getElementById('srv-loc-btn').classList.toggle('active', mode === 'local');
+  document.getElementById('srv-pub-info').style.display = mode === 'public' ? 'block' : 'none';
+  document.getElementById('srv-local-cfg').style.display = mode === 'local' ? 'block' : 'none';
+  const dot = document.getElementById('srv-dot');
+  if (dot) dot.className = 'srv-dot' + (mode === 'local' ? ' local' : '');
+  if (mode === 'public') {
+    localStorage.removeItem('enc_peer_host');
+    localStorage.removeItem('enc_peer_port');
+    localStorage.removeItem('enc_peer_path');
+    localStorage.removeItem('enc_peer_secure');
+  }
+}
+
+function saveSrvLocal() {
+  const host = (document.getElementById('srv-host-input').value || '').trim();
+  const port = (document.getElementById('srv-port-input').value || '9000').trim();
+  const secure = document.getElementById('srv-secure-chk').checked;
+  if (!host) { showToast('서버 IP를 입력하세요.', 'error'); return; }
+  localStorage.setItem('enc_peer_host', host);
+  localStorage.setItem('enc_peer_port', port || '9000');
+  localStorage.setItem('enc_peer_path', '/peerjs');
+  localStorage.setItem('enc_peer_secure', secure ? '1' : '0');
+  showToast('✅ 로컬 서버 설정이 저장되었습니다.', 'success');
+}
+
+function initServerSettings() {
+  const mode = localStorage.getItem('enc_server_mode') || 'public';
+  const host = localStorage.getItem('enc_peer_host') || '';
+  const port = localStorage.getItem('enc_peer_port') || '9000';
+  const secure = String(localStorage.getItem('enc_peer_secure') || '0') !== '0';
+  document.getElementById('srv-pub-btn').classList.toggle('active', mode === 'public');
+  document.getElementById('srv-loc-btn').classList.toggle('active', mode === 'local');
+  document.getElementById('srv-pub-info').style.display = mode === 'public' ? 'block' : 'none';
+  document.getElementById('srv-local-cfg').style.display = mode === 'local' ? 'block' : 'none';
+  const dot = document.getElementById('srv-dot');
+  if (dot) dot.className = 'srv-dot' + (mode === 'local' ? ' local' : '');
+  const hostEl = document.getElementById('srv-host-input');
+  const portEl = document.getElementById('srv-port-input');
+  const secEl = document.getElementById('srv-secure-chk');
+  if (hostEl) hostEl.value = host;
+  if (portEl) portEl.value = port;
+  if (secEl) secEl.checked = secure;
+}
+
 (function checkRecovery() {
-  // 호스트 세션 우선 확인 (더 중요), 없으면 클라이언트 세션 확인
-  const hostRaw   = localStorage.getItem('enc_game_session_host');
-  const clientRaw = localStorage.getItem('enc_game_session_client');
-  const raw = hostRaw || clientRaw;
-  if (!raw) return;
-  let s; try { s = JSON.parse(raw); } catch(e) { return; }
-  if (!s || Date.now() - s.ts > 30 * 60 * 1000) return;
+  // 두 세션이 공존하면 최신 타임스탬프를 우선 선택
+  const s = loadLatestSession();
+  if (!s) return;
   // 폼 필드 자동 채우기 + 올바른 탭으로 전환
   document.getElementById('user-nick').value = s.nick;
   document.getElementById('room-id').value = s.roomId.replace(/^CGv4-/, '');
-  if (s.isHost) switchTab('host');
-  else switchTab('join');
+  // 이전 호스트였어도 재접속 시 항상 참가자로
+  switchTab('join');
   const banner = document.getElementById('recovery-banner');
   if (!banner) return;
-  const roleLabel = s.isHost ? '호스트' : '참가자';
+  const roleLabel = '참가자';
   document.getElementById('recovery-info').textContent =
     s.nick + ' (' + roleLabel + ') • 방: ' + s.roomId.replace(/^CGv4-/, '') + ' — 이전 세션을 복구하시겠습니까?';
   banner.style.display = '';
 })();
+
+initServerSettings();
 </script>
 </body>
 </html>
