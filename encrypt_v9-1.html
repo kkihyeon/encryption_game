@@ -38,8 +38,6 @@ body {
   color: var(--text);
 }
 
-/* scanline removed */
-
 /* ── LOBBY ── */
 #lobby {
   position: fixed; inset: 0; z-index: 100;
@@ -101,6 +99,7 @@ body {
   font-family: 'Pretendard', sans-serif;
   outline: none;
   transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+  box-sizing: border-box;
 }
 .field-group input:focus, .field-group select:focus {
   border-color: var(--accent);
@@ -220,7 +219,6 @@ body {
   text-align: center; text-transform: uppercase;
 }
 
-/* Player card - bigger, more readable */
 .player-card {
   padding: 12px 16px;
   border-bottom: 1px solid rgba(38,51,84,0.5);
@@ -414,7 +412,6 @@ body {
   20% { transform: translateX(-6px); }
   60% { transform: translateX(6px); }
 }
-
 
 .key-reveal {
   background: #f0f7ff;
@@ -639,13 +636,6 @@ body {
 ::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
-/* Skytale hint display */
-.skytale-info {
-  font-size: 18px; color: var(--text3);
-  font-family: 'Pretendard', sans-serif;
-  margin-top: 6px;
-}
-
 /* Memo textarea */
 #memo-area {
   display: none;
@@ -657,6 +647,7 @@ body {
   padding: 20px 24px;
   font-family: 'Pretendard', sans-serif;
   font-size: 21px; line-height: 1.8;
+  box-sizing: border-box;
 }
 #memo-area::placeholder { color: var(--text3); }
 
@@ -746,7 +737,7 @@ body {
 }
 .cipher-example .arrow { color: var(--text3); }
 
-/* ── ANNOTATED GAME GUIDE MOCK ── */
+/* Annotated mock */
 .ann-wrap { display: flex; flex-direction: column; gap: 16px; }
 .ann-mock {
   width: 100%; height: 520px; display: flex; flex-direction: column;
@@ -877,7 +868,6 @@ body {
   background: rgba(245,200,66,0.1); border: 1px solid rgba(245,200,66,0.3); color: var(--gold);
   white-space: nowrap; flex-shrink: 0;
 }
-/* Annotation pins */
 .ann-pin {
   position: absolute; width: 26px; height: 26px; border-radius: 50%;
   background: var(--accent); color: #fff; font-size: 26px; font-weight: 700;
@@ -886,7 +876,6 @@ body {
   transform: translate(-50%, -50%); z-index: 10; pointer-events: none;
   font-family: 'Pretendard', sans-serif; line-height: 1;
 }
-/* 설명 그리드 — 게임 화면 아래 3열 */
 .ann-legend { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 0; }
 .ann-entry {
   display: flex; gap: 12px; align-items: flex-start;
@@ -902,7 +891,7 @@ body {
 .ann-entry-text { font-size: 19px; color: var(--text2); line-height: 1.55; }
 .ann-entry-text strong { color: var(--text); display: block; margin-bottom: 2px; }
 
-/* ── FLOW DIAGRAM ── */
+/* Flow diagram */
 .flow-diagram {
   display: flex; align-items: center; gap: 0;
   overflow-x: auto; padding: 4px 0;
@@ -937,15 +926,24 @@ body {
 .srv-note { font-size:15px; color:var(--text3); padding:8px 12px; background:rgba(26,127,212,0.04); border:1px solid var(--border); border-radius:var(--radius); line-height:1.65; }
 .srv-note code { font-family:'Pretendard',sans-serif; color:var(--gold); background:rgba(245,200,66,0.1); padding:1px 6px; border-radius:3px; }
 .srv-input-row { display:flex; gap:8px; align-items:center; margin-top:8px; }
-.srv-input-row label { font-size:16px; color:var(--text3); font-weight:700; min-width:40px; flex-shrink:0; }
-.srv-input { flex:1; padding:7px 12px; border:1px solid var(--border); border-radius:var(--radius); background:var(--bg); color:var(--text); font-size:17px; font-family:'Pretendard',sans-serif; outline:none; }
+.srv-input-row label { font-size:16px; color:var(--text3); font-weight:700; min-width:60px; flex-shrink:0; }
+.srv-input { flex:1; padding:7px 12px; border:1px solid var(--border); border-radius:var(--radius); background:var(--bg); color:var(--text); font-size:17px; font-family:'Pretendard',sans-serif; outline:none; box-sizing:border-box; }
 .srv-input:focus { border-color:var(--accent); }
-.srv-save-btn { padding:8px 18px; background:var(--accent); color:#fff; border:none; border-radius:var(--radius); font-size:17px; font-weight:700; cursor:pointer; font-family:'Pretendard',sans-serif; }
+.srv-save-btn { padding:8px 18px; background:var(--accent); color:#fff; border:none; border-radius:var(--radius); font-size:17px; font-weight:700; cursor:pointer; font-family:'Pretendard',sans-serif; white-space:nowrap; }
 .srv-save-btn:hover { opacity:0.85; }
 .srv-dot { width:8px; height:8px; border-radius:50%; background:#22c55e; display:inline-block; flex-shrink:0; }
-.srv-dot.local { background:var(--gold); }
-.srv-dot.direct { background:#a855f7; }
-.srv-dot.python { background:#10b981; }
+.srv-dot.lan { background:var(--gold); }
+.srv-dot.wan { background:#22c55e; }
+
+/* LAN IP 표시 박스 */
+.lan-ip-box {
+  margin-top:10px; padding:12px 16px;
+  background:rgba(49,130,246,0.06); border:1.5px solid rgba(49,130,246,0.2);
+  border-radius:var(--radius);
+}
+.lan-ip-label { font-size:11px; font-weight:700; letter-spacing:1px; color:var(--text3); margin-bottom:4px; text-transform:uppercase; }
+.lan-ip-value { font-family:'Pretendard',sans-serif; font-size:22px; font-weight:700; color:var(--accent); }
+.lan-ip-hint { font-size:12px; color:var(--text3); margin-top:3px; }
 </style>
 </head>
 <body>
@@ -959,7 +957,7 @@ body {
     </div>
 
     <div style="text-align:center;margin-bottom:20px">
-      <button onclick="openGuide()" style="background:rgba(26,127,212,0.08);border:1px solid var(--border);border-radius:var(--radius);color:var(--text2);padding:8px 20px;font-size: 19px;font-weight:700;letter-spacing:2px;cursor:pointer;font-family:'Pretendard', sans-serif;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text2)'">📖 게임 가이드</button>
+      <button onclick="openGuide()" style="background:rgba(26,127,212,0.08);border:1px solid var(--border);border-radius:var(--radius);color:var(--text2);padding:8px 20px;font-size:19px;font-weight:700;letter-spacing:2px;cursor:pointer;font-family:'Pretendard',sans-serif;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text2)'">📖 게임 가이드</button>
     </div>
 
     <div class="role-tabs">
@@ -1001,60 +999,61 @@ body {
       </div>
     </div>
 
-    <!-- 서버 설정 패널 -->
+    <!-- ══ 네트워크 설정 패널 ══ -->
     <div style="margin-top:14px">
       <button class="srv-toggle-btn" onclick="toggleServerSettings()">
         <span class="srv-dot" id="srv-dot"></span>
-        <span style="flex:1">⚙️ 서버 설정</span>
+        <span style="flex:1">⚙️ 네트워크 설정</span>
         <span id="srv-arrow">▼</span>
       </button>
       <div id="srv-panel" style="display:none">
         <div class="srv-panel-body">
+
+          <!-- 모드 선택 탭 -->
           <div class="srv-mode-row">
-            <button class="srv-mode-btn active" id="srv-pub-btn" onclick="setServerMode('public')">🌐 공용 서버 (기본)</button>
-            <button class="srv-mode-btn" id="srv-loc-btn" onclick="setServerMode('local')">🏠 로컬 PeerJS</button>
-            <button class="srv-mode-btn" id="srv-dir-btn" onclick="setServerMode('direct')">🔗 SDP 직접</button>
-            <button class="srv-mode-btn" id="srv-py-btn" onclick="setServerMode('python')">🐍 Python 서버</button>
+            <button class="srv-mode-btn" id="srv-wan-btn" onclick="setServerMode('wan')">🌐 다른망 (P2P)</button>
+            <button class="srv-mode-btn" id="srv-lan-btn" onclick="setServerMode('lan')">🏠 같은망 (로컬)</button>
           </div>
-          <div id="srv-pub-info">
-            <div class="srv-note">PeerJS 공용 시그널링 서버를 사용합니다.<br>초기 연결 시 인터넷이 잠깐 필요하며, 이후 게임 데이터는 같은 WiFi 안에서 P2P로 직접 전송됩니다.</div>
-          </div>
-          <div id="srv-local-cfg" style="display:none">
-            <div class="srv-note">같은 WiFi 내 한 대의 컴퓨터에서 아래 명령어로 로컬 서버를 실행하세요.<br>서버 실행: <code>npx peerjs --port 9000</code><br>나머지 컴퓨터는 서버 IP와 포트를 입력 후 저장하세요.</div>
-            <div class="srv-input-row">
-              <label>IP</label>
-              <input class="srv-input" id="srv-host-input" type="text" placeholder="예: 192.168.0.10">
-            </div>
-            <div class="srv-input-row">
-              <label>포트</label>
-              <input class="srv-input" id="srv-port-input" type="number" placeholder="9000" style="max-width:120px">
-              <label style="font-size:16px;color:var(--text3);cursor:pointer;display:flex;align-items:center;gap:4px;min-width:unset">
-                <input type="checkbox" id="srv-secure-chk"> HTTPS
-              </label>
-              <button class="srv-save-btn" onclick="saveSrvLocal()">저장</button>
+
+          <!-- 다른망 안내 -->
+          <div id="srv-wan-cfg">
+            <div class="srv-note">
+              인터넷을 통해 P2P로 연결합니다. 별도 설정 없이 방 코드만 공유하면 됩니다.<br>
+              단, 같은 WiFi 환경에서는 연결이 불안정할 수 있습니다.
             </div>
           </div>
-          <div id="srv-direct-cfg" style="display:none">
-            <div class="srv-note">인터넷 없이 같은 WiFi에서 직접 연결합니다.<br>① 호스트가 접속 코드 생성 → ② 참가자에게 전달 → ③ 참가자가 응답 코드 전달 → ④ 연결 완료.<br>HTML 파일은 <code>http://</code> 서버를 통해 열어야 합니다.</div>
-          </div>
-          <div id="srv-python-cfg" style="display:none">
-            <div class="srv-note">인터넷 없이 같은 WiFi에서 Python WebSocket 서버를 통해 통신합니다.<br>① 한 대의 컴퓨터에서 서버 코드를 다운로드하여 실행 <code>python server.py</code><br>② 나머지 컴퓨터는 서버 IP와 포트를 입력 후 저장</div>
+
+          <!-- 같은망 설정 -->
+          <div id="srv-lan-cfg" style="display:none">
+            <div class="srv-note">
+              모두 <code>python server.py</code>를 실행한 뒤,<br>
+              호스트 한 명의 IP를 나머지 팀원이 아래에 입력해 접속합니다.
+            </div>
+
+            <!-- 내 IP 표시 박스 -->
+            <div class="lan-ip-box">
+              <div class="lan-ip-label">내 IP 주소 (호스트라면 팀원에게 알려주세요)</div>
+              <div class="lan-ip-value" id="my-lan-ip">감지 중...</div>
+              <div class="lan-ip-hint" id="my-lan-ip-hint">server.py가 실행 중이어야 표시됩니다</div>
+            </div>
+
+            <!-- 호스트 IP 입력 -->
             <div class="srv-input-row">
-              <label>IP</label>
+              <label>호스트 IP</label>
               <input class="srv-input" id="srv-ws-host-input" type="text" placeholder="예: 192.168.0.10">
             </div>
             <div class="srv-input-row">
               <label>포트</label>
-              <input class="srv-input" id="srv-ws-port-input" type="number" placeholder="9000" style="max-width:120px">
-              <button class="srv-save-btn" onclick="saveSrvPython()">저장</button>
-            </div>
-            <div style="margin-top:10px">
-              <button class="srv-save-btn" style="background:rgba(16,185,129,0.9)" onclick="downloadPythonServer()">⬇ 서버 코드 다운로드 (server.py)</button>
+              <input class="srv-input" id="srv-ws-port-input" type="text" placeholder="9000" style="max-width:100px">
+              <button class="srv-save-btn" onclick="saveSrvLan()">저장</button>
             </div>
           </div>
+
         </div>
       </div>
     </div>
+    <!-- /네트워크 설정 패널 -->
+
   </div>
 </div>
 
@@ -1069,7 +1068,7 @@ body {
     <div class="hdr-center">
       <div class="hdr-stat">
         <span class="hdr-stat-label">PHASE</span>
-        <span class="hdr-stat-value" id="phase-label" style="font-size: 19px;letter-spacing:2px">대기 중</span>
+        <span class="hdr-stat-value" id="phase-label" style="font-size:19px;letter-spacing:2px">대기 중</span>
       </div>
       <div class="hdr-stat">
         <span class="hdr-stat-label">TIMER</span>
@@ -1082,7 +1081,6 @@ body {
     </div>
     <div class="hdr-right">
       <span id="my-role-badge" class="my-badge" style="display:none"></span>
-      <button id="direct-add-btn" class="host-btn" onclick="directAddClient()" style="display:none">+ 참가자 추가</button>
       <button id="host-start-btn" class="host-btn" onclick="hostStartGame()" style="display:none">▶ 게임 시작</button>
       <button class="host-btn" onclick="leaveRoom()" style="background:rgba(255,90,90,0.08);border-color:rgba(255,90,90,0.3);color:#ff8080">← 방 나가기</button>
     </div>
@@ -1136,7 +1134,7 @@ body {
       <!-- Action area -->
       <div class="action-area">
 
-        <!-- ENCODING UI (출제자) -->
+        <!-- ENCODING UI -->
         <div class="enc-ui" id="enc-ui">
           <div class="section-label">암호화 입력 — 최대 2단계 조합 가능</div>
           <div id="enc-error-msg" class="enc-error-msg"></div>
@@ -1147,21 +1145,21 @@ body {
             </div>
             <div class="enc-step" id="step1-row" style="display:none">
               <div class="enc-label" id="step1-label-wrap" style="width:auto;padding:0 10px">
-                <span id="step1-method-name" style="font-size: 18px;font-weight:700">✕</span>
+                <span id="step1-method-name" style="font-size:18px;font-weight:700">✕</span>
               </div>
               <span class="step-arrow">→</span>
               <input class="enc-input" id="enc-input-1" type="text" placeholder="1단계 암호화 결과" oninput="onEncInput()">
             </div>
             <div class="enc-step" id="step2-row" style="display:none">
               <div class="enc-label" style="width:auto;padding:0 10px">
-                <span id="step2-method-name" style="font-size: 18px;font-weight:700">✕</span>
+                <span id="step2-method-name" style="font-size:18px;font-weight:700">✕</span>
               </div>
               <span class="step-arrow">→</span>
               <input class="enc-input" id="enc-input-2" type="text" placeholder="2단계 암호화 결과">
             </div>
           </div>
           <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px">
-            <span style="font-size: 18px;color:var(--text3);font-weight:700;letter-spacing:1px">방식 추가:</span>
+            <span style="font-size:18px;color:var(--text3);font-weight:700;letter-spacing:1px">방식 추가:</span>
             <div class="method-grid" style="margin:0" id="method-selector"></div>
           </div>
           <div class="btn-row">
@@ -1177,7 +1175,7 @@ body {
           </div>
         </div>
 
-        <!-- GUESSING UI (추측자들) -->
+        <!-- GUESSING UI -->
         <div class="guess-ui" id="guess-ui">
           <div class="section-label" id="guess-ui-label">복호화 순서 추측 및 원본 입력</div>
           <div id="guess-error-msg" class="enc-error-msg"></div>
@@ -1207,7 +1205,7 @@ body {
             <button class="reaction-btn" onclick="sendReaction('🤯')">🤯</button>
             <button class="reaction-btn" onclick="sendReaction('⏳')">⏳</button>
           </div>
-          <div style="font-size: 18px;color:var(--text3)">리액션으로 분위기를 띄워보세요!</div>
+          <div style="font-size:18px;color:var(--text3)">리액션으로 분위기를 띄워보세요!</div>
         </div>
 
       </div>
@@ -1243,14 +1241,8 @@ body {
 
     <!-- 게임 가이드 탭 -->
     <div class="game-preview active" id="gpanel-game">
-
-      <!-- 어노테이션 목 스크린 -->
       <div class="ann-wrap">
-
-        <!-- 게임 목업 화면: 전체 너비 -->
         <div class="ann-mock">
-
-          <!-- 헤더 -->
           <div class="ann-mock-hdr">
             <span class="ann-mock-logo">⚔ 암호화 대전 게임</span>
             <div class="ann-mock-stats">
@@ -1260,11 +1252,7 @@ body {
             </div>
             <div class="ann-mock-hdr-right"></div>
           </div>
-
-          <!-- 본문 -->
           <div class="ann-mock-body">
-
-            <!-- 좌측 플레이어 패널 -->
             <div class="ann-mock-side">
               <div class="ann-mock-ph-hdr">PLAYERS</div>
               <div class="ann-mock-pc encoder">
@@ -1287,8 +1275,6 @@ body {
               <div class="ann-mock-rk-entry">🥈 Bob · 400</div>
               <div class="ann-mock-rk-entry">🥉 Carol · 200</div>
             </div>
-
-            <!-- 중앙 컬럼 -->
             <div class="ann-mock-col">
               <div class="ann-mock-banner guessing">🛡 해독 단계 — 암호문을 해독하고 원본 메시지를 입력하세요</div>
               <div class="ann-mock-toolbar">
@@ -1328,9 +1314,7 @@ body {
                 </div>
               </div>
             </div>
-          </div><!-- /body -->
-
-          <!-- 번호 뱃지: ann-mock(520px) 기준 절대 위치 -->
+          </div>
           <span class="ann-pin" style="top:21px;left:33%">&#9312;</span>
           <span class="ann-pin" style="top:21px;left:50%">&#9313;</span>
           <span class="ann-pin" style="top:21px;left:68%">&#9314;</span>
@@ -1340,51 +1324,20 @@ body {
           <span class="ann-pin" style="top:232px;left:78%">&#9318;</span>
           <span class="ann-pin" style="top:305px;left:78%">&#9319;</span>
           <span class="ann-pin" style="top:470px;left:78%">&#9320;</span>
-        </div><!-- /ann-mock -->
-
-        <!-- 설명 그리드: 3열 -->
+        </div>
         <div class="ann-legend">
-          <div class="ann-entry">
-            <span class="ann-num">&#9312;</span>
-            <div class="ann-entry-text"><strong>현재 페이즈</strong>출제(⚔)&#183;해독(🛡)&#183;결과(✨) 단계를 실시간 표시합니다.</div>
-          </div>
-          <div class="ann-entry">
-            <span class="ann-num">&#9313;</span>
-            <div class="ann-entry-text"><strong>타이머</strong>남은 시간. 10초 이하면 빨간색으로 깜빡입니다.</div>
-          </div>
-          <div class="ann-entry">
-            <span class="ann-num">&#9314;</span>
-            <div class="ann-entry-text"><strong>라운드 진행</strong>현재 라운드&#160;/&#160;총 라운드 수를 표시합니다.</div>
-          </div>
-          <div class="ann-entry">
-            <span class="ann-num">&#9315;</span>
-            <div class="ann-entry-text"><strong>플레이어 패널</strong>참가자 목록과 점수 순위. <span style="color:var(--accent)">파란 아우라</span>=출제자, <span style="color:var(--gold)">골드 아우라</span>=해독 중.</div>
-          </div>
-          <div class="ann-entry">
-            <span class="ann-num">&#9316;</span>
-            <div class="ann-entry-text"><strong>페이즈 배너</strong>현재 단계 안내. 출제=파랑, 해독=골드, 결과=초록으로 색상이 바뀝니다.</div>
-          </div>
-          <div class="ann-entry">
-            <span class="ann-num">&#9317;</span>
-            <div class="ann-entry-text"><strong>캔버스 툴바</strong>그리기/메모장 전환, 펜&#183;지우기&#183;색상 선택. 그리기와 메모는 <strong>나에게만</strong> 보이며 다른 참가자와 공유되지 않습니다.</div>
-          </div>
-          <div class="ann-entry">
-            <span class="ann-num">&#9318;</span>
-            <div class="ann-entry-text"><strong>암호문</strong>출제자가 제출한 암호화 메시지. 배경 캔버스에 그림&#183;메모로 힌트를 남길 수 있습니다.</div>
-          </div>
-          <div class="ann-entry">
-            <span class="ann-num">&#9319;</span>
-            <div class="ann-entry-text"><strong>힌트 칩</strong>암호화 방식 2개 사용 시 종류만 표시(순서 비공개). 1개 방식 사용 시 힌트 없음.</div>
-          </div>
-          <div class="ann-entry">
-            <span class="ann-num">&#9320;</span>
-            <div class="ann-entry-text"><strong>액션 영역</strong>출제자: 방식&#183;키&#183;메시지 입력 / 해독자: 순서 추측 및 원본 메시지 입력 후 제출.</div>
-          </div>
-        </div><!-- /ann-legend -->
+          <div class="ann-entry"><span class="ann-num">&#9312;</span><div class="ann-entry-text"><strong>현재 페이즈</strong>출제(⚔)&#183;해독(🛡)&#183;결과(✨) 단계를 실시간 표시합니다.</div></div>
+          <div class="ann-entry"><span class="ann-num">&#9313;</span><div class="ann-entry-text"><strong>타이머</strong>남은 시간. 10초 이하면 빨간색으로 깜빡입니다.</div></div>
+          <div class="ann-entry"><span class="ann-num">&#9314;</span><div class="ann-entry-text"><strong>라운드 진행</strong>현재 라운드&#160;/&#160;총 라운드 수를 표시합니다.</div></div>
+          <div class="ann-entry"><span class="ann-num">&#9315;</span><div class="ann-entry-text"><strong>플레이어 패널</strong>참가자 목록과 점수 순위. <span style="color:var(--accent)">파란 아우라</span>=출제자, <span style="color:var(--gold)">골드 아우라</span>=해독 중.</div></div>
+          <div class="ann-entry"><span class="ann-num">&#9316;</span><div class="ann-entry-text"><strong>페이즈 배너</strong>현재 단계 안내. 출제=파랑, 해독=골드, 결과=초록으로 색상이 바뀝니다.</div></div>
+          <div class="ann-entry"><span class="ann-num">&#9317;</span><div class="ann-entry-text"><strong>캔버스 툴바</strong>그리기/메모장 전환, 펜&#183;지우기&#183;색상 선택. 그리기와 메모는 <strong>나에게만</strong> 보입니다.</div></div>
+          <div class="ann-entry"><span class="ann-num">&#9318;</span><div class="ann-entry-text"><strong>암호문</strong>출제자가 제출한 암호화 메시지. 배경 캔버스에 그림&#183;메모로 힌트를 남길 수 있습니다.</div></div>
+          <div class="ann-entry"><span class="ann-num">&#9319;</span><div class="ann-entry-text"><strong>힌트 칩</strong>암호화 방식 2개 사용 시 종류만 표시(순서 비공개). 1개 방식 사용 시 힌트 없음.</div></div>
+          <div class="ann-entry"><span class="ann-num">&#9320;</span><div class="ann-entry-text"><strong>액션 영역</strong>출제자: 방식&#183;키&#183;메시지 입력 / 해독자: 순서 추측 및 원본 메시지 입력 후 제출.</div></div>
+        </div>
+      </div>
 
-      </div><!-- /ann-wrap -->
-
-      <!-- 게임 흐름 다이어그램 -->
       <div class="preview-section">
         <div class="preview-section-title">📋 게임 흐름</div>
         <div class="flow-diagram">
@@ -1412,11 +1365,10 @@ body {
             <div class="flow-step-sub">모든 플레이어가 한 번씩 출제한 후 라운드 종료. 설정한 라운드 수까지 반복.</div>
           </div>
         </div>
-        <div style="margin-top:12px;padding:10px 14px;background:rgba(245,200,66,0.06);border-radius:var(--radius);border-left:3px solid var(--gold);font-size: 18px;color:var(--text2)">
+        <div style="margin-top:12px;padding:10px 14px;background:rgba(245,200,66,0.06);border-radius:var(--radius);border-left:3px solid var(--gold);font-size:18px;color:var(--text2)">
           <strong style="color:var(--gold)">출제자 보너스:</strong> 해독자가 틀릴 때마다 출제자에게 <strong>+5pt</strong> 지급. 점수는 라운드가 끝날 때 최종 공개됩니다.
         </div>
       </div>
-
     </div>
 
     <!-- 암호화 가이드 탭 -->
@@ -1428,32 +1380,21 @@ body {
         </div>
         <div class="cipher-card-desc">원문을 <strong>키의 자릿수 크기</strong>만큼 단위로 자른 뒤, 각 단위의 글자를 <strong>키 숫자가 나타내는 순서</strong>로 재배열합니다.</div>
         <div class="cipher-card-key">키 입력: 순열 숫자 (예: <span>21</span>, <span>312</span>, <span>4132</span>) — 각 자릿수는 1~n 범위의 중복 없는 위치 번호</div>
-        <!-- SVG 그림 -->
         <svg viewBox="0 0 500 100" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:500px;margin:10px 0;display:block">
-          <!-- 원본 블록 -->
           <g font-family="'Pretendard', sans-serif" font-size="14" font-weight="bold">
-            <rect x="10" y="30" width="36" height="36" rx="6" fill="#ff6b3522" stroke="#ff6b35" stroke-width="1.5"/>
-            <text x="28" y="53" text-anchor="middle" fill="#ff6b35">A</text>
-            <rect x="50" y="30" width="36" height="36" rx="6" fill="#ff6b3522" stroke="#ff6b35" stroke-width="1.5"/>
-            <text x="68" y="53" text-anchor="middle" fill="#ff6b35">B</text>
-            <rect x="90" y="30" width="36" height="36" rx="6" fill="#ff6b3522" stroke="#ff6b35" stroke-width="1.5"/>
-            <text x="108" y="53" text-anchor="middle" fill="#ff6b35">C</text>
+            <rect x="10" y="30" width="36" height="36" rx="6" fill="#ff6b3522" stroke="#ff6b35" stroke-width="1.5"/><text x="28" y="53" text-anchor="middle" fill="#ff6b35">A</text>
+            <rect x="50" y="30" width="36" height="36" rx="6" fill="#ff6b3522" stroke="#ff6b35" stroke-width="1.5"/><text x="68" y="53" text-anchor="middle" fill="#ff6b35">B</text>
+            <rect x="90" y="30" width="36" height="36" rx="6" fill="#ff6b3522" stroke="#ff6b35" stroke-width="1.5"/><text x="108" y="53" text-anchor="middle" fill="#ff6b35">C</text>
             <text x="28" y="20" text-anchor="middle" fill="#7a95b0" font-size="10">①</text>
             <text x="68" y="20" text-anchor="middle" fill="#7a95b0" font-size="10">②</text>
             <text x="108" y="20" text-anchor="middle" fill="#7a95b0" font-size="10">③</text>
           </g>
-          <!-- 키 표시 -->
           <text x="145" y="50" font-family="'Pretendard', sans-serif" font-size="12" fill="#7a95b0">키=312</text>
-          <!-- 화살표 -->
           <text x="190" y="54" font-size="20" fill="#7a95b0" font-family="Pretendard, sans-serif">→</text>
-          <!-- 결과 블록 (3→C, 1→A, 2→B 순서로) -->
           <g font-family="'Pretendard', sans-serif" font-size="14" font-weight="bold">
-            <rect x="220" y="30" width="36" height="36" rx="6" fill="#22c55e22" stroke="#22c55e" stroke-width="1.5"/>
-            <text x="238" y="53" text-anchor="middle" fill="#22c55e">C</text>
-            <rect x="260" y="30" width="36" height="36" rx="6" fill="#22c55e22" stroke="#22c55e" stroke-width="1.5"/>
-            <text x="278" y="53" text-anchor="middle" fill="#22c55e">A</text>
-            <rect x="300" y="30" width="36" height="36" rx="6" fill="#22c55e22" stroke="#22c55e" stroke-width="1.5"/>
-            <text x="318" y="53" text-anchor="middle" fill="#22c55e">B</text>
+            <rect x="220" y="30" width="36" height="36" rx="6" fill="#22c55e22" stroke="#22c55e" stroke-width="1.5"/><text x="238" y="53" text-anchor="middle" fill="#22c55e">C</text>
+            <rect x="260" y="30" width="36" height="36" rx="6" fill="#22c55e22" stroke="#22c55e" stroke-width="1.5"/><text x="278" y="53" text-anchor="middle" fill="#22c55e">A</text>
+            <rect x="300" y="30" width="36" height="36" rx="6" fill="#22c55e22" stroke="#22c55e" stroke-width="1.5"/><text x="318" y="53" text-anchor="middle" fill="#22c55e">B</text>
             <text x="238" y="20" text-anchor="middle" fill="#7a95b0" font-size="10">③→1</text>
             <text x="278" y="20" text-anchor="middle" fill="#7a95b0" font-size="10">①→2</text>
             <text x="318" y="20" text-anchor="middle" fill="#7a95b0" font-size="10">②→3</text>
@@ -1475,48 +1416,12 @@ body {
           <div class="cipher-card-badge" style="background:#a855f722;border:1.5px solid #a855f7;color:#a855f7">ANA</div>
           <div class="cipher-card-name">애너그램 암호화</div>
         </div>
-        <div class="cipher-card-desc">원문을 <strong>키값 크기의 단위</strong>로 자른 뒤, 각 단위를 <strong>역순으로 뒤집습니다</strong>. 키가 있어야 같은 단위로 복호화가 가능합니다. 복호화는 암호화와 같은 방법(각 단위를 다시 역순)으로 수행합니다.</div>
+        <div class="cipher-card-desc">원문을 <strong>키값 크기의 단위</strong>로 자른 뒤, 각 단위를 <strong>역순으로 뒤집습니다</strong>.</div>
         <div class="cipher-card-key">키 입력: 단위 크기 (정수, 권장 2–10) — <span>예: 키=3 → 3글자씩 단위로 역순</span></div>
-        <!-- SVG 그림 -->
-        <svg viewBox="0 0 460 90" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:460px;margin:10px 0;display:block">
-          <g font-family="'Pretendard', sans-serif" font-size="14" font-weight="bold">
-            <!-- 원본 블록 -->
-            <rect x="10" y="25" width="30" height="36" rx="5" fill="#a855f722" stroke="#a855f7" stroke-width="1.5"/>
-            <text x="25" y="48" text-anchor="middle" fill="#a855f7">H</text>
-            <rect x="44" y="25" width="30" height="36" rx="5" fill="#a855f722" stroke="#a855f7" stroke-width="1.5"/>
-            <text x="59" y="48" text-anchor="middle" fill="#a855f7">E</text>
-            <rect x="78" y="25" width="30" height="36" rx="5" fill="#a855f722" stroke="#a855f7" stroke-width="1.5"/>
-            <text x="93" y="48" text-anchor="middle" fill="#a855f7">L</text>
-            <!-- 단위 구분선 -->
-            <rect x="115" y="25" width="30" height="36" rx="5" fill="#a855f733" stroke="#a855f7" stroke-width="1.5" stroke-dasharray="4,2"/>
-            <text x="130" y="48" text-anchor="middle" fill="#a855f7">L</text>
-            <rect x="149" y="25" width="30" height="36" rx="5" fill="#a855f733" stroke="#a855f7" stroke-width="1.5" stroke-dasharray="4,2"/>
-            <text x="164" y="48" text-anchor="middle" fill="#a855f7">O</text>
-            <!-- 괄호 단위 표시 -->
-            <text x="59" y="15" text-anchor="middle" fill="#7a95b0" font-size="9">단위 1</text>
-            <text x="147" y="15" text-anchor="middle" fill="#7a95b0" font-size="9">단위 2</text>
-          </g>
-          <text x="190" y="48" font-size="20" fill="#7a95b0" font-family="Pretendard, sans-serif">→</text>
-          <g font-family="'Pretendard', sans-serif" font-size="14" font-weight="bold">
-            <!-- 역순 결과 -->
-            <rect x="220" y="25" width="30" height="36" rx="5" fill="#4da6ff22" stroke="#4da6ff" stroke-width="1.5"/>
-            <text x="235" y="48" text-anchor="middle" fill="#4da6ff">L</text>
-            <rect x="254" y="25" width="30" height="36" rx="5" fill="#4da6ff22" stroke="#4da6ff" stroke-width="1.5"/>
-            <text x="269" y="48" text-anchor="middle" fill="#4da6ff">E</text>
-            <rect x="288" y="25" width="30" height="36" rx="5" fill="#4da6ff22" stroke="#4da6ff" stroke-width="1.5"/>
-            <text x="303" y="48" text-anchor="middle" fill="#4da6ff">H</text>
-            <rect x="325" y="25" width="30" height="36" rx="5" fill="#4da6ff33" stroke="#4da6ff" stroke-width="1.5" stroke-dasharray="4,2"/>
-            <text x="340" y="48" text-anchor="middle" fill="#4da6ff">O</text>
-            <rect x="359" y="25" width="30" height="36" rx="5" fill="#4da6ff33" stroke="#4da6ff" stroke-width="1.5" stroke-dasharray="4,2"/>
-            <text x="374" y="48" text-anchor="middle" fill="#4da6ff">L</text>
-          </g>
-          <text x="400" y="42" font-family="'Pretendard', sans-serif" font-size="11" fill="#4a6080">각 단위</text>
-          <text x="400" y="57" font-family="'Pretendard', sans-serif" font-size="11" fill="#4a6080">역순</text>
-        </svg>
         <div class="cipher-example">
-          원본: <span style="color:var(--accent2)">HELLO</span> &nbsp; 키=<span style="color:#a855f7">3</span> (3글자씩 자름)<br>
+          원본: <span style="color:var(--accent2)">HELLO</span> &nbsp; 키=<span style="color:#a855f7">3</span><br>
           단위 1: [H E L] → 역순 → <span style="color:#4da6ff">L E H</span><br>
-          단위 2: [L O] &nbsp; → 역순 → <span style="color:#4da6ff">O L</span><br>
+          단위 2: [L O] → 역순 → <span style="color:#4da6ff">O L</span><br>
           <span class="arrow">→</span> 암호문: <span style="color:#a855f7">LEHOL</span>
         </div>
       </div>
@@ -1526,42 +1431,10 @@ body {
           <div class="cipher-card-badge" style="background:#22c55e22;border:1.5px solid #22c55e;color:#22c55e">CAE</div>
           <div class="cipher-card-name">카이사르 암호화</div>
         </div>
-        <div class="cipher-card-desc">알파벳 각 글자를 <strong>오른쪽으로 키값만큼 이동</strong>합니다. 알파벳 순서에서 Z를 넘으면 A로 순환합니다.</div>
+        <div class="cipher-card-desc">알파벳 각 글자를 <strong>오른쪽으로 키값만큼 이동</strong>합니다.</div>
         <div class="cipher-card-key">키 입력: 이동(시프트) 칸 수 (1–25) — <span>예: 키=3 → A는 오른쪽 3칸 → D</span></div>
-        <!-- SVG 그림 -->
-        <svg viewBox="0 0 316 170" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:316px;margin:10px 0;display:block">
-  <defs>
-  <marker id="cmarr-b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><polygon points="0,0 10,5 0,10" fill="#1a7fd4"/></marker>
-  <marker id="cmarr-o" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><polygon points="0,0 10,5 0,10" fill="#d97706"/></marker>
-</defs>
-  <rect x="13" y="71" width="219" height="32" rx="4" fill="none" stroke="#dde5ed" stroke-width="1"/>
-  <rect x="232" y="71" width="68" height="32" rx="4" fill="#fffbeb" stroke="#d97706" stroke-width="1.3" stroke-dasharray="4,2"/>
-  <text x="2" y="84" font-family="'Pretendard', sans-serif" font-size="10" fill="#4a6080">알</text>
-  <text x="2" y="95" font-family="'Pretendard', sans-serif" font-size="10" fill="#4a6080">파</text>
-  <text x="2" y="106" font-family="'Pretendard', sans-serif" font-size="10" fill="#4a6080">벳</text>
-  <rect x="15" y="75" width="20" height="24" rx="3" fill="#1a7fd4" stroke="#1565b8" stroke-width="1.5"/><text x="25" y="94" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#ffffff">A</text>
-  <rect x="37" y="75" width="20" height="24" rx="3" fill="#e8eef5" stroke="#b0c4d8" stroke-width="1.5"/><text x="47" y="94" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#1a2340">B</text>
-  <rect x="59" y="75" width="20" height="24" rx="3" fill="#e8eef5" stroke="#b0c4d8" stroke-width="1.5"/><text x="69" y="94" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#1a2340">C</text>
-  <rect x="81" y="75" width="20" height="24" rx="3" fill="#1a7fd4" stroke="#1565b8" stroke-width="1.5"/><text x="91" y="94" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#ffffff">D</text>
-  <rect x="103" y="75" width="20" height="24" rx="3" fill="#e8eef5" stroke="#b0c4d8" stroke-width="1.5"/><text x="113" y="94" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#1a2340">E</text>
-  <rect x="125" y="75" width="20" height="24" rx="3" fill="#e8eef5" stroke="#b0c4d8" stroke-width="1.5"/><text x="135" y="94" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#1a2340">F</text>
-  <text x="157" y="94" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="14" fill="#7a95b0">⋯</text>
-  <rect x="169" y="75" width="20" height="24" rx="3" fill="#d97706" stroke="#b45309" stroke-width="1.5"/><text x="179" y="94" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#ffffff">X</text>
-  <rect x="191" y="75" width="20" height="24" rx="3" fill="#d97706" stroke="#b45309" stroke-width="1.5"/><text x="201" y="94" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#ffffff">Y</text>
-  <rect x="213" y="75" width="20" height="24" rx="3" fill="#d97706" stroke="#b45309" stroke-width="1.5"/><text x="223" y="94" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#ffffff">Z</text>
-  <line x1="234" y1="55" x2="234" y2="129" stroke="#d97706" stroke-width="1.5" stroke-dasharray="4,2"/>
-  <rect x="235" y="75" width="20" height="24" rx="3" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/><text x="245" y="94" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#7c3a00">A</text>
-  <rect x="257" y="75" width="20" height="24" rx="3" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/><text x="267" y="94" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#7c3a00">B</text>
-  <rect x="279" y="75" width="20" height="24" rx="3" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/><text x="289" y="94" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#7c3a00">C</text>
-  <path d="M25,71 Q58,37 91,71" stroke="#1a7fd4" stroke-width="2" fill="none" marker-end="url(#cmarr-b)"/>
-  <text x="58" y="33" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#1a7fd4">+3</text>
-  <text x="58" y="116" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="11" fill="#1a7fd4">A → D</text>
-  <path d="M223,71 Q256,33 289,71" stroke="#d97706" stroke-width="2" fill="none" stroke-dasharray="5,2" marker-end="url(#cmarr-o)"/>
-  <text x="256" y="29" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#d97706">+3</text>
-  <text x="158" y="116" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="12" fill="#4a6080">예시: key=3 → 각 글자를 오른쪽으로 3칸 이동</text>
-        </svg>
         <div class="cipher-example">
-          원본: <span style="color:var(--accent2)">ATTACK</span> &nbsp; 키=<span style="color:#22c55e">3</span> (오른쪽으로 3칸)<br>
+          원본: <span style="color:var(--accent2)">ATTACK</span> &nbsp; 키=<span style="color:#22c55e">3</span><br>
           A→D, T→W, T→W, A→D, C→F, K→N<br>
           <span class="arrow">→</span> 암호문: <span style="color:#22c55e">DWWDFN</span>
         </div>
@@ -1572,63 +1445,11 @@ body {
           <div class="cipher-card-badge" style="background:#4da6ff22;border:1.5px solid #4da6ff;color:#4da6ff">SKY</div>
           <div class="cipher-card-name">스키테일 암호화</div>
         </div>
-        <div class="cipher-card-desc">고대 그리스의 암호 도구에서 유래한 방식입니다. 메시지를 <strong>키값(행 수)개의 행</strong>으로 이루어진 격자에 가로(행) 방향으로 채운 뒤, <strong>세로(열) 방향으로 읽어</strong> 암호문을 만듭니다.</div>
+        <div class="cipher-card-desc">메시지를 <strong>키값(행 수)개의 행</strong>으로 이루어진 격자에 가로 방향으로 채운 뒤, <strong>세로 방향으로 읽어</strong> 암호문을 만듭니다.</div>
         <div class="cipher-card-key">키 입력: 레일(행) 수 (2–10) — <span>예: 키=3 → 3행 격자 사용</span></div>
-        <!-- SVG 그림 -->
-        <svg viewBox="0 0 500 130" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:500px;margin:10px 0;display:block">
-          <text x="10" y="16" font-family="'Pretendard', sans-serif" font-size="11" fill="#4a6080">원본: HELLOWORLD (키=3) → 3행으로 채움 → 열 방향으로 읽기</text>
-          <!-- 격자 -->
-          <g font-family="'Pretendard', sans-serif" font-size="13" font-weight="bold">
-            <!-- 행 라벨 -->
-            <text x="10" y="42" fill="#7a95b0" font-size="10">행1</text>
-            <text x="10" y="76" fill="#7a95b0" font-size="10">행2</text>
-            <text x="10" y="110" fill="#7a95b0" font-size="10">행3</text>
-            <!-- 격자 셀 -->
-            <!-- 행 1: H E L L -->
-            <rect x="30" y="26" width="28" height="28" rx="4" fill="#4da6ff22" stroke="#4da6ff" stroke-width="1.5"/>
-            <text x="44" y="45" text-anchor="middle" fill="#4da6ff">H</text>
-            <rect x="62" y="26" width="28" height="28" rx="4" fill="#4da6ff22" stroke="#4da6ff" stroke-width="1.5"/>
-            <text x="76" y="45" text-anchor="middle" fill="#4da6ff">E</text>
-            <rect x="94" y="26" width="28" height="28" rx="4" fill="#4da6ff22" stroke="#4da6ff" stroke-width="1.5"/>
-            <text x="108" y="45" text-anchor="middle" fill="#4da6ff">L</text>
-            <rect x="126" y="26" width="28" height="28" rx="4" fill="#4da6ff22" stroke="#4da6ff" stroke-width="1.5"/>
-            <text x="140" y="45" text-anchor="middle" fill="#4da6ff">L</text>
-            <!-- 행 2: O W O R -->
-            <rect x="30" y="58" width="28" height="28" rx="4" fill="#4da6ff22" stroke="#4da6ff" stroke-width="1.5"/>
-            <text x="44" y="77" text-anchor="middle" fill="#4da6ff">O</text>
-            <rect x="62" y="58" width="28" height="28" rx="4" fill="#4da6ff22" stroke="#4da6ff" stroke-width="1.5"/>
-            <text x="76" y="77" text-anchor="middle" fill="#4da6ff">W</text>
-            <rect x="94" y="58" width="28" height="28" rx="4" fill="#4da6ff22" stroke="#4da6ff" stroke-width="1.5"/>
-            <text x="108" y="77" text-anchor="middle" fill="#4da6ff">O</text>
-            <rect x="126" y="58" width="28" height="28" rx="4" fill="#4da6ff22" stroke="#4da6ff" stroke-width="1.5"/>
-            <text x="140" y="77" text-anchor="middle" fill="#4da6ff">R</text>
-            <!-- 행 3: L D -->
-            <rect x="30" y="90" width="28" height="28" rx="4" fill="#4da6ff22" stroke="#4da6ff" stroke-width="1.5"/>
-            <text x="44" y="109" text-anchor="middle" fill="#4da6ff">L</text>
-            <rect x="62" y="90" width="28" height="28" rx="4" fill="#4da6ff22" stroke="#4da6ff" stroke-width="1.5"/>
-            <text x="76" y="109" text-anchor="middle" fill="#4da6ff">D</text>
-            <rect x="94" y="90" width="28" height="28" rx="4" fill="rgba(200,214,229,0.4)" stroke="#c8d6e5" stroke-width="1" stroke-dasharray="3,2"/>
-            <text x="108" y="109" text-anchor="middle" fill="#7a95b0">_</text>
-            <rect x="126" y="90" width="28" height="28" rx="4" fill="rgba(200,214,229,0.4)" stroke="#c8d6e5" stroke-width="1" stroke-dasharray="3,2"/>
-            <text x="140" y="109" text-anchor="middle" fill="#7a95b0">_</text>
-            <!-- 열 방향 화살표 -->
-            <text x="38" y="124" text-anchor="middle" fill="#22c55e" font-size="9">↓</text>
-            <text x="70" y="124" text-anchor="middle" fill="#22c55e" font-size="9">↓</text>
-            <text x="102" y="124" text-anchor="middle" fill="#22c55e" font-size="9">↓</text>
-            <text x="134" y="124" text-anchor="middle" fill="#22c55e" font-size="9">↓</text>
-          </g>
-          <text x="165" y="72" font-size="20" fill="#7a95b0" font-family="Pretendard, sans-serif">→</text>
-          <!-- 결과 -->
-          <text x="192" y="50" font-family="'Pretendard', sans-serif" font-size="11" fill="#4a6080">열 방향으로 읽기:</text>
-          <text x="192" y="70" font-family="'Pretendard', sans-serif" font-size="14" font-weight="bold" fill="#4da6ff">HOL</text>
-          <text x="192" y="88" font-family="'Pretendard', sans-serif" font-size="14" font-weight="bold" fill="#4da6ff">WED</text>
-          <text x="192" y="106" font-family="'Pretendard', sans-serif" font-size="14" font-weight="bold" fill="#4da6ff">LOR</text>
-          <text x="240" y="72" font-size="16" fill="#7a95b0">→</text>
-          <text x="260" y="78" font-family="'Pretendard', sans-serif" font-size="16" font-weight="bold" fill="#22c55e">HOLWEDLOR</text>
-        </svg>
         <div class="cipher-example">
           원본: <span style="color:var(--accent2)">HELLOWORLD</span> (레일=3)<br>
-          격자 배치(가로 방향): H E L L / O W O R / L D _ _<br>
+          격자: H E L L / O W O R / L D _ _<br>
           세로 방향으로 읽기: <span class="arrow">→</span> <span style="color:#4da6ff">HOLWEDLOR</span>
         </div>
       </div>
@@ -1648,7 +1469,6 @@ const METHODS = {
   4: { name: '스키테일', color: '#4da6ff', short: 'SKY' }
 };
 
-// Caesar (variable shift)
 function caesarEnc(s, shift) {
   shift = ((shift % 26) + 26) % 26;
   return s.split('').map(c => {
@@ -1657,7 +1477,6 @@ function caesarEnc(s, shift) {
     return c;
   }).join('');
 }
-// Anagram (unit-based reverse) — 키 = 단위 크기
 function anagramEnc(s, unit) {
   unit = Math.max(1, parseInt(unit) || 3);
   let result = '';
@@ -1666,7 +1485,6 @@ function anagramEnc(s, unit) {
   }
   return result;
 }
-// Key order (columnar transposition) — 키 = 순열 숫자(예: "312")
 function _keyOrder(keyNum) {
   return String(keyNum).split('').map(Number).filter(n => n >= 1);
 }
@@ -1687,7 +1505,6 @@ function keyEnc(s, keyNum) {
   }
   return result;
 }
-// Scytale (variable rails)
 function scytaleEnc(s, rails) {
   rails = Math.max(2, rails || 3);
   const len = s.length;
@@ -1709,6 +1526,7 @@ function applyEnc(s, m, key) {
   if (m===4) return scytaleEnc(s, key);
   return s;
 }
+
 // ════════════════════════════════════════
 //  STATE
 // ════════════════════════════════════════
@@ -1725,28 +1543,28 @@ const ctx = canvas.getContext('2d');
 let gameState = {
   status: 'lobby',
   phase: 'idle',
-  players: {},       // peerId -> { nick, score, online }
-  turnOrder: [],     // peerId[] rotation
+  players: {},
+  turnOrder: [],
   currentTurnIdx: 0,
   currentRaw: '',
   currentMethods: [],
   currentEncSteps: [],
-  currentKeys: {},   // methodId -> keyValue
+  currentKeys: {},
   lastEncResult: '',
   clueSet: [],
   totalRounds: 1,
   currentRound: 1,
   turnTimer: 90,
   turnTimerStart: 0,
-  guessResults: {},  // peerId -> {correct, points} for current turn
-  pendingToast: null, // { msg, type } — 다음 sync 수신 시 클라이언트에게 표시
-  designatedNextHost: null, // 호스트 이탈 시 인계받을 클라이언트 peerId
+  guessResults: {},
+  pendingToast: null,
+  designatedNextHost: null,
 };
 
 const ENC_TIME = 90;
 const GUESS_TIME = 120;
 let timerInterval = null;
-let clientTimerInterval = null; // 클라이언트 독립 타이머 (broadcast 지연 무관)
+let clientTimerInterval = null;
 
 const PEER_DEBUG_LEVEL = 1;
 const DEFAULT_ICE_SERVERS = [
@@ -1754,40 +1572,35 @@ const DEFAULT_ICE_SERVERS = [
   { urls: 'stun:stun1.l.google.com:19302' }
 ];
 
-// localStorage 설정값으로 자체 PeerServer를 선택적으로 사용 가능
-// enc_peer_host, enc_peer_port, enc_peer_path, enc_peer_secure(0/1)
+// ════════════════════════════════════════
+//  NETWORK MODE
+// ════════════════════════════════════════
+function isLanMode() {
+  return localStorage.getItem('enc_server_mode') === 'lan';
+}
+
+function _getWsUrl() {
+  const host = (localStorage.getItem('enc_ws_host') || '127.0.0.1').trim();
+  const port = (localStorage.getItem('enc_ws_port') || '9000').trim();
+  return 'ws://' + host + ':' + port;
+}
+
 function getPeerOptions() {
   const opts = {
     debug: PEER_DEBUG_LEVEL,
     config: { iceServers: DEFAULT_ICE_SERVERS }
   };
-  const iceRaw = (localStorage.getItem('enc_peer_ice_json') || '').trim();
-  if (iceRaw) {
-    try {
-      const iceServers = JSON.parse(iceRaw);
-      if (Array.isArray(iceServers) && iceServers.length > 0) {
-        opts.config = { iceServers };
-      }
-    } catch(e) {
-      logPeerError('peer-config-ice-parse', e);
-    }
-  }
-  const host = (localStorage.getItem('enc_peer_host') || '').trim();
-  if (!host) return opts;
-  opts.host = host;
-  const port = parseInt(localStorage.getItem('enc_peer_port') || '443', 10);
-  if (!isNaN(port) && port > 0) opts.port = port;
-  opts.path = (localStorage.getItem('enc_peer_path') || '/peerjs').trim() || '/peerjs';
-  opts.secure = String(localStorage.getItem('enc_peer_secure') || '1') !== '0';
   return opts;
 }
 
 function createPeer(id) {
-  if (isPythonMode()) {
+  if (isLanMode()) {
     const wsUrl = _getWsUrl();
     return new WsPeer(id !== undefined ? id : null, wsUrl);
   }
-  return id === undefined ? new Peer(undefined, getPeerOptions()) : new Peer(id, getPeerOptions());
+  return id === undefined
+    ? new Peer(undefined, getPeerOptions())
+    : new Peer(id, getPeerOptions());
 }
 
 function formatPeerError(e) {
@@ -1803,1662 +1616,9 @@ function logPeerError(context, e) {
   return text;
 }
 
-function startClientTimer() {
-  if (clientTimerInterval) clearInterval(clientTimerInterval);
-  if (isHost) return; // 호스트는 startHostTimer() 사용
-  clientTimerInterval = setInterval(() => {
-    if (!gameState.turnTimerStart || gameState.status !== 'playing') return;
-    const limit = gameState.phase === 'encoding' ? ENC_TIME : GUESS_TIME;
-    const elapsed = Math.floor((Date.now() - gameState.turnTimerStart) / 1000);
-    const left = Math.max(0, limit - elapsed);
-    // 로컬 표시만 업데이트 (서버 상태는 호스트가 관리)
-    const timerEl = document.getElementById('timer-display');
-    if (!timerEl) return;
-    const min = Math.floor(left/60).toString().padStart(2,'0');
-    const sec = (left%60).toString().padStart(2,'0');
-    timerEl.textContent = `${min}:${sec}`;
-    timerEl.classList.toggle('timer-urgent', left <= 15);
-  }, 250); // 250ms 간격으로 체크 → 건너뜀 없음
-}
-
 // ════════════════════════════════════════
-//  GUIDE
+//  WS PEER (같은망 / Python 서버 전용)
 // ════════════════════════════════════════
-function openGuide() {
-  document.getElementById('guide-overlay').classList.add('visible');
-  switchGuideTab('game');
-}
-function closeGuide() {
-  document.getElementById('guide-overlay').classList.remove('visible');
-}
-function switchGuideTab(tab) {
-  ['game','cipher'].forEach(t => {
-    document.getElementById(`gtab-${t}`).classList.toggle('active', t===tab);
-    document.getElementById(`gpanel-${t}`).classList.toggle('active', t===tab);
-  });
-}
-
-// ════════════════════════════════════════
-//  LOBBY
-// ════════════════════════════════════════
-function switchTab(mode) {
-  lobbyMode = mode;
-  document.getElementById('tab-host').classList.toggle('active', mode==='host');
-  document.getElementById('tab-join').classList.toggle('active', mode==='join');
-  document.getElementById('host-options').style.display = mode==='host' ? '' : 'none';
-  document.getElementById('lobby-btn').textContent = mode==='host' ? '▶ 방 만들기' : '▶ 참가하기';
-}
-
-function selectRound(n) {
-  selectedRounds = n;
-  document.querySelectorAll('.round-badge').forEach(el => {
-    el.classList.toggle('active', parseInt(el.dataset.r)===n);
-  });
-}
-
-function enterGame() {
-  myNick = document.getElementById('user-nick').value.trim();
-  const val = document.getElementById('room-id').value.trim().toUpperCase();
-  if (!myNick || !val) { setLobbyStatus('닉네임과 방 코드를 입력하세요', 'error'); return; }
-  roomId = 'CGv4-' + val;
-
-  const prevSession = loadSession();
-  const sameSession = prevSession && prevSession.roomId === roomId && prevSession.nick === myNick;
-  const prevPeerId = sameSession ? prevSession.peerId : null;
-
-  if (lobbyMode === 'host') {
-    // 방 만들기 탭: 항상 신규 방 생성 (이전 호스트였어도 재접속 시 참가자로)
-    setLobbyStatus('방 생성 중...', '');
-    becomeHost();
-  } else {
-    // 방 참가하기 탭: 사용자 선택을 무조건 존중 — joinAsClient로 접속
-    // promoteToHost() 후 새 호스트는 CGv4-XXXX(=roomId)를 차지하므로
-    // designatedNextHost(승격 전 random peerId)로 리다이렉트하면 안 됨
-    setLobbyStatus('접속 시도 중...', '');
-    joinAsClient(prevPeerId);
-  }
-}
-
-let hostCreateRetries = 0;
-let hostRetryTimer = null;
-
-function becomeHost() {
-  if (hostRetryTimer) { clearTimeout(hostRetryTimer); hostRetryTimer = null; }
-
-  // ── 직접 연결 모드: 시그널링 서버 없이 SDP 교환 ──
-  if (isDirectMode()) {
-    isHost = true;
-    myId = roomId;
-    gameState.hostPeerId = myId;
-    gameState.players[myId] = { nick: myNick, score: 0, online: true };
-    gameState.totalRounds = selectedRounds;
-    saveSession();
-    showGameUI();
-    // 참가자 추가는 게임 화면의 "+ 참가자 추가" 버튼으로 처리
-    return;
-  }
-
-  _acquireHostId();
-
-  function _acquireHostId() {
-    if (peer && !peer.destroyed) { try { peer.destroy(); } catch(e) {} }
-    const delay = hostCreateRetries > 0 ? 300 : 0;
-    setTimeout(() => {
-      peer = createPeer(roomId);
-      peer.on('open', () => {
-        hostCreateRetries = 0;
-        myId = roomId;
-        isHost = true;
-        gameState.hostPeerId = myId;
-        gameState.players[myId] = { nick: myNick, score: 0, online: true };
-        gameState.totalRounds = selectedRounds;
-        saveSession();
-        showGameUI();
-        attachHostListeners();
-      });
-      peer.on('error', e => {
-        logPeerError('host-acquire', e);
-        if (e.type === 'unavailable-id' || e.type === 'peer-unavailable') {
-          hostCreateRetries++;
-          if (hostCreateRetries < 8) {
-            const wait = Math.min(800 + hostCreateRetries * 800, 4000);
-            const sec = Math.ceil(wait / 1000);
-            setLobbyStatus(`이전 연결 해제 대기 중... (${hostCreateRetries}/8, ${sec}초 후 재시도)`, '');
-            hostRetryTimer = setTimeout(_acquireHostId, wait);
-          } else {
-            hostCreateRetries = 0;
-            setLobbyStatus('방 생성 실패. 이전 연결이 아직 해제되지 않았습니다. 잠시 후 다시 시도하거나 다른 방 코드를 사용하세요.', 'error');
-          }
-        } else {
-          setLobbyStatus('방 코드 충돌 또는 오류 (' + formatPeerError(e) + '). 다른 코드를 사용하세요.', 'error');
-        }
-      });
-      peer.on('disconnected', () => {
-        if (isHost && peer && !peer.destroyed) {
-          try { peer.reconnect(); } catch(e) {}
-        }
-      });
-    }, delay);
-  }
-}
-
-function attachHostListeners() {
-  peer.on('connection', c => {
-    c.on('open', () => {
-      connections[c.peer] = c;
-      c.send({ type: 'sync', state: gameState });
-    });
-    c.on('data', d => handleData(d, c.peer));
-    c.on('close', () => {
-      delete connections[c.peer];
-      if (gameState.players[c.peer]) {
-        gameState.players[c.peer].online = false;
-        // If the disconnected player is the current encoder, advance the turn
-        if (isHost && gameState.status === 'playing' && gameState.phase === 'encoding') {
-          const encoder = gameState.turnOrder[gameState.currentTurnIdx % Math.max(gameState.turnOrder.length, 1)];
-          if (encoder === c.peer) {
-            const nick = (gameState.players[c.peer] && gameState.players[c.peer].nick) || '출제자';
-            gameState.pendingToast = { msg: '🚪 ' + nick + ' 님이 방을 나갔습니다. 다음 출제자로 넘어갑니다.', type: 'info' };
-            showToast('🚪 ' + nick + ' 님이 방을 나갔습니다. 다음 출제자로 넘어갑니다.', 'info');
-            nextTurn();
-            return;
-          }
-        }
-        broadcast();
-      }
-    });
-  });
-}
-
-let clientRetries = 0;
-let clientRetryTimer = null;
-
-function joinAsClient(prevPeerId) {
-  isHost = false;
-  saveSession();
-  if (clientRetryTimer) { clearTimeout(clientRetryTimer); clientRetryTimer = null; }
-
-  // ── 직접 연결 모드: SDP 모달로 접속 ──
-  if (isDirectMode()) {
-    if (peer && !peer.destroyed) { try { peer.destroy(); } catch(e) {} }
-    peer = null;
-    myId = 'p-' + Math.random().toString(36).substr(2, 8);
-    saveSession();
-    directShowJoinModal(prevPeerId);
-    return;
-  }
-
-  // 기존 peer가 있으면 정리 후 재생성
-  if (peer && !peer.destroyed) {
-    try { peer.destroy(); } catch(e) {}
-  }
-  // prevPeerId는 호출 시점에 캡처 (새 peer 생성 후 myId가 바뀌므로)
-  const _prevId = prevPeerId || null;
-  peer = createPeer(undefined);
-  peer.on('open', id => {
-    myId = id;
-    saveSession();
-    const c = peer.connect(roomId, { reliable: true });
-    let ok = false;
-    c.on('open', () => {
-      ok = true; conn = c;
-      clientRetries = 0;
-      conn.on('data', d => handleData(d, 'host'));
-      conn.on('close', () => {
-        // 호스트가 나갔을 때: 클라이언트 상태를 명시적으로 participant로 보장 후 세션 저장
-        isHost = false;
-        saveSession();
-        showReconnectBanner();
-      });
-      if (_prevId && _prevId !== myId) {
-        conn.send({ type: 'rejoin', nick: myNick, peerId: myId, prevPeerId: _prevId });
-      } else {
-        conn.send({ type: 'join', nick: myNick, peerId: myId });
-      }
-      showGameUI();
-    });
-    c.on('error', e => {
-      logPeerError('client-connect', e);
-      if (!ok) retryJoinAsClient(_prevId);
-    });
-    setTimeout(() => {
-      if (!ok) retryJoinAsClient(_prevId);
-    }, 4000);
-  });
-  peer.on('error', e => {
-    logPeerError('client-peer', e);
-    retryJoinAsClient(_prevId);
-  });
-}
-
-function retryJoinAsClient(prevId) {
-  // 이미 재시도 타이머가 있으면 중복 방지
-  if (clientRetryTimer) return;
-  clientRetries++;
-  if (clientRetries <= 12) {
-    const wait = Math.min(2000 + clientRetries * 1000, 5000);
-    const sec = Math.ceil(wait / 1000);
-    const inGame = document.getElementById('game-ui').style.display !== 'none';
-    if (inGame) {
-      // 게임 화면에서는 toast로 피드백
-      if (clientRetries <= 2 || clientRetries % 3 === 0) {
-        showToast(`🔄 호스트 재접속 대기 중... (${clientRetries}/12)`, 'info');
-      }
-    } else {
-      setLobbyStatus('호스트 접속 대기 중... (' + clientRetries + '/12, ' + sec + '초 후 재시도)', '');
-    }
-    clientRetryTimer = setTimeout(function() { joinAsClient(prevId); }, wait);
-  } else {
-    clientRetries = 0;
-    const inGame = document.getElementById('game-ui').style.display !== 'none';
-    if (inGame) {
-      showToast('🚫 호스트를 찾을 수 없습니다. 방이 종료되었을 수 있습니다.', 'error');
-    } else {
-      setLobbyStatus('방을 찾을 수 없습니다. 호스트가 아직 접속하지 않았거나 방 코드를 확인하세요.', 'error');
-    }
-  }
-}
-
-function setLobbyStatus(msg, type) {
-  const el = document.getElementById('lobby-status');
-  el.textContent = msg;
-  el.style.color = type==='error' ? '#ff8080' : type==='ok' ? '#15803d' : 'var(--text3)';
-}
-
-function leaveRoom() {
-  if (!confirm('방을 나가시겠습니까?')) return;
-  clearSession();
-  clearGameState();
-  if (peer) { try { peer.destroy(); } catch(e) {} }
-  location.reload();
-}
-
-// ════════════════════════════════════════
-//  DATA HANDLING
-// ════════════════════════════════════════
-function handleData(data, fromId) {
-  if (data.type === 'sync') {
-    const prevTurnIdx = gameState.currentTurnIdx;
-    const prevPhase = gameState.phase;
-    gameState = data.state;
-    if (gameState.pendingToast) {
-      showToast(gameState.pendingToast.msg, gameState.pendingToast.type || 'info');
-      gameState.pendingToast = null;
-    }
-    if (gameState.currentTurnIdx !== prevTurnIdx && gameState.phase === 'encoding') {
-      resetLocalState();
-    }
-    // 새 턴 또는 페이즈가 바뀌면 클라이언트 독립 타이머 시작
-    if (!isHost && (gameState.phase === 'encoding' || gameState.phase === 'guessing')) {
-      if (gameState.currentTurnIdx !== prevTurnIdx || gameState.phase !== prevPhase) {
-        startClientTimer();
-      }
-    }
-    // 페이즈 변경 시 세션 저장 — localStorage와 UI 상태를 동기화
-    if (!isHost && gameState.phase !== prevPhase) {
-      saveSession();
-    }
-    saveGameState();
-    renderAll();
-    return;
-  }
-
-  // 클라이언트 전용 수신 처리
-  if (!isHost) {
-    if (data.type === 'enc_invalid') {
-      showEncError('❌ 암호화 결과가 올바르지 않습니다. 다시 확인해주세요.');
-      return;
-    }
-    if (data.type === 'guess_result') {
-      if (data.correct) {
-        showToast(`✅ 정답! +${data.points}pt 획득!`, 'success');
-      } else {
-        showGuessError('❌ 오답! 계속 시도할 수 있습니다.');
-        // 오답이면 버튼 다시 활성화
-        const btn = document.getElementById('btn-guess-submit');
-        if (btn) { btn.disabled = false; btn.textContent = '해독 완료 🛡'; }
-      }
-      return;
-    }
-    if (data.type === 'reaction') {
-      showFloatingReaction(data.emoji);
-      return;
-    }
-    return;
-  }
-
-  // ── 이하 호스트 전용 처리 ──
-  if (data.type === 'rejoin') {
-    const prev = data.prevPeerId;
-    const existing = gameState.players[prev];
-    // nick이 일치할 때만 기존 데이터 인계 — 불일치 시 다른 플레이어가 같은 키를 점유한 것
-    if (existing && existing.nick === data.nick) {
-      gameState.players[fromId] = { ...existing, nick: data.nick, online: true };
-      delete gameState.players[prev];
-      const idx = gameState.turnOrder.indexOf(prev);
-      if (idx !== -1) gameState.turnOrder[idx] = fromId;
-      else if (!gameState.turnOrder.includes(fromId)) gameState.turnOrder.push(fromId);
-      if (gameState.guessResults && gameState.guessResults[prev]) {
-        gameState.guessResults[fromId] = gameState.guessResults[prev];
-        delete gameState.guessResults[prev];
-      }
-    } else {
-      // prevPeerId가 다른 플레이어(승격된 새 호스트 등)에게 재할당됨 → 닉네임 기반 검색
-      let merged = false;
-      for (const [pid, p] of Object.entries(gameState.players)) {
-        if (pid !== fromId && p.nick === data.nick && p.online === false) {
-          gameState.players[fromId] = { ...p, online: true };
-          delete gameState.players[pid];
-          const idx = gameState.turnOrder.indexOf(pid);
-          if (idx !== -1) gameState.turnOrder[idx] = fromId;
-          else if (!gameState.turnOrder.includes(fromId)) gameState.turnOrder.push(fromId);
-          if (gameState.guessResults && gameState.guessResults[pid]) {
-            gameState.guessResults[fromId] = gameState.guessResults[pid];
-            delete gameState.guessResults[pid];
-          }
-          if (connections[pid]) delete connections[pid];
-          merged = true;
-          break;
-        }
-      }
-      if (!merged) {
-        gameState.players[fromId] = { nick: data.nick, score: 0, online: true };
-        if (gameState.status === 'playing' && !gameState.turnOrder.includes(fromId)) {
-          gameState.turnOrder.push(fromId);
-        }
-      }
-    }
-    broadcast();
-    return;
-  }
-
-  if (data.type === 'join') {
-    // 같은 닉네임의 오프라인 플레이어가 있으면 기존 데이터 인계 (닉네임 기반 병합)
-    // _prev_ 접두어 키(구 호스트 보존 데이터) 포함하여 검색
-    let merged = false;
-    for (const [pid, p] of Object.entries(gameState.players)) {
-      if (pid !== fromId && p.nick === data.nick && p.online === false) {
-        gameState.players[fromId] = { ...p, online: true };
-        delete gameState.players[pid];
-        const idx = gameState.turnOrder.indexOf(pid);
-        if (idx !== -1) gameState.turnOrder[idx] = fromId;
-        // _prev_ 키는 turnOrder에 없으므로 끝에 추가
-        else if (!gameState.turnOrder.includes(fromId)) gameState.turnOrder.push(fromId);
-        if (gameState.guessResults && gameState.guessResults[pid]) {
-          gameState.guessResults[fromId] = gameState.guessResults[pid];
-          delete gameState.guessResults[pid];
-        }
-        if (connections[pid]) delete connections[pid];
-        merged = true;
-        break;
-      }
-    }
-    if (!merged) {
-      gameState.players[fromId] = { nick: data.nick, score: 0, online: true };
-      // 게임 진행 중 참여 시 턴 순서에도 추가
-      if (gameState.status === 'playing' && !gameState.turnOrder.includes(fromId)) {
-        gameState.turnOrder.push(fromId);
-      }
-    }
-    broadcast();
-    return;
-  }
-
-  if (data.type === 'enc_submit') {
-    if (gameState.phase !== 'encoding') return;
-    const encoder = gameState.turnOrder[gameState.currentTurnIdx % gameState.turnOrder.length];
-    if (fromId !== encoder) return;
-    const { raw, methods, steps, keys } = data;
-    let expectedResult = raw;
-    let encOk = true;
-    for (let i = 0; i < methods.length; i++) {
-      const mId = methods[i];
-      const key = keys ? keys[mId] : undefined;
-      expectedResult = applyEnc(expectedResult, mId, key);
-      if (expectedResult !== steps[i].result) { encOk = false; break; }
-    }
-    if (!encOk) {
-      broadcast();
-      const c = connections[fromId];
-      if (c) c.send({ type: 'enc_invalid' });
-      else showEncError('❌ 암호화 결과가 올바르지 않습니다. 다시 확인해주세요.');
-      return;
-    }
-    gameState.currentRaw = raw;
-    gameState.currentMethods = methods;
-    gameState.currentEncSteps = steps;
-    gameState.lastEncResult = data.finalResult;
-    gameState.currentKeys = keys || {};
-    gameState.clueSet = methods.length >= 2
-      ? [...methods].sort((a, b) => a - b)  // UI 표시 순서 (키 순서→애너그램→카이사르→스키테일)
-      : [];
-    gameState.guessResults = {};
-    gameState.phase = 'guessing';
-    gameState.turnTimerStart = Date.now();
-    gameState.turnTimer = GUESS_TIME;
-    broadcast();
-    startHostTimer();
-    return;
-  }
-
-  if (data.type === 'guess_submit') {
-    if (gameState.phase !== 'guessing') return;
-    if (gameState.guessResults[fromId]) return;
-    const elapsed = Math.floor((Date.now() - gameState.turnTimerStart) / 1000);
-    const timeLeft = Math.max(0, GUESS_TIME - elapsed);
-    const encoder = gameState.turnOrder[gameState.currentTurnIdx % gameState.turnOrder.length];
-    const isSingleMethod = gameState.currentMethods.length === 1;
-    const orderOK = isSingleMethod ? true : JSON.stringify(data.methodOrder) === JSON.stringify(gameState.currentMethods);
-    const answerOK = data.answer.trim().toLowerCase() === gameState.currentRaw.trim().toLowerCase();
-    const success = orderOK && answerOK;
-
-    if (success) {
-      const pts = 10 + Math.floor(timeLeft * 0.04);
-      gameState.guessResults[fromId] = { correct: true, points: pts };
-      if (gameState.players[fromId]) gameState.players[fromId].score += pts;
-      if (fromId === myId) showToast(`✅ 정답! +${pts}pt 획득!`, 'success');
-      else { const c = connections[fromId]; if (c) c.send({ type: 'guess_result', correct: true, points: pts }); }
-    } else {
-      if (fromId === myId) {
-        showGuessError('❌ 오답! 계속 시도할 수 있습니다.');
-        const btn = document.getElementById('btn-guess-submit');
-        if (btn) { btn.disabled = false; btn.textContent = '해독 완료 🛡'; }
-      } else { const c = connections[fromId]; if (c) c.send({ type: 'guess_result', correct: false, points: 0 }); }
-      broadcast();
-      return;
-    }
-
-    const guessers = gameState.turnOrder.filter(id => id !== encoder && gameState.players[id]?.online !== false);
-    const allDone = guessers.every(id => gameState.guessResults[id]);
-    if (allDone) {
-      gameState.phase = 'round_end';
-      broadcast();
-      setTimeout(() => nextTurn(), 5000);
-    } else {
-      broadcast();
-    }
-    return;
-  }
-
-  if (data.type === 'reaction') {
-    Object.entries(connections).forEach(([id, c]) => { if (id !== fromId) c.send(data); });
-    showFloatingReaction(data.emoji);
-    return;
-  }
-}
-
-function broadcast() {
-  if (!isHost) return;
-  // 온라인 상태인 첫 번째 비호스트 플레이어를 백업 호스트로 지정
-  const nextHost = gameState.turnOrder.find(function(pid) {
-    return pid !== myId && gameState.players[pid] && gameState.players[pid].online !== false;
-  });
-  gameState.designatedNextHost = nextHost || null;
-  const msg = { type: 'sync', state: gameState };
-  Object.values(connections).forEach(c => c.send(msg));
-  // pendingToast는 1회만 전송 후 초기화
-  if (gameState.pendingToast) gameState.pendingToast = null;
-  saveGameState();
-  renderAll();
-}
-
-function send(data) {
-  if (isHost) handleData(data, myId);
-  else conn.send(data);
-}
-
-// ════════════════════════════════════════
-//  GAME FLOW
-// ════════════════════════════════════════
-function hostStartGame() {
-  if (!isHost) return;
-  const online = Object.entries(gameState.players).filter(([,p]) => p.online!==false);
-  if (online.length < 2) { showToast('최소 2명이 필요합니다', 'error'); return; }
-  if (online.length > 6) { showToast('최대 6명까지 가능합니다', 'error'); return; }
-
-  const order = online.map(([id]) => id);
-  // Shuffle turn order
-  for (let i = order.length-1; i>0; i--) {
-    const j = Math.floor(Math.random()*(i+1));
-    [order[i],order[j]] = [order[j],order[i]];
-  }
-
-  gameState.turnOrder = order;
-  gameState.currentTurnIdx = 0;
-  gameState.currentRound = 1;
-  gameState.status = 'playing';
-  gameState.phase = 'encoding';
-  gameState.turnTimerStart = Date.now();
-  gameState.turnTimer = ENC_TIME;
-  gameState.guessResults = {};
-  document.getElementById('host-start-btn').style.display = 'none';
-  resetLocalState();
-  broadcast();
-  startHostTimer();
-  showToast('게임 시작!', 'success');
-}
-
-function startHostTimer() {
-  if (timerInterval) clearInterval(timerInterval);
-  timerInterval = setInterval(() => {
-    if (!isHost) return;
-    const elapsed = Math.floor((Date.now() - gameState.turnTimerStart) / 1000);
-    const limit = gameState.phase === 'encoding' ? ENC_TIME : GUESS_TIME;
-    const left = Math.max(0, limit - elapsed);
-    gameState.turnTimer = left;
-    if (left <= 0) {
-      clearInterval(timerInterval);
-      if (gameState.phase === 'encoding') {
-        const encoder = gameState.turnOrder[gameState.currentTurnIdx % gameState.turnOrder.length];
-        gameState.currentRaw = '⏰ 출제 시간 초과';
-        gameState.phase = 'round_end';
-        broadcast();
-        setTimeout(() => nextTurn(), 5000);
-      } else if (gameState.phase === 'guessing') {
-        // 시간 초과 시 아직 제출 안 한 해독자도 정답 실패 처리
-        const encoder = gameState.turnOrder[gameState.currentTurnIdx % gameState.turnOrder.length];
-        const guessers = gameState.turnOrder.filter(id => id !== encoder && gameState.players[id]?.online!==false);
-        guessers.forEach(id => {
-          if (!gameState.guessResults[id]) {
-            gameState.guessResults[id] = { correct: false, points: 0 };
-          }
-        });
-        gameState.phase = 'round_end';
-        broadcast();
-        setTimeout(() => nextTurn(), 5000);
-      }
-    } else {
-      broadcast();
-    }
-  }, 1000);
-}
-
-function nextTurn() {
-  if (!isHost) return;
-  gameState.currentTurnIdx++;
-  const numPlayers = gameState.turnOrder.length;
-  const totalTurns = gameState.totalRounds * numPlayers;
-
-  if (gameState.currentTurnIdx >= totalTurns) {
-    gameState.status = 'finished';
-    gameState.phase = 'idle';
-    broadcast();
-    clearInterval(timerInterval);
-    return;
-  }
-
-  gameState.currentRound = Math.floor(gameState.currentTurnIdx / numPlayers) + 1;
-  gameState.currentRaw = '';
-  gameState.currentMethods = [];
-  gameState.currentEncSteps = [];
-  gameState.currentKeys = {};
-  gameState.lastEncResult = '';
-  gameState.clueSet = [];
-  gameState.guessResults = {};
-  gameState.phase = 'encoding';
-  gameState.turnTimerStart = Date.now();
-  gameState.turnTimer = ENC_TIME;
-  resetLocalState();
-  broadcast();
-  startHostTimer();
-}
-
-// 로컬 상태 초기화 — 새 턴 시작 시 호출 (host/client 공통)
-function resetLocalState() {
-  // 캔버스 초기화
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  // 메모 초기화
-  document.getElementById('memo-area').value = '';
-  // 암호화 입력 초기화
-  document.getElementById('raw-input').value = '';
-  document.getElementById('enc-input-1').value = '';
-  document.getElementById('enc-input-2').value = '';
-  delete document.getElementById('enc-input-1').dataset.manual;
-  delete document.getElementById('enc-input-2').dataset.manual;
-  const ki0 = document.getElementById('key-input-0');
-  const ki1 = document.getElementById('key-input-1');
-  if (ki0) ki0.remove();
-  if (ki1) ki1.remove();
-  encStepMethods = [];
-  renderEncSteps();
-  checkEncReady();
-  // 해독 입력 초기화
-  document.getElementById('guess-answer').value = '';
-  guessMethodOrder = [];
-  guessUIBuiltForTurn = -1;
-  // 보드 모드 초기화
-  setBoardMode('draw');
-  // 암호화 에러 메시지 초기화
-  const encErr = document.getElementById('enc-error-msg');
-  if (encErr) { encErr.style.display='none'; clearTimeout(encErr._timer); }
-  // 해독 에러 메시지 초기화
-  const guessErr = document.getElementById('guess-error-msg');
-  if (guessErr) { guessErr.style.display='none'; clearTimeout(guessErr._timer); }
-}
-
-// ════════════════════════════════════════
-//  ENCODING SUBMIT
-// ════════════════════════════════════════
-let encStepMethods = [];
-
-function initMethodSelector() {
-  const el = document.getElementById('method-selector');
-  el.innerHTML = '';
-  [1,2,3,4].forEach(id => {
-    const m = METHODS[id];
-    const btn = document.createElement('button');
-    btn.className = `method-btn m${id}`;
-    btn.dataset.id = id;
-    btn.textContent = m.name;
-    btn.onclick = () => addEncStep(id);
-    el.appendChild(btn);
-  });
-}
-
-function addEncStep(methodId) {
-  if (encStepMethods.includes(methodId)) {
-    // 이미 선택된 경우 토글 취소
-    removeEncStep(encStepMethods.indexOf(methodId));
-    return;
-  }
-  if (encStepMethods.length >= 2) { showToast('최대 2단계까지 가능합니다', 'error'); return; }
-  encStepMethods.push(methodId);
-  renderEncSteps();
-  updateMethodBtnSelected();
-  checkEncReady();
-}
-
-function removeEncStep(idx) {
-  encStepMethods.splice(idx, 1);
-  // 해당 인덱스의 key-input만 제거 (다른 단계 입력값 보존)
-  const ki = document.getElementById(`key-input-${idx}`);
-  if (ki) ki.remove();
-  // 2단계가 사라지는 경우 enc-input-2 초기화
-  if (idx === 0) {
-    const ki1 = document.getElementById('key-input-1');
-    if (ki1) ki1.remove();
-  }
-  renderEncSteps();
-  updateMethodBtnSelected();
-  checkEncReady();
-}
-
-function updateMethodBtnSelected() {
-  document.querySelectorAll('.method-btn').forEach(btn => {
-    const id = parseInt(btn.dataset.id);
-    btn.classList.toggle('selected', encStepMethods.includes(id));
-  });
-}
-
-function renderEncSteps() {
-  const s1 = document.getElementById('step1-row');
-  const s2 = document.getElementById('step2-row');
-  s1.style.display = encStepMethods.length >= 1 ? 'flex' : 'none';
-  s2.style.display = encStepMethods.length >= 2 ? 'flex' : 'none';
-  if (encStepMethods[0]) {
-    const m = METHODS[encStepMethods[0]];
-    document.getElementById('step1-method-name').textContent = `1단계 ${m.name}`;
-    document.getElementById('step1-method-name').style.color = '';
-    document.getElementById('enc-input-1').placeholder = `${m.name} 암호화 결과`;
-    renderKeyInput(0, encStepMethods[0]);
-  }
-  if (encStepMethods[1]) {
-    const m = METHODS[encStepMethods[1]];
-    document.getElementById('step2-method-name').textContent = `2단계 ${m.name}`;
-    document.getElementById('step2-method-name').style.color = '';
-    document.getElementById('enc-input-2').placeholder = `${m.name} 암호화 결과`;
-    renderKeyInput(1, encStepMethods[1]);
-  }
-}
-
-// 키 입력 필드를 각 단계 행 옆에 동적 렌더링
-function renderKeyInput(stepIdx, methodId) {
-  const rowId = stepIdx === 0 ? 'step1-row' : 'step2-row';
-  const keyInputId = `key-input-${stepIdx}`;
-  const row = document.getElementById(rowId);
-  const old = document.getElementById(keyInputId);
-  // 같은 방식이면 기존 입력값 유지
-  if (old && parseInt(old.dataset.methodId) === methodId) return;
-  if (old) old.remove();
-  const keyInput = document.createElement('input');
-  keyInput.className = 'enc-input';
-  keyInput.id = keyInputId;
-  keyInput.dataset.methodId = methodId;
-  keyInput.style.cssText = 'width:90px;flex:none;-moz-appearance:textfield;';
-  // 모든 방식 키를 텍스트 입력으로 통일 (스피너 없음)
-  keyInput.type = 'text';
-  keyInput.inputMode = 'text';
-  if (methodId === 1) {
-    keyInput.placeholder = '예: 312';
-    keyInput.value = '21';
-    keyInput.maxLength = 9;
-  } else if (methodId === 2) {
-    keyInput.placeholder = '단위';
-    keyInput.value = '3';
-    keyInput.maxLength = 3;
-    keyInput.inputMode = 'numeric';
-  } else if (methodId === 3) {
-    keyInput.placeholder = '시프트';
-    keyInput.value = '3';
-    keyInput.maxLength = 2;
-    keyInput.inputMode = 'numeric';
-  } else if (methodId === 4) {
-    keyInput.placeholder = '레일';
-    keyInput.value = '3';
-    keyInput.maxLength = 2;
-    keyInput.inputMode = 'numeric';
-  } else {
-    return;
-  }
-  keyInput.oninput = () => { checkEncReady(); };
-  const encInput = document.getElementById(`enc-input-${stepIdx+1}`);
-  row.insertBefore(keyInput, encInput);
-}
-
-function getEncKey(stepIdx) {
-  const ki = document.getElementById(`key-input-${stepIdx}`);
-  if (!ki) return undefined;
-  const val = ki.value.trim();
-  if (!val) return undefined;
-  // 키 순서(m1)는 문자열 그대로, 나머지는 정수로 변환
-  const mId = encStepMethods[stepIdx];
-  if (mId === 1) return val;
-  const n = parseInt(val, 10);
-  return isNaN(n) ? undefined : n;
-}
-
-function autoFillEnc() {
-  const raw = document.getElementById('raw-input').value;
-  if (!raw || !encStepMethods[0]) return;
-  const k0 = getEncKey(0);
-  const r1 = applyEnc(raw, encStepMethods[0], k0);
-  const el1 = document.getElementById('enc-input-1');
-  if (!el1.dataset.manual) el1.value = r1;
-  if (encStepMethods[1]) {
-    const k1 = getEncKey(1);
-    const r2 = applyEnc(el1.value || r1, encStepMethods[1], k1);
-    const el2 = document.getElementById('enc-input-2');
-    if (!el2.dataset.manual) el2.value = r2;
-  }
-  checkEncReady();
-}
-
-function onRawInput() { checkEncReady(); }
-function onEncInput() { checkEncReady(); }
-
-document.getElementById('enc-input-1').oninput = function() { this.dataset.manual='1'; checkEncReady(); };
-document.getElementById('enc-input-2').oninput = function() { this.dataset.manual='1'; checkEncReady(); };
-
-function checkEncReady() {
-  const raw = document.getElementById('raw-input').value.trim();
-  const s1ok = encStepMethods.length===0 || document.getElementById('enc-input-1').value.trim();
-  const s2ok = encStepMethods.length<=1 || document.getElementById('enc-input-2').value.trim();
-  const ready = raw && encStepMethods.length>0 && s1ok && s2ok;
-  document.getElementById('btn-enc-submit').disabled = !ready;
-}
-
-function submitEncoding() {
-  const raw = document.getElementById('raw-input').value.trim();
-  if (!raw || encStepMethods.length===0) return;
-  const steps = [];
-  const keys = {};
-  if (encStepMethods[0]) {
-    steps.push({ methodId: encStepMethods[0], result: document.getElementById('enc-input-1').value.trim() });
-    const k0 = getEncKey(0);
-    if (k0 !== undefined) keys[encStepMethods[0]] = k0;
-  }
-  if (encStepMethods[1]) {
-    steps.push({ methodId: encStepMethods[1], result: document.getElementById('enc-input-2').value.trim() });
-    const k1 = getEncKey(1);
-    if (k1 !== undefined) keys[encStepMethods[1]] = k1;
-  }
-  const finalResult = steps[steps.length-1].result;
-  send({ type: 'enc_submit', raw, methods: [...encStepMethods], steps, finalResult, keys });
-  // Reset
-  document.getElementById('raw-input').value = '';
-  document.getElementById('enc-input-1').value = '';
-  document.getElementById('enc-input-2').value = '';
-  delete document.getElementById('enc-input-1').dataset.manual;
-  delete document.getElementById('enc-input-2').dataset.manual;
-  const ki0 = document.getElementById('key-input-0');
-  const ki1 = document.getElementById('key-input-1');
-  if (ki0) ki0.remove();
-  if (ki1) ki1.remove();
-  encStepMethods = [];
-  renderEncSteps();
-  checkEncReady();
-}
-
-// ════════════════════════════════════════
-//  GUESSING SUBMIT
-// ════════════════════════════════════════
-let guessMethodOrder = [];
-let guessUIBuiltForTurn = -1;
-
-function renderGuessUI() {
-  const steps = document.getElementById('guess-steps');
-
-  // 이미 현재 턴에 대해 빌드했으면 재빌드 방지 (타이머 리렌더링에 의한 초기화 방지)
-  if (guessUIBuiltForTurn === gameState.currentTurnIdx && steps.childElementCount > 0) {
-    return;
-  }
-  guessUIBuiltForTurn = gameState.currentTurnIdx;
-  steps.innerHTML = '';
-
-  const isSingle = gameState.currentMethods.length === 1;
-  // 1개 방식이면 라벨 변경, 순서 선택 UI 불필요
-  const label = document.getElementById('guess-ui-label');
-  if (label) label.textContent = isSingle ? '원본 메시지 입력' : '복호화 순서 추측 및 원본 입력';
-  const num = gameState.clueSet.length;
-  guessMethodOrder = [];
-  if (!isSingle) {
-    guessMethodOrder = new Array(num).fill(null);
-    for (let i=0; i<num; i++) {
-      const div = document.createElement('div');
-      div.className = 'guess-step';
-      const sn = document.createElement('div');
-      sn.className = 'step-num'; sn.textContent = i+1;
-      const row = document.createElement('div');
-      row.className = 'guess-method-row';
-      gameState.clueSet.forEach(mId => {
-        const m = METHODS[mId];
-        const btn = document.createElement('button');
-        btn.className = `guess-m-btn m${mId}`;
-        btn.dataset.mid = mId; btn.dataset.step = i;
-        btn.textContent = m.name;
-        btn.onclick = () => {
-          document.querySelectorAll(`.guess-m-btn[data-step="${i}"]`).forEach(b => b.classList.remove('sel'));
-          btn.classList.add('sel');
-          guessMethodOrder[i] = mId;
-        };
-        row.appendChild(btn);
-      });
-      div.appendChild(sn); div.appendChild(row);
-      steps.appendChild(div);
-    }
-  }
-}
-
-function submitGuess() {
-  const answer = document.getElementById('guess-answer').value.trim();
-  if (!answer) { showToast('원본 메시지를 입력하세요', 'error'); return; }
-  const isSingle = gameState.currentMethods.length === 1;
-  if (!isSingle && guessMethodOrder.some(v => v===null)) { showToast('모든 단계의 방식을 선택하세요', 'error'); return; }
-  const btn = document.getElementById('btn-guess-submit');
-  btn.disabled = true;
-  btn.textContent = '확인 중...';
-  // 결과 수신 후 버튼 상태 복원 (오답이면 클라이언트 이벤트로 처리됨)
-  send({ type: 'guess_submit', methodOrder: isSingle ? [] : guessMethodOrder, answer });
-  // 호스트 직접 제출의 경우 즉시 처리되므로 이미 결과가 왔을 수 있음
-  // 오답 시엔 renderActionArea 에서 버튼을 다시 활성화함
-}
-
-// ════════════════════════════════════════
-//  CANVAS (개인용 — 공유 없음, 부드러운 선)
-// ════════════════════════════════════════
-let lastDrawX = 0, lastDrawY = 0;
-
-function resizeCanvas() {
-  const w = canvas.offsetWidth, h = canvas.offsetHeight;
-  const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  canvas.width = w; canvas.height = h;
-  ctx.putImageData(img, 0, 0);
-}
-
-function initCanvas() {
-  canvas.addEventListener('mousedown', e => {
-    drawing = true;
-    const rect = canvas.getBoundingClientRect();
-    lastDrawX = (e.clientX - rect.left) * (canvas.width / rect.width);
-    lastDrawY = (e.clientY - rect.top) * (canvas.height / rect.height);
-    // 시작점 점 찍기
-    if (currentMode !== 'erase') {
-      ctx.fillStyle = drawColor;
-      ctx.beginPath();
-      ctx.arc(lastDrawX, lastDrawY, 1.5, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  });
-  canvas.addEventListener('mousemove', e => { if (drawing) handleDraw(e); });
-  window.addEventListener('mouseup', () => drawing = false);
-  canvas.addEventListener('touchstart', e => {
-    drawing = true;
-    const rect = canvas.getBoundingClientRect();
-    lastDrawX = (e.touches[0].clientX - rect.left) * (canvas.width / rect.width);
-    lastDrawY = (e.touches[0].clientY - rect.top) * (canvas.height / rect.height);
-    e.preventDefault();
-  }, { passive: false });
-  canvas.addEventListener('touchmove', e => { if (drawing) handleDraw(e.touches[0]); e.preventDefault(); }, { passive: false });
-  canvas.addEventListener('touchend', () => drawing = false);
-}
-
-function handleDraw(e) {
-  const rect = canvas.getBoundingClientRect();
-  const x = (e.clientX - rect.left) * (canvas.width / rect.width);
-  const y = (e.clientY - rect.top) * (canvas.height / rect.height);
-  if (currentMode === 'erase') {
-    ctx.clearRect(x - 12, y - 12, 24, 24);
-    lastDrawX = x; lastDrawY = y;
-    return;
-  }
-  ctx.strokeStyle = drawColor;
-  ctx.lineWidth = 3;
-  ctx.lineCap = 'round';
-  ctx.lineJoin = 'round';
-  ctx.beginPath();
-  ctx.moveTo(lastDrawX, lastDrawY);
-  ctx.lineTo(x, y);
-  ctx.stroke();
-  lastDrawX = x;
-  lastDrawY = y;
-}
-
-function clearCanvas() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-}
-
-function setMode(m) {
-  currentMode = m;
-  document.getElementById('btn-draw').classList.toggle('active', m==='draw');
-  document.getElementById('btn-erase').classList.toggle('active', m==='erase');
-  canvas.style.cursor = m==='erase' ? 'cell' : 'crosshair';
-}
-
-let boardMode = 'draw';
-function setBoardMode(mode) {
-  boardMode = mode;
-  const isDraw = mode === 'draw';
-  document.getElementById('btn-mode-draw').classList.toggle('active', isDraw);
-  document.getElementById('btn-mode-memo').classList.toggle('active', !isDraw);
-  canvas.style.display = isDraw ? '' : 'none';
-  document.getElementById('memo-area').style.display = isDraw ? 'none' : 'block';
-  // 그리기 도구 버튼들 표시/숨김
-  ['btn-draw','btn-erase','btn-clear-draw'].forEach(id => {
-    document.getElementById(id).style.display = isDraw ? '' : 'none';
-  });
-  document.querySelectorAll('.color-dot').forEach(d => { d.style.display = isDraw ? '' : 'none'; });
-  document.querySelector('.toolbar .divider-draw')?.style && (document.querySelector('.toolbar div[style*="1px"]').style.display = isDraw ? '' : 'none');
-}
-
-function setColor(el) {
-  drawColor = el.dataset.color;
-  document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('selected'));
-  el.classList.add('selected');
-  setMode('draw');
-}
-
-// ════════════════════════════════════════
-//  REACTIONS
-// ════════════════════════════════════════
-function sendReaction(emoji) {
-  showFloatingReaction(emoji);
-  const data = { type:'reaction', emoji };
-  if (isHost) Object.values(connections).forEach(c => c.send(data));
-  else conn.send(data);
-}
-
-function showFloatingReaction(emoji) {
-  const el = document.createElement('div');
-  el.className = 'floating-reaction';
-  el.textContent = emoji;
-  el.style.left = (Math.random()*(window.innerWidth-80)+40)+'px';
-  el.style.bottom = '160px';
-  document.body.appendChild(el);
-  setTimeout(() => el.remove(), 2100);
-}
-
-// ════════════════════════════════════════
-//  RENDER
-// ════════════════════════════════════════
-function showGameUI() {
-  document.getElementById('lobby').style.display = 'none';
-  const ui = document.getElementById('game-ui');
-  ui.style.display = 'flex';
-  initCanvas();
-  resizeCanvas();
-  initMethodSelector();
-  if (isHost) document.getElementById('host-start-btn').style.display = '';
-  if (isHost && isDirectMode()) document.getElementById('direct-add-btn').style.display = '';
-  renderAll();
-}
-
-function renderAll() {
-  renderHeader();
-  renderPlayerList();
-  renderRankList();
-  renderCenter();
-  renderActionArea();
-  if (gameState.status==='finished') showGameOver();
-}
-
-function renderHeader() {
-  const phases = { encoding:'출제 단계', guessing:'해독 단계', round_end:'라운드 종료', idle:'대기 중' };
-  document.getElementById('phase-label').textContent = phases[gameState.phase]||'대기 중';
-
-  const timerEl = document.getElementById('timer-display');
-  // 클라이언트는 startClientTimer()가 250ms마다 독립적으로 업데이트하므로
-  // renderAll() 호출 시 broadcast 지연에 의한 덮어쓰기를 방지
-  if (isHost || !clientTimerInterval) {
-    const left = gameState.status === 'playing' && gameState.turnTimerStart
-      ? Math.max(0, (gameState.phase === 'encoding' ? ENC_TIME : GUESS_TIME) -
-          Math.floor((Date.now() - gameState.turnTimerStart) / 1000))
-      : (gameState.turnTimer || 0);
-    const min = Math.floor(left/60).toString().padStart(2,'0');
-    const sec = (left%60).toString().padStart(2,'0');
-    timerEl.textContent = gameState.status==='playing' ? `${min}:${sec}` : '--:--';
-    timerEl.classList.toggle('timer-urgent', left<=15 && gameState.status==='playing');
-  }
-
-  const numP = gameState.turnOrder.length||1;
-  document.getElementById('round-info').textContent =
-    gameState.status==='playing' ? `${gameState.currentRound} / ${gameState.totalRounds}` : '0 / 0';
-
-  // My badge
-  const me = gameState.players[myId];
-  if (me) {
-    const b = document.getElementById('my-role-badge');
-    b.style.display = '';
-    const encoder = gameState.turnOrder[gameState.currentTurnIdx % Math.max(gameState.turnOrder.length,1)];
-    const isEncoder = myId===encoder && gameState.phase==='encoding';
-    const isGuesser = myId!==encoder && gameState.phase==='guessing';
-    b.textContent = isEncoder ? '⚔ 출제자' : isGuesser ? '🔍 해독자' : me.nick;
-  }
-}
-
-function renderPlayerList() {
-  const list = document.getElementById('player-list');
-  list.innerHTML = '';
-  const encoder = gameState.turnOrder[gameState.currentTurnIdx % Math.max(gameState.turnOrder.length,1)];
-
-  const allPlayers = Object.entries(gameState.players).filter(([,p])=>p && p.online!==false);
-  const displayOrder = gameState.turnOrder.length>0
-    ? [...gameState.turnOrder.map(id => [id, gameState.players[id]]).filter(([,p])=>p && p.online!==false), ...allPlayers.filter(([id])=>!gameState.turnOrder.includes(id))]
-    : allPlayers;
-
-  displayOrder.forEach(([id, p]) => {
-    if (!p) return;
-    const isEncoder = id===encoder && gameState.phase==='encoding';
-    const isGuesser = id!==encoder && (gameState.phase==='guessing' || gameState.phase==='round_end');
-    const alreadyGuessed = gameState.guessResults && gameState.guessResults[id];
-    const isMe = id===myId;
-
-    const card = document.createElement('div');
-    card.className = 'player-card';
-    if (isEncoder) card.classList.add('current-turn');
-
-    const initials = p.nick.slice(0,2).toUpperCase();
-    const avClass = isEncoder ? 'is-turn' : (isGuesser && !alreadyGuessed ? 'is-guessing' : '');
-
-    let badge = '';
-    if (isEncoder) badge = `<div class="player-turn-badge" style="background:rgba(255,60,60,0.18);color:#ff6060;border-color:rgba(255,60,60,0.4)">⚔ 출제 중</div>`;
-    else if (isGuesser && !alreadyGuessed) badge = `<div class="player-turn-badge guessing">🔍 해독 중</div>`;
-    else if (isGuesser && alreadyGuessed) {
-      const res = gameState.guessResults[id];
-      badge = res?.correct
-        ? `<div class="player-turn-badge" style="background:rgba(34,197,94,0.15);color:#15803d;border-color:rgba(34,197,94,0.3)">✓ 성공</div>`
-        : `<div class="player-turn-badge" style="background:rgba(255,90,90,0.15);color:#ff8080;border-color:rgba(255,90,90,0.3)">✗ 실패</div>`;
-    }
-
-    card.innerHTML = `
-      <div class="player-avatar ${avClass}">${initials}</div>
-      <div class="player-info-block">
-        <div class="player-name">${p.nick}${isMe?`<span class="my-badge" style="font-size: 16px;padding:1px 6px">나</span>`:''}</div>
-        <div class="player-score-line">${p.score}pt</div>
-      </div>
-      ${badge}
-    `;
-    list.appendChild(card);
-  });
-
-  // Ghost
-  const shown = displayOrder.length;
-  for (let i=shown; i<Math.max(shown,2); i++) {
-    const g = document.createElement('div');
-    g.className = 'player-card ghost';
-    g.innerHTML = '<div class="player-avatar">?</div><div class="player-info-block"><div class="player-name">대기 중</div><div class="player-score-line">—</div></div>';
-    list.appendChild(g);
-  }
-}
-
-function renderRankList() {
-  const sorted = Object.entries(gameState.players).filter(([,p])=>p && p.online!==false).sort(([,a],[,b])=>b.score-a.score);
-  const el = document.getElementById('rank-list');
-  el.innerHTML = '';
-  sorted.forEach(([id,p],i) => {
-    const nc = i===0?'gold':i===1?'silver':i===2?'bronze':'';
-    const item = document.createElement('div');
-    item.className = 'rank-item';
-    const initials = p.nick.slice(0,2).toUpperCase();
-    item.innerHTML = `
-      <div class="rank-num ${nc}">${i+1}</div>
-      <div class="player-avatar" style="width:26px;height:26px;font-size: 17px">${initials}</div>
-      <div style="flex:1;font-size: 19px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)">${p.nick}</div>
-      <div style="font-family:'Pretendard', sans-serif;font-size: 18px;color:var(--text3)">${p.score}</div>
-    `;
-    el.appendChild(item);
-  });
-}
-
-function renderCenter() {
-  const banner = document.getElementById('center-phase-banner');
-  const cBox = document.getElementById('cipher-box-main');
-  const cText = document.getElementById('cipher-text-main');
-  const cLabel = document.getElementById('cipher-label-main');
-  const hints = document.getElementById('method-hints-area');
-  hints.innerHTML = '';
-
-  if (gameState.status==='lobby') {
-    banner.className = 'phase-banner waiting';
-    banner.textContent = 'STANDBY — 플레이어가 접속하면 게임을 시작하세요';
-    cText.textContent = '메모장을 자유롭게 사용하거나 게임 시작을 기다리세요';
-    cText.className = 'cipher-text muted';
-    cBox.className = 'cipher-box';
-    cLabel.textContent = 'MEMO BOARD';
-    return;
-  }
-
-  const encoder = gameState.turnOrder[gameState.currentTurnIdx % Math.max(gameState.turnOrder.length,1)];
-  const encoderName = gameState.players[encoder]?.nick || '출제자';
-
-  if (gameState.phase==='encoding') {
-    banner.className = 'phase-banner encoding';
-    banner.textContent = `⚔ 출제 단계 — ${encoderName}님이 암호화 중`;
-    cText.textContent = '출제자가 암호화 문제를 만들고 있습니다...';
-    cText.className = 'cipher-text muted';
-    cBox.className = 'cipher-box';
-    cLabel.textContent = 'ENCODING IN PROGRESS';
-  } else if (gameState.phase==='guessing') {
-    banner.className = 'phase-banner guessing';
-    banner.textContent = `🔍 해독 단계 — 암호문을 풀어보세요!`;
-    cText.textContent = gameState.lastEncResult || '...';
-    cText.className = 'cipher-text';
-    cBox.className = 'cipher-box active';
-    cLabel.textContent = 'ENCRYPTED MESSAGE';
-    // 2개 이상 방식 사용 시에만 방식 힌트 공개 — "사용됨" 없이 위 키 힌트에 통합
-    // 키값 힌트 — 방식 수에 따라 표시 형식 다름
-    const _keys = gameState.currentKeys || {};
-    const _keyLabels = { 1: '순열', 2: '단위', 3: '시프트', 4: '레일' };
-    if (gameState.currentMethods.length === 1) {
-      // 단일 암호화: 방식명 없이 "키: 값"만 표시
-      const mId = gameState.currentMethods[0];
-      const m = METHODS[mId];
-      const keyVal = (_keys[mId] !== undefined && _keys[mId] !== null) ? _keys[mId] : '?';
-      const chip = document.createElement('div');
-      chip.className = 'hint-chip';
-      chip.textContent = `키: ${keyVal}`;
-      hints.appendChild(chip);
-    } else {
-      // 복수 암호화: "방식명 키종류: 값" 형식, 버튼 선택 순(clueSet 순서)
-      gameState.clueSet.forEach(mId => {
-        const m = METHODS[mId];
-        const keyVal = (_keys[mId] !== undefined && _keys[mId] !== null) ? _keys[mId] : '?';
-        const lbl = _keyLabels[mId] || 'KEY';
-        const chip = document.createElement('div');
-        chip.className = 'hint-chip';
-        chip.textContent = `${m.name} ${lbl}: ${keyVal}`;
-        hints.appendChild(chip);
-      });
-    }
-  } else if (gameState.phase==='round_end') {
-    banner.className = 'phase-banner roundend';
-    banner.textContent = '✓ 라운드 종료 — 다음 차례로 넘어갑니다';
-    let resultText = gameState.currentRaw || '';
-    if (gameState.currentRaw && !gameState.currentRaw.startsWith('⏰')) {
-      if (gameState.currentEncSteps && gameState.currentEncSteps.length >= 2) {
-        resultText = `최종: "${gameState.lastEncResult || '?'}" ← 1차: "${gameState.currentEncSteps[0].result}" ← 원본: "${gameState.currentRaw}"`;
-      } else {
-        resultText = `암호: "${gameState.lastEncResult || '?'}" → 원본: "${gameState.currentRaw}"`;
-      }
-    }
-    cText.textContent = resultText;
-    cText.className = 'cipher-text';
-    cBox.className = 'cipher-box active';
-    cLabel.textContent = '회차 결과';
-    // 정답자에게만 키값 공개
-    const myResult = gameState.guessResults[myId];
-    const iAmEncoder = myId === gameState.turnOrder[gameState.currentTurnIdx % Math.max(gameState.turnOrder.length,1)];
-    if ((myResult?.correct || iAmEncoder) && gameState.currentKeys && Object.keys(gameState.currentKeys).length > 0) {
-      const keyChip = document.createElement('div');
-      keyChip.className = 'hint-chip';
-      keyChip.style.cssText = `background:rgba(124,200,255,0.1);border:1.5px solid var(--accent2);color:var(--accent2)`;
-      const keyDesc = gameState.currentMethods.map(mId => {
-        const kv = gameState.currentKeys[mId];
-        return kv !== undefined ? `${METHODS[mId].name}: 키=${kv}` : METHODS[mId].name;
-      }).join(' → ');
-      keyChip.textContent = `🔑 ${keyDesc}`;
-      hints.appendChild(keyChip);
-    }
-    // Show encoder bonus if any
-    if (gameState.guessResults && gameState.guessResults['_encoder_bonus']) {
-      const chip = document.createElement('div');
-      chip.className = 'hint-chip';
-      chip.style.cssText = `background:rgba(255,107,53,0.15);border:1.5px solid #ff6b35;color:#ff6b35`;
-      chip.textContent = `출제자 +${gameState.guessResults['_encoder_bonus']}pt`;
-      hints.appendChild(chip);
-    }
-  }
-}
-
-function renderActionArea() {
-  const encUI = document.getElementById('enc-ui');
-  const guessUI = document.getElementById('guess-ui');
-  const waitUI = document.getElementById('wait-ui');
-
-  encUI.classList.remove('visible');
-  guessUI.classList.remove('visible');
-  waitUI.classList.remove('visible');
-
-  if (gameState.status==='lobby') {
-    waitUI.classList.add('visible');
-    document.getElementById('wait-text').textContent = isHost
-      ? '방 코드를 공유하고 플레이어가 접속하면 게임을 시작하세요.'
-      : '⏳ 호스트가 게임을 시작하기를 기다리는 중입니다...';
-    return;
-  }
-  if (gameState.status!=='playing') return;
-
-  const encoder = gameState.turnOrder[gameState.currentTurnIdx % Math.max(gameState.turnOrder.length,1)];
-  const iAmEncoder = myId===encoder;
-
-  if (gameState.phase==='encoding') {
-    if (iAmEncoder) {
-      encUI.classList.add('visible');
-    } else {
-      waitUI.classList.add('visible');
-      document.getElementById('wait-text').textContent = `⏳ ${gameState.players[encoder]?.nick||'출제자'}님이 암호화 문제를 만들고 있습니다. 잠시 기다려주세요!`;
-    }
-  } else if (gameState.phase==='guessing') {
-    if (!iAmEncoder) {
-      const alreadySubmitted = gameState.guessResults && gameState.guessResults[myId];
-      if (alreadySubmitted) {
-        waitUI.classList.add('visible');
-        const res = gameState.guessResults[myId];
-        document.getElementById('wait-text').textContent = res.correct
-          ? `✅ 정답! +${res.points}점 획득! 다른 플레이어를 기다리는 중...`
-          : `❌ 오답. 다른 플레이어를 기다리는 중...`;
-      } else {
-        guessUI.classList.add('visible');
-        renderGuessUI();
-        // Reset submit button
-        const btn = document.getElementById('btn-guess-submit');
-        btn.disabled = false;
-        btn.textContent = '해독 완료 🛡';
-      }
-    } else {
-      waitUI.classList.add('visible');
-      const submitted = Object.keys(gameState.guessResults||{}).filter(k=>k!=='_encoder_bonus').length;
-      const total = gameState.turnOrder.filter(id=>id!==encoder && gameState.players[id]?.online!==false).length;
-      document.getElementById('wait-text').textContent = `⏳ 플레이어들이 해독 중입니다... (${submitted}/${total} 제출)`;
-    }
-  } else if (gameState.phase==='round_end') {
-    waitUI.classList.add('visible');
-    document.getElementById('wait-text').textContent = '다음 차례로 넘어갑니다...';
-  }
-}
-
-// ════════════════════════════════════════
-//  GAME OVER
-// ════════════════════════════════════════
-function showGameOver() {
-  const el = document.getElementById('game-over');
-  el.style.display = 'flex';
-
-  const sorted = Object.entries(gameState.players).filter(([,p])=>p && p.online!==false).sort(([,a],[,b])=>b.score-a.score);
-  const winner = sorted[0];
-  const goWin = document.getElementById('go-winner');
-  goWin.textContent = winner ? `🏆 ${winner[1].nick} 우승!` : '게임 종료';
-  goWin.style.color = 'var(--gold)';
-
-  const rl = document.getElementById('go-rank-list');
-  rl.innerHTML = '';
-  const medals = ['🥇','🥈','🥉'];
-  sorted.forEach(([id,p],i) => {
-    const div = document.createElement('div');
-    div.className = 'go-rank-item';
-    const initials = p.nick.slice(0,2).toUpperCase();
-    div.innerHTML = `
-      <span style="font-size: 26px">${medals[i]||`${i+1}.`}</span>
-      <div class="player-avatar" style="width:32px;height:32px;font-size: 19px">${initials}</div>
-      <span style="flex:1;font-size: 21px;font-weight:700;color:var(--text)">${p.nick}</span>
-      <span style="font-family:'Pretendard', sans-serif;font-size: 21px;color:var(--gold)">${p.score}pt</span>
-    `;
-    rl.appendChild(div);
-  });
-}
-
-// ════════════════════════════════════════
-//  TOAST
-// ════════════════════════════════════════
-function showEncError(msg) {
-  const el = document.getElementById('enc-error-msg');
-  el.textContent = msg;
-  el.style.display = 'block';
-  // 5초 후 자동 사라짐
-  clearTimeout(el._timer);
-  el._timer = setTimeout(() => { el.style.display = 'none'; }, 5000);
-}
-
-function showGuessError(msg) {
-  const el = document.getElementById('guess-error-msg');
-  if (!el) return;
-  el.textContent = msg;
-  el.style.display = 'block';
-  clearTimeout(el._timer);
-  el._timer = setTimeout(() => { el.style.display = 'none'; }, 5000);
-}
-
-function showToast(msg, type='info') {
-  const old = document.querySelector('.toast');
-  if (old) old.remove();
-  const el = document.createElement('div');
-  el.className = `toast ${type}`;
-  el.textContent = msg;
-  document.body.appendChild(el);
-  setTimeout(() => el.remove(), 2800);
-}
-
-// ════════════════════════════════════════
-//  RESIZE
-// ════════════════════════════════════════
-window.addEventListener('resize', () => {
-  if (canvas.offsetWidth > 0) resizeCanvas();
-});
-
-// ════════════════════════════════════════
-//  SESSION RECOVERY
-// ════════════════════════════════════════
-// 호스트와 클라이언트가 같은 키를 덮어쓰지 않도록 분리
-const SESSION_KEY_HOST   = 'enc_game_session_host';
-const SESSION_KEY_CLIENT = 'enc_game_session_client';
-const GAMESTATE_KEY = 'enc_game_state';
-const SESSION_TTL_MS = 30 * 60 * 1000;
-
-function parseSession(raw) {
-  if (!raw) return null;
-  try {
-    const s = JSON.parse(raw);
-    if (!s || typeof s !== 'object') return null;
-    if (Number.isNaN(Number(s.ts))) return null;
-    return s;
-  } catch(e) {
-    return null;
-  }
-}
-
-function isSessionFresh(s) {
-  return !!s && (Date.now() - Number(s.ts) <= SESSION_TTL_MS);
-}
-
-function getFreshSessions() {
-  const hostParsed = parseSession(localStorage.getItem(SESSION_KEY_HOST));
-  const clientParsed = parseSession(localStorage.getItem(SESSION_KEY_CLIENT));
-  const host = isSessionFresh(hostParsed) ? hostParsed : null;
-  const client = isSessionFresh(clientParsed) ? clientParsed : null;
-  if (!host) {
-    try { localStorage.removeItem(SESSION_KEY_HOST); } catch(e) {}
-  }
-  if (!client) {
-    try { localStorage.removeItem(SESSION_KEY_CLIENT); } catch(e) {}
-  }
-  return { host, client };
-}
-
-function loadLatestSession() {
-  const fresh = getFreshSessions();
-  if (!fresh.host && !fresh.client) return null;
-  if (fresh.host && !fresh.client) return fresh.host;
-  if (!fresh.host && fresh.client) return fresh.client;
-  return Number(fresh.host.ts) >= Number(fresh.client.ts) ? fresh.host : fresh.client;
-}
-
-function saveSession() {
-  try {
-    const data = JSON.stringify({ nick: myNick, roomId, peerId: myId, isHost, ts: Date.now() });
-    if (isHost) {
-      localStorage.setItem(SESSION_KEY_HOST, data);
-      localStorage.removeItem(SESSION_KEY_CLIENT);
-    } else {
-      localStorage.setItem(SESSION_KEY_CLIENT, data);
-      localStorage.removeItem(SESSION_KEY_HOST);
-    }
-  } catch(e) {}
-}
-
-function saveGameState() {
-  try {
-    localStorage.setItem(GAMESTATE_KEY, JSON.stringify(gameState));
-  } catch(e) {}
-}
-
-function loadGameState() {
-  try {
-    const raw = localStorage.getItem(GAMESTATE_KEY);
-    if (!raw) return null;
-    return JSON.parse(raw);
-  } catch(e) { return null; }
-}
-
-function clearGameState() {
-  try { localStorage.removeItem(GAMESTATE_KEY); } catch(e) {}
-}
-
-function clearSession() {
-  try {
-    localStorage.removeItem(SESSION_KEY_HOST);
-    localStorage.removeItem(SESSION_KEY_CLIENT);
-  } catch(e) {}
-  // gameState는 유지 — 새 호스트 ID(designatedNextHost) 참조에 필요
-  // 게임이 완전히 종료될 때만 clearGameState() 별도 호출
-}
-
-function loadSession() {
-  try {
-    // lobbyMode 우선 복구 (호스트 탭은 host 우선, 참가 탭은 client 우선)
-    const fresh = getFreshSessions();
-    return (lobbyMode === 'host') ? (fresh.host || fresh.client) : (fresh.client || fresh.host);
-  } catch(e) { return null; }
-}
-
-function doRecover() {
-  const s = loadSession();
-  if (!s) { dismissRecovery(); return; }
-  myNick = s.nick;
-  roomId = s.roomId;
-  document.getElementById('user-nick').value = myNick;
-  document.getElementById('room-id').value = roomId.replace(/^CGv4-/, '');
-  document.getElementById('recovery-banner').style.display = 'none';
-  // 이전 호스트였어도 재접속 시 항상 참가자로 접속
-  switchTab('join');
-  setLobbyStatus('재접속 시도 중...', '');
-  joinAsClient(s.isHost ? null : s.peerId);
-}
-
-function dismissRecovery() {
-  clearSession();
-  document.getElementById('recovery-banner').style.display = 'none';
-}
-
-function showReconnectBanner() {
-  // 직접 연결 모드 / Python 서버 모드에서는 자동 재접속 불가
-  if (isDirectMode() || isPythonMode()) {
-    showToast('🚫 호스트와 연결이 끊겼습니다.', 'error');
-    return;
-  }
-  const nextHostId = gameState.designatedNextHost;
-  const gameStarted = gameState.status === 'playing';
-
-  if (!gameStarted) {
-    // ── 게임 시작 전: 호스트 이탈 → 재접속 대기 (localStorage 훼손 방지) ──
-    showToast('⏳ 호스트 연결이 끊겼습니다. 재접속을 기다립니다...', 'info');
-    const _myIdBeforeDisconnect = myId;
-    setTimeout(function() { joinAsClient(_myIdBeforeDisconnect); }, 2000);
-    return;
-  }
-
-  // ── 게임 진행 중: 호스트 인계 또는 재접속 ──────────────────────────────
-  if (nextHostId && myId === nextHostId) {
-    // 내가 지정된 다음 호스트 → 즉시 승격
-    promoteToHost();
-  } else if (nextHostId) {
-    // 다른 플레이어가 새 호스트로 승격 → 방코드(CGv4-XXXX)로 재접속
-    showToast('🔄 호스트가 바뀌었습니다. 잠시 후 재접속합니다...', 'info');
-    saveSession();
-    clientRetries = 0; // 충분한 재시도 횟수 확보
-    const _myIdAtDisconnect = myId;
-    setTimeout(function() { joinAsClient(_myIdAtDisconnect); }, 3000);
-  } else {
-    // 백업 호스트 없음 (혼자 남음)
-    showToast('🚫 호스트와 연결이 끊겼습니다. 방이 종료되었습니다.', 'error');
-  }
-}
-
-function promoteToHost() {
-  // roomId = 구 호스트의 CGv4-XXXX, myId = 내 random peerId
-  const oldHostId = roomId;      // CGv4-XXXX
-  const myOldPeerId = myId;      // peer-abc123
-
-  // 로컬에 저장된 최신 gameState 확보 (호스트가 보낸 마지막 sync 시점)
-  const saved = loadGameState();
-  if (saved && saved.players) {
-    Object.assign(gameState, saved);
-  }
-
-  // 구 호스트를 오프라인으로 표시하기 전에 데이터 보존
-  const prevHostData = (oldHostId && gameState.players[oldHostId])
-    ? { ...gameState.players[oldHostId] } : null;
-  // 구 호스트 데이터를 players에 online:false로 유지 — 재접속 시 닉네임 기반 병합에 활용
-  if (prevHostData) {
-    gameState.players[oldHostId] = { ...prevHostData, online: false };
-  }
-
-  // 구 호스트가 출제 중이었는지 key 마이그레이션 전에 확인
-  const prevHostWasEncoder = gameState.status === 'playing' &&
-    gameState.phase === 'encoding' &&
-    gameState.turnOrder[gameState.currentTurnIdx % Math.max(gameState.turnOrder.length, 1)] === oldHostId;
-  const oldNick = (prevHostData && prevHostData.nick) || '이전 호스트';
-
-  // 구 호스트를 turnOrder에서 먼저 제거
-  const oldHostTurnIdx = gameState.turnOrder.indexOf(oldHostId);
-  if (oldHostTurnIdx !== -1) gameState.turnOrder.splice(oldHostTurnIdx, 1);
-
-  // 구 호스트 데이터를 임시 키(_prev_)로 옮겨 보존 — 새 호스트가 oldHostId 키를 차지하기 전에
-  // 나중에 구 호스트가 같은 닉네임으로 join 시 닉네임 기반 병합에 사용됨
-  if (prevHostData && prevHostData.nick) {
-    const preserveKey = '_prev_' + oldHostId;
-    gameState.players[preserveKey] = { ...prevHostData, online: false };
-    delete gameState.players[oldHostId];
-  }
-
-  // gameState.players에서 내 키를 random peerId → CGv4-XXXX 로 이전
-  // (승격 후 내 ID가 CGv4-XXXX가 되므로 점수·턴 순서 유지)
-  if (myOldPeerId !== oldHostId && gameState.players[myOldPeerId]) {
-    gameState.players[oldHostId] = { ...gameState.players[myOldPeerId], online: true };
-    delete gameState.players[myOldPeerId];
-    const tidx = gameState.turnOrder.indexOf(myOldPeerId);
-    if (tidx !== -1) gameState.turnOrder[tidx] = oldHostId;
-    else gameState.turnOrder.unshift(oldHostId);
-    if (gameState.guessResults && gameState.guessResults[myOldPeerId]) {
-      gameState.guessResults[oldHostId] = gameState.guessResults[myOldPeerId];
-      delete gameState.guessResults[myOldPeerId];
-    }
-  } else if (gameState.players[oldHostId]) {
-    gameState.players[oldHostId].online = true;
-  } else {
-    gameState.players[oldHostId] = { nick: myNick, score: 0, online: true };
-  }
-
-  const myNickSafe = (gameState.players[oldHostId] && gameState.players[oldHostId].nick) || '새 호스트';
-  gameState.pendingToast = {
-    msg: '👑 ' + myNickSafe + ' 님이 새 호스트가 되었습니다. (' + oldNick + ' 님 퇴장)',
-    type: 'info'
-  };
-
-  // 상태 설정 — roomId는 CGv4-XXXX 그대로 유지
-  isHost = true;
-  roomId = oldHostId;
-  myId = oldHostId;  // peer open 이전 미리 설정 (saveSession에서 사용)
-  connections = {};
-  saveSession();
-
-  // 기존 peer(random ID) destroy 후 CGv4-XXXX 로 새 peer 생성
-  // → 이전 호스트 포함 모든 클라이언트가 방코드로 재접속 가능
-  if (peer && !peer.destroyed) {
-    try { peer.destroy(); } catch(e) {}
-  }
-
-  let promoteRetries = 0;
-  function tryPromote() {
-    peer = createPeer(oldHostId);
-    peer.on('open', () => {
-      myId = oldHostId;
-      gameState.hostPeerId = oldHostId;
-      saveSession();
-      showToast('👑 호스트 역할을 인계받았습니다!', 'success');
-      attachHostListeners();
-
-      // 구 호스트가 출제자였다면 다음 턴으로 넘김
-      if (prevHostWasEncoder) {
-        gameState.pendingToast = {
-          msg: '🚪 ' + oldNick + ' 님(호스트)이 방을 나갔습니다. 다음 출제자로 넘어갑니다.',
-          type: 'info'
-        };
-        nextTurn();
-        return;
-      }
-
-      // 게임 진행 중이면 타이머 인계
-      if (gameState.status === 'playing' && (gameState.phase === 'encoding' || gameState.phase === 'guessing')) {
-        startHostTimer();
-      }
-      broadcast();
-      renderAll();
-    });
-    peer.on('error', e => {
-      logPeerError('promote-host', e);
-      promoteRetries++;
-      if (promoteRetries < 10) {
-        const wait = Math.min(3000 + promoteRetries * 2000, 10000);
-        const sec = Math.ceil(wait / 1000);
-        showToast('호스트 ID 취득 중... (' + promoteRetries + '/10, ' + sec + '초 후 재시도)', 'info');
-        setTimeout(tryPromote, wait);
-      } else {
-        showToast('호스트 역할 인계 실패. 새로고침 후 다시 시도해주세요.', 'error');
-        isHost = false;
-        saveSession();
-      }
-    });
-    peer.on('disconnected', () => {
-      if (isHost && peer && !peer.destroyed) {
-        try { peer.reconnect(); } catch(e) {}
-      }
-    });
-  }
-  tryPromote();
-}
-
-window.addEventListener('beforeunload', () => {
-  if (myId && roomId) saveSession();
-  // PeerJS 서버에 disconnect 신호를 보내서 ID를 즉시 해제
-  if (peer && !peer.destroyed) {
-    try { peer.destroy(); } catch(e) {}
-  }
-});
-
-// Init
-switchTab('host');
-
-// ════════════════════════════════════════
-//  WS PEER  (Python WebSocket 서버 전용 — PeerJS 호환 인터페이스)
-// ════════════════════════════════════════
-function isPythonMode() {
-  return localStorage.getItem('enc_server_mode') === 'python';
-}
-function _getWsUrl() {
-  const host = (localStorage.getItem('enc_ws_host') || '127.0.0.1').trim();
-  const port = (localStorage.getItem('enc_ws_port') || '9000').trim();
-  return 'ws://' + host + ':' + port;
-}
-
 class WsConn {
   constructor(peer, remoteId) {
     this._peer = peer;
@@ -3519,13 +1679,11 @@ class WsPeer {
       } else if (msg.type === 'error') {
         this._emit('error', { type: msg.errType || 'error', message: msg.message || '' });
       } else if (msg.type === 'connect') {
-        // 상대방이 나에게 접속 요청
         const conn = new WsConn(this, msg.src);
         this._conns[msg.src] = conn;
         this._emit('connection', conn);
         setTimeout(() => conn._emit('open'), 0);
       } else if (msg.type === 'connect-ack') {
-        // 내가 요청한 연결이 승인됨
         const conn = this._conns[msg.src];
         if (conn) setTimeout(() => conn._emit('open'), 0);
       } else if (msg.type === 'data') {
@@ -3545,7 +1703,7 @@ class WsPeer {
     };
     this._ws.onerror = () => {
       if (!this.destroyed) {
-        this._emit('error', { type: 'network', message: 'WebSocket 오류 — 서버 주소를 확인하세요.' });
+        this._emit('error', { type: 'network', message: 'WebSocket 연결 오류. server.py가 실행 중인지 확인하세요.' });
       }
     };
   }
@@ -3574,199 +1732,1488 @@ class WsPeer {
 }
 
 // ════════════════════════════════════════
-//  DIRECT CONNECTION (Manual SDP / No Server)
+//  CLIENT TIMER
 // ════════════════════════════════════════
-function isDirectMode() {
-  return localStorage.getItem('enc_server_mode') === 'direct';
+function startClientTimer() {
+  if (clientTimerInterval) clearInterval(clientTimerInterval);
+  if (isHost) return;
+  clientTimerInterval = setInterval(() => {
+    if (!gameState.turnTimerStart || gameState.status !== 'playing') return;
+    const limit = gameState.phase === 'encoding' ? ENC_TIME : GUESS_TIME;
+    const elapsed = Math.floor((Date.now() - gameState.turnTimerStart) / 1000);
+    const left = Math.max(0, limit - elapsed);
+    const timerEl = document.getElementById('timer-display');
+    if (!timerEl) return;
+    const min = Math.floor(left/60).toString().padStart(2,'0');
+    const sec = (left%60).toString().padStart(2,'0');
+    timerEl.textContent = `${min}:${sec}`;
+    timerEl.classList.toggle('timer-urgent', left <= 15);
+  }, 250);
 }
 
-class DirectConn {
-  constructor() {
-    // No STUN/TURN needed for same-LAN: host candidates (LAN IP) are sufficient
-    this.pc = new RTCPeerConnection({ iceServers: [] });
-    this.dc = null; this._evts = {}; this.open = false; this.peer = null;
-  }
-  on(evt, cb) { this._evts[evt] = cb; return this; }
-  _fire(evt, ...args) { try { if (this._evts[evt]) this._evts[evt](...args); } catch(e) {} }
-  send(data) {
-    if (this.dc && this.dc.readyState === 'open') this.dc.send(JSON.stringify(data));
-  }
-  close() { try { this.pc.close(); } catch(e) {} }
+// ════════════════════════════════════════
+//  GUIDE
+// ════════════════════════════════════════
+function openGuide() {
+  document.getElementById('guide-overlay').classList.add('visible');
+  switchGuideTab('game');
 }
-
-function _waitIce(pc) {
-  return new Promise(function(resolve) {
-    if (pc.iceGatheringState === 'complete') { resolve(); return; }
-    var t = setTimeout(resolve, 5000);
-    pc.onicegatheringstatechange = function() {
-      if (pc.iceGatheringState === 'complete') { clearTimeout(t); resolve(); }
-    };
+function closeGuide() {
+  document.getElementById('guide-overlay').classList.remove('visible');
+}
+function switchGuideTab(tab) {
+  ['game','cipher'].forEach(t => {
+    document.getElementById(`gtab-${t}`).classList.toggle('active', t===tab);
+    document.getElementById(`gpanel-${t}`).classList.toggle('active', t===tab);
   });
 }
 
-async function _directMakeOffer() {
-  var dc = new DirectConn();
-  dc.dc = dc.pc.createDataChannel('game', { ordered: true });
-  dc.dc.onopen = function() { dc.open = true; dc._fire('open'); };
-  dc.dc.onclose = function() { dc.open = false; dc._fire('close'); };
-  dc.dc.onmessage = function(e) { try { dc._fire('data', JSON.parse(e.data)); } catch(ex) {} };
-  var offer = await dc.pc.createOffer();
-  await dc.pc.setLocalDescription(offer);
-  await _waitIce(dc.pc);
-  return dc;
+// ════════════════════════════════════════
+//  LOBBY
+// ════════════════════════════════════════
+function switchTab(mode) {
+  lobbyMode = mode;
+  document.getElementById('tab-host').classList.toggle('active', mode==='host');
+  document.getElementById('tab-join').classList.toggle('active', mode==='join');
+  document.getElementById('host-options').style.display = mode==='host' ? '' : 'none';
+  document.getElementById('lobby-btn').textContent = mode==='host' ? '▶ 방 만들기' : '▶ 참가하기';
 }
 
-async function _directMakeAnswer(offerStr) {
-  var offerSdp = JSON.parse(offerStr);
-  var dc = new DirectConn();
-  dc.pc.ondatachannel = function(e) {
-    dc.dc = e.channel;
-    dc.dc.onopen = function() { dc.open = true; dc._fire('open'); };
-    dc.dc.onclose = function() { dc.open = false; dc._fire('close'); };
-    dc.dc.onmessage = function(ev) { try { dc._fire('data', JSON.parse(ev.data)); } catch(ex) {} };
-  };
-  await dc.pc.setRemoteDescription(new RTCSessionDescription(offerSdp));
-  var answer = await dc.pc.createAnswer();
-  await dc.pc.setLocalDescription(answer);
-  await _waitIce(dc.pc);
-  return dc;
+function selectRound(n) {
+  selectedRounds = n;
+  document.querySelectorAll('.round-badge').forEach(el => {
+    el.classList.toggle('active', parseInt(el.dataset.r)===n);
+  });
 }
 
-async function _directAcceptAnswer(hostConn, answerStr) {
-  var answerSdp = JSON.parse(answerStr);
-  await hostConn.pc.setRemoteDescription(new RTCSessionDescription(answerSdp));
+function enterGame() {
+  myNick = document.getElementById('user-nick').value.trim();
+  const val = document.getElementById('room-id').value.trim().toUpperCase();
+  if (!myNick || !val) { setLobbyStatus('닉네임과 방 코드를 입력하세요', 'error'); return; }
+  roomId = 'CGv4-' + val;
+
+  const prevSession = loadSession();
+  const sameSession = prevSession && prevSession.roomId === roomId && prevSession.nick === myNick;
+  const prevPeerId = sameSession ? prevSession.peerId : null;
+
+  if (lobbyMode === 'host') {
+    setLobbyStatus('방 생성 중...', '');
+    becomeHost();
+  } else {
+    setLobbyStatus('접속 시도 중...', '');
+    joinAsClient(prevPeerId);
+  }
 }
 
-function _onDirectClientConnected(c, clientId) {
-  c.send({ type: 'sync', state: gameState });
-  c.on('data', function(d) { handleData(d, clientId); });
-  c.on('close', function() {
-    delete connections[clientId];
-    if (gameState.players[clientId]) {
-      gameState.players[clientId].online = false;
-      if (isHost && gameState.status === 'playing' && gameState.phase === 'encoding') {
-        var encoder = gameState.turnOrder[gameState.currentTurnIdx % Math.max(gameState.turnOrder.length, 1)];
-        if (encoder === clientId) {
-          var nick2 = (gameState.players[clientId] && gameState.players[clientId].nick) || '출제자';
-          gameState.pendingToast = { msg: '🚪 ' + nick2 + ' 님이 방을 나갔습니다. 다음 출제자로 넘어갑니다.', type: 'info' };
-          showToast('🚪 ' + nick2 + ' 님이 방을 나갔습니다. 다음 출제자로 넘어갑니다.', 'info');
-          nextTurn(); return;
+let hostCreateRetries = 0;
+let hostRetryTimer = null;
+
+function becomeHost() {
+  if (hostRetryTimer) { clearTimeout(hostRetryTimer); hostRetryTimer = null; }
+
+  _acquireHostId();
+
+  function _acquireHostId() {
+    if (peer && !peer.destroyed) { try { peer.destroy(); } catch(e) {} }
+    const delay = hostCreateRetries > 0 ? 300 : 0;
+    setTimeout(() => {
+      peer = createPeer(roomId);
+      peer.on('open', () => {
+        hostCreateRetries = 0;
+        myId = roomId;
+        isHost = true;
+        gameState.hostPeerId = myId;
+        gameState.players[myId] = { nick: myNick, score: 0, online: true };
+        gameState.totalRounds = selectedRounds;
+        saveSession();
+        showGameUI();
+        attachHostListeners();
+      });
+      peer.on('error', e => {
+        logPeerError('host-acquire', e);
+        if (e.type === 'unavailable-id' || e.type === 'peer-unavailable') {
+          hostCreateRetries++;
+          if (hostCreateRetries < 8) {
+            const wait = Math.min(800 + hostCreateRetries * 800, 4000);
+            const sec = Math.ceil(wait / 1000);
+            setLobbyStatus(`이전 연결 해제 대기 중... (${hostCreateRetries}/8, ${sec}초 후 재시도)`, '');
+            hostRetryTimer = setTimeout(_acquireHostId, wait);
+          } else {
+            hostCreateRetries = 0;
+            setLobbyStatus('방 생성 실패. 잠시 후 다시 시도하거나 다른 방 코드를 사용하세요.', 'error');
+          }
+        } else {
+          setLobbyStatus('오류 (' + formatPeerError(e) + '). 다른 코드를 사용하세요.', 'error');
+        }
+      });
+      peer.on('disconnected', () => {
+        if (isHost && peer && !peer.destroyed) {
+          try { peer.reconnect(); } catch(e) {}
+        }
+      });
+    }, delay);
+  }
+}
+
+function attachHostListeners() {
+  peer.on('connection', c => {
+    c.on('open', () => {
+      connections[c.peer] = c;
+      c.send({ type: 'sync', state: gameState });
+    });
+    c.on('data', d => handleData(d, c.peer));
+    c.on('close', () => {
+      delete connections[c.peer];
+      if (gameState.players[c.peer]) {
+        gameState.players[c.peer].online = false;
+        if (isHost && gameState.status === 'playing' && gameState.phase === 'encoding') {
+          const encoder = gameState.turnOrder[gameState.currentTurnIdx % Math.max(gameState.turnOrder.length, 1)];
+          if (encoder === c.peer) {
+            const nick = (gameState.players[c.peer] && gameState.players[c.peer].nick) || '출제자';
+            gameState.pendingToast = { msg: '🚪 ' + nick + ' 님이 방을 나갔습니다. 다음 출제자로 넘어갑니다.', type: 'info' };
+            showToast('🚪 ' + nick + ' 님이 방을 나갔습니다. 다음 출제자로 넘어갑니다.', 'info');
+            nextTurn();
+            return;
+          }
+        }
+        broadcast();
+      }
+    });
+  });
+}
+
+let clientRetries = 0;
+let clientRetryTimer = null;
+
+function joinAsClient(prevPeerId) {
+  isHost = false;
+  saveSession();
+  if (clientRetryTimer) { clearTimeout(clientRetryTimer); clientRetryTimer = null; }
+
+  if (peer && !peer.destroyed) {
+    try { peer.destroy(); } catch(e) {}
+  }
+  const _prevId = prevPeerId || null;
+  peer = createPeer(undefined);
+  peer.on('open', id => {
+    myId = id;
+    saveSession();
+    const c = peer.connect(roomId, { reliable: true });
+    let ok = false;
+    c.on('open', () => {
+      ok = true; conn = c;
+      clientRetries = 0;
+      conn.on('data', d => handleData(d, 'host'));
+      conn.on('close', () => {
+        isHost = false;
+        saveSession();
+        showReconnectBanner();
+      });
+      if (_prevId && _prevId !== myId) {
+        conn.send({ type: 'rejoin', nick: myNick, peerId: myId, prevPeerId: _prevId });
+      } else {
+        conn.send({ type: 'join', nick: myNick, peerId: myId });
+      }
+      showGameUI();
+    });
+    c.on('error', e => {
+      logPeerError('client-connect', e);
+      if (!ok) retryJoinAsClient(_prevId);
+    });
+    setTimeout(() => {
+      if (!ok) retryJoinAsClient(_prevId);
+    }, 4000);
+  });
+  peer.on('error', e => {
+    logPeerError('client-peer', e);
+    retryJoinAsClient(_prevId);
+  });
+}
+
+function retryJoinAsClient(prevId) {
+  if (clientRetryTimer) return;
+  clientRetries++;
+  if (clientRetries <= 12) {
+    const wait = Math.min(2000 + clientRetries * 1000, 5000);
+    const sec = Math.ceil(wait / 1000);
+    const inGame = document.getElementById('game-ui').style.display !== 'none';
+    if (inGame) {
+      if (clientRetries <= 2 || clientRetries % 3 === 0) {
+        showToast(`🔄 호스트 재접속 대기 중... (${clientRetries}/12)`, 'info');
+      }
+    } else {
+      setLobbyStatus('호스트 접속 대기 중... (' + clientRetries + '/12, ' + sec + '초 후 재시도)', '');
+    }
+    clientRetryTimer = setTimeout(function() { clientRetryTimer = null; joinAsClient(prevId); }, wait);
+  } else {
+    clientRetries = 0;
+    const inGame = document.getElementById('game-ui').style.display !== 'none';
+    if (inGame) {
+      showToast('🚫 호스트를 찾을 수 없습니다.', 'error');
+    } else {
+      setLobbyStatus('방을 찾을 수 없습니다. 호스트가 아직 접속하지 않았거나 방 코드를 확인하세요.', 'error');
+    }
+  }
+}
+
+function setLobbyStatus(msg, type) {
+  const el = document.getElementById('lobby-status');
+  el.textContent = msg;
+  el.style.color = type==='error' ? '#ff8080' : type==='ok' ? '#15803d' : 'var(--text3)';
+}
+
+function leaveRoom() {
+  if (!confirm('방을 나가시겠습니까?')) return;
+  clearSession();
+  clearGameState();
+  if (peer) { try { peer.destroy(); } catch(e) {} }
+  location.reload();
+}
+
+// ════════════════════════════════════════
+//  DATA HANDLING
+// ════════════════════════════════════════
+function handleData(data, fromId) {
+  if (data.type === 'sync') {
+    const prevTurnIdx = gameState.currentTurnIdx;
+    const prevPhase = gameState.phase;
+    gameState = data.state;
+    if (gameState.pendingToast) {
+      showToast(gameState.pendingToast.msg, gameState.pendingToast.type || 'info');
+      gameState.pendingToast = null;
+    }
+    if (gameState.currentTurnIdx !== prevTurnIdx && gameState.phase === 'encoding') {
+      resetLocalState();
+    }
+    if (!isHost && (gameState.phase === 'encoding' || gameState.phase === 'guessing')) {
+      if (gameState.currentTurnIdx !== prevTurnIdx || gameState.phase !== prevPhase) {
+        startClientTimer();
+      }
+    }
+    if (!isHost && gameState.phase !== prevPhase) {
+      saveSession();
+    }
+    saveGameState();
+    renderAll();
+    return;
+  }
+
+  if (!isHost) {
+    if (data.type === 'enc_invalid') {
+      showEncError('❌ 암호화 결과가 올바르지 않습니다. 다시 확인해주세요.');
+      return;
+    }
+    if (data.type === 'guess_result') {
+      if (data.correct) {
+        showToast(`✅ 정답! +${data.points}pt 획득!`, 'success');
+      } else {
+        showGuessError('❌ 오답! 계속 시도할 수 있습니다.');
+        const btn = document.getElementById('btn-guess-submit');
+        if (btn) { btn.disabled = false; btn.textContent = '해독 완료 🛡'; }
+      }
+      return;
+    }
+    if (data.type === 'reaction') {
+      showFloatingReaction(data.emoji);
+      return;
+    }
+    return;
+  }
+
+  // ── 호스트 전용 처리 ──
+  if (data.type === 'rejoin') {
+    const prev = data.prevPeerId;
+    const existing = gameState.players[prev];
+    if (existing && existing.nick === data.nick) {
+      gameState.players[fromId] = { ...existing, nick: data.nick, online: true };
+      delete gameState.players[prev];
+      const idx = gameState.turnOrder.indexOf(prev);
+      if (idx !== -1) gameState.turnOrder[idx] = fromId;
+      else if (!gameState.turnOrder.includes(fromId)) gameState.turnOrder.push(fromId);
+      if (gameState.guessResults && gameState.guessResults[prev]) {
+        gameState.guessResults[fromId] = gameState.guessResults[prev];
+        delete gameState.guessResults[prev];
+      }
+    } else {
+      let merged = false;
+      for (const [pid, p] of Object.entries(gameState.players)) {
+        if (pid !== fromId && p.nick === data.nick && p.online === false) {
+          gameState.players[fromId] = { ...p, online: true };
+          delete gameState.players[pid];
+          const idx = gameState.turnOrder.indexOf(pid);
+          if (idx !== -1) gameState.turnOrder[idx] = fromId;
+          else if (!gameState.turnOrder.includes(fromId)) gameState.turnOrder.push(fromId);
+          if (gameState.guessResults && gameState.guessResults[pid]) {
+            gameState.guessResults[fromId] = gameState.guessResults[pid];
+            delete gameState.guessResults[pid];
+          }
+          if (connections[pid]) delete connections[pid];
+          merged = true;
+          break;
         }
       }
+      if (!merged) {
+        gameState.players[fromId] = { nick: data.nick, score: 0, online: true };
+        if (gameState.status === 'playing' && !gameState.turnOrder.includes(fromId)) {
+          gameState.turnOrder.push(fromId);
+        }
+      }
+    }
+    broadcast();
+    return;
+  }
+
+  if (data.type === 'join') {
+    let merged = false;
+    for (const [pid, p] of Object.entries(gameState.players)) {
+      if (pid !== fromId && p.nick === data.nick && p.online === false) {
+        gameState.players[fromId] = { ...p, online: true };
+        delete gameState.players[pid];
+        const idx = gameState.turnOrder.indexOf(pid);
+        if (idx !== -1) gameState.turnOrder[idx] = fromId;
+        else if (!gameState.turnOrder.includes(fromId)) gameState.turnOrder.push(fromId);
+        if (gameState.guessResults && gameState.guessResults[pid]) {
+          gameState.guessResults[fromId] = gameState.guessResults[pid];
+          delete gameState.guessResults[pid];
+        }
+        if (connections[pid]) delete connections[pid];
+        merged = true;
+        break;
+      }
+    }
+    if (!merged) {
+      gameState.players[fromId] = { nick: data.nick, score: 0, online: true };
+      if (gameState.status === 'playing' && !gameState.turnOrder.includes(fromId)) {
+        gameState.turnOrder.push(fromId);
+      }
+    }
+    broadcast();
+    return;
+  }
+
+  if (data.type === 'enc_submit') {
+    if (gameState.phase !== 'encoding') return;
+    const encoder = gameState.turnOrder[gameState.currentTurnIdx % gameState.turnOrder.length];
+    if (fromId !== encoder) return;
+    const { raw, methods, steps, keys } = data;
+    let expectedResult = raw;
+    let encOk = true;
+    for (let i = 0; i < methods.length; i++) {
+      const mId = methods[i];
+      const key = keys ? keys[mId] : undefined;
+      expectedResult = applyEnc(expectedResult, mId, key);
+      if (expectedResult !== steps[i].result) { encOk = false; break; }
+    }
+    if (!encOk) {
+      broadcast();
+      const c = connections[fromId];
+      if (c) c.send({ type: 'enc_invalid' });
+      else showEncError('❌ 암호화 결과가 올바르지 않습니다. 다시 확인해주세요.');
+      return;
+    }
+    gameState.currentRaw = raw;
+    gameState.currentMethods = methods;
+    gameState.currentEncSteps = steps;
+    gameState.lastEncResult = data.finalResult;
+    gameState.currentKeys = keys || {};
+    gameState.clueSet = methods.length >= 2 ? [...methods].sort((a, b) => a - b) : [];
+    gameState.guessResults = {};
+    gameState.phase = 'guessing';
+    gameState.turnTimerStart = Date.now();
+    gameState.turnTimer = GUESS_TIME;
+    broadcast();
+    startHostTimer();
+    return;
+  }
+
+  if (data.type === 'guess_submit') {
+    if (gameState.phase !== 'guessing') return;
+    if (gameState.guessResults[fromId]) return;
+    const elapsed = Math.floor((Date.now() - gameState.turnTimerStart) / 1000);
+    const timeLeft = Math.max(0, GUESS_TIME - elapsed);
+    const encoder = gameState.turnOrder[gameState.currentTurnIdx % gameState.turnOrder.length];
+    const isSingleMethod = gameState.currentMethods.length === 1;
+    const orderOK = isSingleMethod ? true : JSON.stringify(data.methodOrder) === JSON.stringify(gameState.currentMethods);
+    const answerOK = data.answer.trim().toLowerCase() === gameState.currentRaw.trim().toLowerCase();
+    const success = orderOK && answerOK;
+
+    if (success) {
+      const pts = 10 + Math.floor(timeLeft * 0.04);
+      gameState.guessResults[fromId] = { correct: true, points: pts };
+      if (gameState.players[fromId]) gameState.players[fromId].score += pts;
+      if (fromId === myId) showToast(`✅ 정답! +${pts}pt 획득!`, 'success');
+      else { const c = connections[fromId]; if (c) c.send({ type: 'guess_result', correct: true, points: pts }); }
+    } else {
+      if (fromId === myId) {
+        showGuessError('❌ 오답! 계속 시도할 수 있습니다.');
+        const btn = document.getElementById('btn-guess-submit');
+        if (btn) { btn.disabled = false; btn.textContent = '해독 완료 🛡'; }
+      } else { const c = connections[fromId]; if (c) c.send({ type: 'guess_result', correct: false, points: 0 }); }
+      broadcast();
+      return;
+    }
+
+    const guessers = gameState.turnOrder.filter(id => id !== encoder && gameState.players[id]?.online !== false);
+    const allDone = guessers.every(id => gameState.guessResults[id]);
+    if (allDone) {
+      gameState.phase = 'round_end';
+      broadcast();
+      setTimeout(() => nextTurn(), 5000);
+    } else {
       broadcast();
     }
+    return;
+  }
+
+  if (data.type === 'reaction') {
+    Object.entries(connections).forEach(([id, c]) => { if (id !== fromId) c.send(data); });
+    showFloatingReaction(data.emoji);
+    return;
+  }
+}
+
+function broadcast() {
+  if (!isHost) return;
+  const nextHost = gameState.turnOrder.find(function(pid) {
+    return pid !== myId && gameState.players[pid] && gameState.players[pid].online !== false;
+  });
+  gameState.designatedNextHost = nextHost || null;
+  const msg = { type: 'sync', state: gameState };
+  Object.values(connections).forEach(c => c.send(msg));
+  if (gameState.pendingToast) gameState.pendingToast = null;
+  saveGameState();
+  renderAll();
+}
+
+function send(data) {
+  if (isHost) handleData(data, myId);
+  else conn.send(data);
+}
+
+// ════════════════════════════════════════
+//  GAME FLOW
+// ════════════════════════════════════════
+function hostStartGame() {
+  if (!isHost) return;
+  const online = Object.entries(gameState.players).filter(([,p]) => p.online!==false);
+  if (online.length < 2) { showToast('최소 2명이 필요합니다', 'error'); return; }
+  if (online.length > 6) { showToast('최대 6명까지 가능합니다', 'error'); return; }
+
+  const order = online.map(([id]) => id);
+  for (let i = order.length-1; i>0; i--) {
+    const j = Math.floor(Math.random()*(i+1));
+    [order[i],order[j]] = [order[j],order[i]];
+  }
+
+  gameState.turnOrder = order;
+  gameState.currentTurnIdx = 0;
+  gameState.currentRound = 1;
+  gameState.status = 'playing';
+  gameState.phase = 'encoding';
+  gameState.turnTimerStart = Date.now();
+  gameState.turnTimer = ENC_TIME;
+  gameState.guessResults = {};
+  document.getElementById('host-start-btn').style.display = 'none';
+  resetLocalState();
+  broadcast();
+  startHostTimer();
+  showToast('게임 시작!', 'success');
+}
+
+function startHostTimer() {
+  if (timerInterval) clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    if (!isHost) return;
+    const elapsed = Math.floor((Date.now() - gameState.turnTimerStart) / 1000);
+    const limit = gameState.phase === 'encoding' ? ENC_TIME : GUESS_TIME;
+    const left = Math.max(0, limit - elapsed);
+    gameState.turnTimer = left;
+    if (left <= 0) {
+      clearInterval(timerInterval);
+      if (gameState.phase === 'encoding') {
+        gameState.currentRaw = '⏰ 출제 시간 초과';
+        gameState.phase = 'round_end';
+        broadcast();
+        setTimeout(() => nextTurn(), 5000);
+      } else if (gameState.phase === 'guessing') {
+        const encoder = gameState.turnOrder[gameState.currentTurnIdx % gameState.turnOrder.length];
+        const guessers = gameState.turnOrder.filter(id => id !== encoder && gameState.players[id]?.online!==false);
+        guessers.forEach(id => {
+          if (!gameState.guessResults[id]) {
+            gameState.guessResults[id] = { correct: false, points: 0 };
+          }
+        });
+        gameState.phase = 'round_end';
+        broadcast();
+        setTimeout(() => nextTurn(), 5000);
+      }
+    } else {
+      broadcast();
+    }
+  }, 1000);
+}
+
+function nextTurn() {
+  if (!isHost) return;
+  gameState.currentTurnIdx++;
+  const numPlayers = gameState.turnOrder.length;
+  const totalTurns = gameState.totalRounds * numPlayers;
+
+  if (gameState.currentTurnIdx >= totalTurns) {
+    gameState.status = 'finished';
+    gameState.phase = 'idle';
+    broadcast();
+    clearInterval(timerInterval);
+    return;
+  }
+
+  gameState.currentRound = Math.floor(gameState.currentTurnIdx / numPlayers) + 1;
+  gameState.currentRaw = '';
+  gameState.currentMethods = [];
+  gameState.currentEncSteps = [];
+  gameState.currentKeys = {};
+  gameState.lastEncResult = '';
+  gameState.clueSet = [];
+  gameState.guessResults = {};
+  gameState.phase = 'encoding';
+  gameState.turnTimerStart = Date.now();
+  gameState.turnTimer = ENC_TIME;
+  resetLocalState();
+  broadcast();
+  startHostTimer();
+}
+
+function resetLocalState() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  document.getElementById('memo-area').value = '';
+  document.getElementById('raw-input').value = '';
+  document.getElementById('enc-input-1').value = '';
+  document.getElementById('enc-input-2').value = '';
+  delete document.getElementById('enc-input-1').dataset.manual;
+  delete document.getElementById('enc-input-2').dataset.manual;
+  const ki0 = document.getElementById('key-input-0');
+  const ki1 = document.getElementById('key-input-1');
+  if (ki0) ki0.remove();
+  if (ki1) ki1.remove();
+  encStepMethods = [];
+  renderEncSteps();
+  checkEncReady();
+  document.getElementById('guess-answer').value = '';
+  guessMethodOrder = [];
+  guessUIBuiltForTurn = -1;
+  setBoardMode('draw');
+  const encErr = document.getElementById('enc-error-msg');
+  if (encErr) { encErr.style.display='none'; clearTimeout(encErr._timer); }
+  const guessErr = document.getElementById('guess-error-msg');
+  if (guessErr) { guessErr.style.display='none'; clearTimeout(guessErr._timer); }
+}
+
+// ════════════════════════════════════════
+//  ENCODING SUBMIT
+// ════════════════════════════════════════
+let encStepMethods = [];
+
+function initMethodSelector() {
+  const el = document.getElementById('method-selector');
+  el.innerHTML = '';
+  [1,2,3,4].forEach(id => {
+    const m = METHODS[id];
+    const btn = document.createElement('button');
+    btn.className = `method-btn m${id}`;
+    btn.dataset.id = id;
+    btn.textContent = m.name;
+    btn.onclick = () => addEncStep(id);
+    el.appendChild(btn);
   });
 }
 
-// ── SDP Modal Control ──────────────────────────────────────────────
-var _sdpState = null;
+function addEncStep(methodId) {
+  if (encStepMethods.includes(methodId)) {
+    removeEncStep(encStepMethods.indexOf(methodId));
+    return;
+  }
+  if (encStepMethods.length >= 2) { showToast('최대 2단계까지 가능합니다', 'error'); return; }
+  encStepMethods.push(methodId);
+  renderEncSteps();
+  updateMethodBtnSelected();
+  checkEncReady();
+}
 
-function _sdpEl(id) { return document.getElementById(id); }
-function _sdpStatus(msg) { _sdpEl('sdp-m-status').textContent = msg; }
+function removeEncStep(idx) {
+  encStepMethods.splice(idx, 1);
+  const ki = document.getElementById(`key-input-${idx}`);
+  if (ki) ki.remove();
+  if (idx === 0) {
+    const ki1 = document.getElementById('key-input-1');
+    if (ki1) ki1.remove();
+  }
+  renderEncSteps();
+  updateMethodBtnSelected();
+  checkEncReady();
+}
 
-function sdpCopy() {
-  var txt = _sdpEl('sdp-m-show-txt').value;
-  if (navigator.clipboard) {
-    navigator.clipboard.writeText(txt).then(function() { showToast('📋 복사 완료!', 'success'); });
-  } else {
-    _sdpEl('sdp-m-show-txt').select(); document.execCommand('copy');
-    showToast('📋 복사 완료!', 'success');
+function updateMethodBtnSelected() {
+  document.querySelectorAll('.method-btn').forEach(btn => {
+    const id = parseInt(btn.dataset.id);
+    btn.classList.toggle('selected', encStepMethods.includes(id));
+  });
+}
+
+function renderEncSteps() {
+  const s1 = document.getElementById('step1-row');
+  const s2 = document.getElementById('step2-row');
+  s1.style.display = encStepMethods.length >= 1 ? 'flex' : 'none';
+  s2.style.display = encStepMethods.length >= 2 ? 'flex' : 'none';
+  if (encStepMethods[0]) {
+    const m = METHODS[encStepMethods[0]];
+    document.getElementById('step1-method-name').textContent = `1단계 ${m.name}`;
+    document.getElementById('enc-input-1').placeholder = `${m.name} 암호화 결과`;
+    renderKeyInput(0, encStepMethods[0]);
+  }
+  if (encStepMethods[1]) {
+    const m = METHODS[encStepMethods[1]];
+    document.getElementById('step2-method-name').textContent = `2단계 ${m.name}`;
+    document.getElementById('enc-input-2').placeholder = `${m.name} 암호화 결과`;
+    renderKeyInput(1, encStepMethods[1]);
   }
 }
 
-async function sdpSubmit() {
-  var txt = (_sdpEl('sdp-m-paste-txt').value || '').trim();
-  if (!txt) { showToast('코드를 붙여넣기 해주세요.', 'error'); return; }
-  var btn = _sdpEl('sdp-m-ok');
-  btn.disabled = true;
-  _sdpStatus('처리 중...');
-  try {
-    if (_sdpState.stage === 'client-paste-offer') {
-      // 클라이언트: 호스트의 offer → answer 생성
-      var answerConn = await _directMakeAnswer(txt);
-      var answerStr = JSON.stringify(answerConn.pc.localDescription);
-      _sdpEl('sdp-m-title').textContent = '📤 응답 코드';
-      _sdpEl('sdp-m-desc').textContent = '아래 코드를 호스트에게 전달하세요. 호스트가 수락하면 자동으로 연결됩니다.';
-      _sdpEl('sdp-m-show').style.display = 'block';
-      _sdpEl('sdp-m-show-txt').value = answerStr;
-      _sdpEl('sdp-m-paste').style.display = 'none';
-      var savedPrevId = _sdpState._prevId;
-      _sdpState = { stage: 'client-answer-shown', conn: answerConn, _prevId: savedPrevId };
-      answerConn.on('open', function() {
-        _sdpEl('sdp-m-show').style.display = 'none';
-        _sdpEl('sdp-m-done').style.display = 'block';
-        conn = answerConn;
-        answerConn.peer = 'host';
-        var _prevId = savedPrevId || null;
-        setTimeout(function() {
-          _sdpEl('sdp-modal').style.display = 'none';
-          conn.on('data', function(d) { handleData(d, 'host'); });
-          conn.on('close', function() { isHost = false; saveSession(); showReconnectBanner(); });
-          if (_prevId && _prevId !== myId) {
-            conn.send({ type: 'rejoin', nick: myNick, peerId: myId, prevPeerId: _prevId });
-          } else {
-            conn.send({ type: 'join', nick: myNick, peerId: myId });
-          }
-          showGameUI();
-        }, 800);
-      });
+function renderKeyInput(stepIdx, methodId) {
+  const rowId = stepIdx === 0 ? 'step1-row' : 'step2-row';
+  const keyInputId = `key-input-${stepIdx}`;
+  const row = document.getElementById(rowId);
+  const old = document.getElementById(keyInputId);
+  if (old && parseInt(old.dataset.methodId) === methodId) return;
+  if (old) old.remove();
+  const keyInput = document.createElement('input');
+  keyInput.className = 'enc-input';
+  keyInput.id = keyInputId;
+  keyInput.dataset.methodId = methodId;
+  keyInput.style.cssText = 'width:90px;flex:none;';
+  keyInput.type = 'text';
+  keyInput.inputMode = 'text';
+  if (methodId === 1) { keyInput.placeholder = '예: 312'; keyInput.value = '21'; keyInput.maxLength = 9; }
+  else if (methodId === 2) { keyInput.placeholder = '단위'; keyInput.value = '3'; keyInput.maxLength = 3; keyInput.inputMode = 'numeric'; }
+  else if (methodId === 3) { keyInput.placeholder = '시프트'; keyInput.value = '3'; keyInput.maxLength = 2; keyInput.inputMode = 'numeric'; }
+  else if (methodId === 4) { keyInput.placeholder = '레일'; keyInput.value = '3'; keyInput.maxLength = 2; keyInput.inputMode = 'numeric'; }
+  else { return; }
+  keyInput.oninput = () => { checkEncReady(); };
+  const encInput = document.getElementById(`enc-input-${stepIdx+1}`);
+  row.insertBefore(keyInput, encInput);
+}
 
-    } else if (_sdpState.stage === 'host-paste-answer') {
-      // 호스트: 클라이언트의 answer SDP 수락
-      await _directAcceptAnswer(_sdpState.conn, txt);
-      _sdpStatus('연결 대기 중...');
-      var pendingConn = _sdpState.conn;
-      pendingConn.on('open', function() {
-        var clientId = 'dc-' + Math.random().toString(36).substr(2, 6);
-        pendingConn.peer = clientId;
-        connections[clientId] = pendingConn;
-        _onDirectClientConnected(pendingConn, clientId);
-        _sdpEl('sdp-modal').style.display = 'none';
-        showToast('✅ 참가자가 연결되었습니다!', 'success');
-        renderAll();
+function getEncKey(stepIdx) {
+  const ki = document.getElementById(`key-input-${stepIdx}`);
+  if (!ki) return undefined;
+  const val = ki.value.trim();
+  if (!val) return undefined;
+  const mId = encStepMethods[stepIdx];
+  if (mId === 1) return val;
+  const n = parseInt(val, 10);
+  return isNaN(n) ? undefined : n;
+}
+
+function autoFillEnc() {
+  const raw = document.getElementById('raw-input').value;
+  if (!raw || !encStepMethods[0]) return;
+  const k0 = getEncKey(0);
+  const r1 = applyEnc(raw, encStepMethods[0], k0);
+  const el1 = document.getElementById('enc-input-1');
+  if (!el1.dataset.manual) el1.value = r1;
+  if (encStepMethods[1]) {
+    const k1 = getEncKey(1);
+    const r2 = applyEnc(el1.value || r1, encStepMethods[1], k1);
+    const el2 = document.getElementById('enc-input-2');
+    if (!el2.dataset.manual) el2.value = r2;
+  }
+  checkEncReady();
+}
+
+function onRawInput() { checkEncReady(); }
+function onEncInput() { checkEncReady(); }
+
+document.getElementById('enc-input-1').oninput = function() { this.dataset.manual='1'; checkEncReady(); };
+document.getElementById('enc-input-2').oninput = function() { this.dataset.manual='1'; checkEncReady(); };
+
+function checkEncReady() {
+  const raw = document.getElementById('raw-input').value.trim();
+  const s1ok = encStepMethods.length===0 || document.getElementById('enc-input-1').value.trim();
+  const s2ok = encStepMethods.length<=1 || document.getElementById('enc-input-2').value.trim();
+  const ready = raw && encStepMethods.length>0 && s1ok && s2ok;
+  document.getElementById('btn-enc-submit').disabled = !ready;
+}
+
+function submitEncoding() {
+  const raw = document.getElementById('raw-input').value.trim();
+  if (!raw || encStepMethods.length===0) return;
+  const steps = [];
+  const keys = {};
+  if (encStepMethods[0]) {
+    steps.push({ methodId: encStepMethods[0], result: document.getElementById('enc-input-1').value.trim() });
+    const k0 = getEncKey(0);
+    if (k0 !== undefined) keys[encStepMethods[0]] = k0;
+  }
+  if (encStepMethods[1]) {
+    steps.push({ methodId: encStepMethods[1], result: document.getElementById('enc-input-2').value.trim() });
+    const k1 = getEncKey(1);
+    if (k1 !== undefined) keys[encStepMethods[1]] = k1;
+  }
+  const finalResult = steps[steps.length-1].result;
+  send({ type: 'enc_submit', raw, methods: [...encStepMethods], steps, finalResult, keys });
+  document.getElementById('raw-input').value = '';
+  document.getElementById('enc-input-1').value = '';
+  document.getElementById('enc-input-2').value = '';
+  delete document.getElementById('enc-input-1').dataset.manual;
+  delete document.getElementById('enc-input-2').dataset.manual;
+  const ki0 = document.getElementById('key-input-0');
+  const ki1 = document.getElementById('key-input-1');
+  if (ki0) ki0.remove();
+  if (ki1) ki1.remove();
+  encStepMethods = [];
+  renderEncSteps();
+  checkEncReady();
+}
+
+// ════════════════════════════════════════
+//  GUESSING SUBMIT
+// ════════════════════════════════════════
+let guessMethodOrder = [];
+let guessUIBuiltForTurn = -1;
+
+function renderGuessUI() {
+  const steps = document.getElementById('guess-steps');
+  if (guessUIBuiltForTurn === gameState.currentTurnIdx && steps.childElementCount > 0) return;
+  guessUIBuiltForTurn = gameState.currentTurnIdx;
+  steps.innerHTML = '';
+
+  const isSingle = gameState.currentMethods.length === 1;
+  const label = document.getElementById('guess-ui-label');
+  if (label) label.textContent = isSingle ? '원본 메시지 입력' : '복호화 순서 추측 및 원본 입력';
+  const num = gameState.clueSet.length;
+  guessMethodOrder = [];
+  if (!isSingle) {
+    guessMethodOrder = new Array(num).fill(null);
+    for (let i=0; i<num; i++) {
+      const div = document.createElement('div');
+      div.className = 'guess-step';
+      const sn = document.createElement('div');
+      sn.className = 'step-num'; sn.textContent = i+1;
+      const row = document.createElement('div');
+      row.className = 'guess-method-row';
+      gameState.clueSet.forEach(mId => {
+        const m = METHODS[mId];
+        const btn = document.createElement('button');
+        btn.className = `guess-m-btn m${mId}`;
+        btn.dataset.mid = mId; btn.dataset.step = i;
+        btn.textContent = m.name;
+        btn.onclick = () => {
+          document.querySelectorAll(`.guess-m-btn[data-step="${i}"]`).forEach(b => b.classList.remove('sel'));
+          btn.classList.add('sel');
+          guessMethodOrder[i] = mId;
+        };
+        row.appendChild(btn);
+      });
+      div.appendChild(sn); div.appendChild(row);
+      steps.appendChild(div);
+    }
+  }
+}
+
+function submitGuess() {
+  const answer = document.getElementById('guess-answer').value.trim();
+  if (!answer) { showToast('원본 메시지를 입력하세요', 'error'); return; }
+  const isSingle = gameState.currentMethods.length === 1;
+  if (!isSingle && guessMethodOrder.some(v => v===null)) { showToast('모든 단계의 방식을 선택하세요', 'error'); return; }
+  const btn = document.getElementById('btn-guess-submit');
+  btn.disabled = true;
+  btn.textContent = '확인 중...';
+  send({ type: 'guess_submit', methodOrder: isSingle ? [] : guessMethodOrder, answer });
+}
+
+// ════════════════════════════════════════
+//  CANVAS
+// ════════════════════════════════════════
+let lastDrawX = 0, lastDrawY = 0;
+
+function resizeCanvas() {
+  const w = canvas.offsetWidth, h = canvas.offsetHeight;
+  const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  canvas.width = w; canvas.height = h;
+  ctx.putImageData(img, 0, 0);
+}
+
+function initCanvas() {
+  canvas.addEventListener('mousedown', e => {
+    drawing = true;
+    const rect = canvas.getBoundingClientRect();
+    lastDrawX = (e.clientX - rect.left) * (canvas.width / rect.width);
+    lastDrawY = (e.clientY - rect.top) * (canvas.height / rect.height);
+    if (currentMode !== 'erase') {
+      ctx.fillStyle = drawColor;
+      ctx.beginPath();
+      ctx.arc(lastDrawX, lastDrawY, 1.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  });
+  canvas.addEventListener('mousemove', e => { if (drawing) handleDraw(e); });
+  window.addEventListener('mouseup', () => drawing = false);
+  canvas.addEventListener('touchstart', e => {
+    drawing = true;
+    const rect = canvas.getBoundingClientRect();
+    lastDrawX = (e.touches[0].clientX - rect.left) * (canvas.width / rect.width);
+    lastDrawY = (e.touches[0].clientY - rect.top) * (canvas.height / rect.height);
+    e.preventDefault();
+  }, { passive: false });
+  canvas.addEventListener('touchmove', e => { if (drawing) handleDraw(e.touches[0]); e.preventDefault(); }, { passive: false });
+  canvas.addEventListener('touchend', () => drawing = false);
+}
+
+function handleDraw(e) {
+  const rect = canvas.getBoundingClientRect();
+  const x = (e.clientX - rect.left) * (canvas.width / rect.width);
+  const y = (e.clientY - rect.top) * (canvas.height / rect.height);
+  if (currentMode === 'erase') {
+    ctx.clearRect(x - 12, y - 12, 24, 24);
+    lastDrawX = x; lastDrawY = y;
+    return;
+  }
+  ctx.strokeStyle = drawColor;
+  ctx.lineWidth = 3;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.beginPath();
+  ctx.moveTo(lastDrawX, lastDrawY);
+  ctx.lineTo(x, y);
+  ctx.stroke();
+  lastDrawX = x;
+  lastDrawY = y;
+}
+
+function clearCanvas() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+function setMode(m) {
+  currentMode = m;
+  document.getElementById('btn-draw').classList.toggle('active', m==='draw');
+  document.getElementById('btn-erase').classList.toggle('active', m==='erase');
+  canvas.style.cursor = m==='erase' ? 'cell' : 'crosshair';
+}
+
+let boardMode = 'draw';
+function setBoardMode(mode) {
+  boardMode = mode;
+  const isDraw = mode === 'draw';
+  document.getElementById('btn-mode-draw').classList.toggle('active', isDraw);
+  document.getElementById('btn-mode-memo').classList.toggle('active', !isDraw);
+  canvas.style.display = isDraw ? '' : 'none';
+  document.getElementById('memo-area').style.display = isDraw ? 'none' : 'block';
+  ['btn-draw','btn-erase','btn-clear-draw'].forEach(id => {
+    document.getElementById(id).style.display = isDraw ? '' : 'none';
+  });
+  document.querySelectorAll('.color-dot').forEach(d => { d.style.display = isDraw ? '' : 'none'; });
+}
+
+function setColor(el) {
+  drawColor = el.dataset.color;
+  document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('selected'));
+  el.classList.add('selected');
+  setMode('draw');
+}
+
+// ════════════════════════════════════════
+//  REACTIONS
+// ════════════════════════════════════════
+function sendReaction(emoji) {
+  showFloatingReaction(emoji);
+  const data = { type:'reaction', emoji };
+  if (isHost) Object.values(connections).forEach(c => c.send(data));
+  else conn.send(data);
+}
+
+function showFloatingReaction(emoji) {
+  const el = document.createElement('div');
+  el.className = 'floating-reaction';
+  el.textContent = emoji;
+  el.style.left = (Math.random()*(window.innerWidth-80)+40)+'px';
+  el.style.bottom = '160px';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2100);
+}
+
+// ════════════════════════════════════════
+//  RENDER
+// ════════════════════════════════════════
+function showGameUI() {
+  document.getElementById('lobby').style.display = 'none';
+  const ui = document.getElementById('game-ui');
+  ui.style.display = 'flex';
+  initCanvas();
+  resizeCanvas();
+  initMethodSelector();
+  if (isHost) document.getElementById('host-start-btn').style.display = '';
+  renderAll();
+}
+
+function renderAll() {
+  renderHeader();
+  renderPlayerList();
+  renderRankList();
+  renderCenter();
+  renderActionArea();
+  if (gameState.status==='finished') showGameOver();
+}
+
+function renderHeader() {
+  const phases = { encoding:'출제 단계', guessing:'해독 단계', round_end:'라운드 종료', idle:'대기 중' };
+  document.getElementById('phase-label').textContent = phases[gameState.phase]||'대기 중';
+
+  const timerEl = document.getElementById('timer-display');
+  if (isHost || !clientTimerInterval) {
+    const left = gameState.status === 'playing' && gameState.turnTimerStart
+      ? Math.max(0, (gameState.phase === 'encoding' ? ENC_TIME : GUESS_TIME) -
+          Math.floor((Date.now() - gameState.turnTimerStart) / 1000))
+      : (gameState.turnTimer || 0);
+    const min = Math.floor(left/60).toString().padStart(2,'0');
+    const sec = (left%60).toString().padStart(2,'0');
+    timerEl.textContent = gameState.status==='playing' ? `${min}:${sec}` : '--:--';
+    timerEl.classList.toggle('timer-urgent', left<=15 && gameState.status==='playing');
+  }
+
+  document.getElementById('round-info').textContent =
+    gameState.status==='playing' ? `${gameState.currentRound} / ${gameState.totalRounds}` : '0 / 0';
+
+  const me = gameState.players[myId];
+  if (me) {
+    const b = document.getElementById('my-role-badge');
+    b.style.display = '';
+    const encoder = gameState.turnOrder[gameState.currentTurnIdx % Math.max(gameState.turnOrder.length,1)];
+    const isEncoder = myId===encoder && gameState.phase==='encoding';
+    const isGuesser = myId!==encoder && gameState.phase==='guessing';
+    b.textContent = isEncoder ? '⚔ 출제자' : isGuesser ? '🔍 해독자' : me.nick;
+  }
+}
+
+function renderPlayerList() {
+  const list = document.getElementById('player-list');
+  list.innerHTML = '';
+  const encoder = gameState.turnOrder[gameState.currentTurnIdx % Math.max(gameState.turnOrder.length,1)];
+
+  const allPlayers = Object.entries(gameState.players).filter(([,p])=>p && p.online!==false);
+  const displayOrder = gameState.turnOrder.length>0
+    ? [...gameState.turnOrder.map(id => [id, gameState.players[id]]).filter(([,p])=>p && p.online!==false),
+       ...allPlayers.filter(([id])=>!gameState.turnOrder.includes(id))]
+    : allPlayers;
+
+  displayOrder.forEach(([id, p]) => {
+    if (!p) return;
+    const isEncoder = id===encoder && gameState.phase==='encoding';
+    const isGuesser = id!==encoder && (gameState.phase==='guessing' || gameState.phase==='round_end');
+    const alreadyGuessed = gameState.guessResults && gameState.guessResults[id];
+    const isMe = id===myId;
+
+    const card = document.createElement('div');
+    card.className = 'player-card';
+    if (isEncoder) card.classList.add('current-turn');
+
+    const initials = p.nick.slice(0,2).toUpperCase();
+    const avClass = isEncoder ? 'is-turn' : (isGuesser && !alreadyGuessed ? 'is-guessing' : '');
+
+    let badge = '';
+    if (isEncoder) badge = `<div class="player-turn-badge" style="background:rgba(255,60,60,0.18);color:#ff6060;border-color:rgba(255,60,60,0.4)">⚔ 출제 중</div>`;
+    else if (isGuesser && !alreadyGuessed) badge = `<div class="player-turn-badge guessing">🔍 해독 중</div>`;
+    else if (isGuesser && alreadyGuessed) {
+      const res = gameState.guessResults[id];
+      badge = res?.correct
+        ? `<div class="player-turn-badge" style="background:rgba(34,197,94,0.15);color:#15803d;border-color:rgba(34,197,94,0.3)">✓ 성공</div>`
+        : `<div class="player-turn-badge" style="background:rgba(255,90,90,0.15);color:#ff8080;border-color:rgba(255,90,90,0.3)">✗ 실패</div>`;
+    }
+
+    card.innerHTML = `
+      <div class="player-avatar ${avClass}">${initials}</div>
+      <div class="player-info-block">
+        <div class="player-name">${p.nick}${isMe?`<span class="my-badge" style="font-size:16px;padding:1px 6px">나</span>`:''}</div>
+        <div class="player-score-line">${p.score}pt</div>
+      </div>
+      ${badge}
+    `;
+    list.appendChild(card);
+  });
+
+  const shown = displayOrder.length;
+  for (let i=shown; i<Math.max(shown,2); i++) {
+    const g = document.createElement('div');
+    g.className = 'player-card ghost';
+    g.innerHTML = '<div class="player-avatar">?</div><div class="player-info-block"><div class="player-name">대기 중</div><div class="player-score-line">—</div></div>';
+    list.appendChild(g);
+  }
+}
+
+function renderRankList() {
+  const sorted = Object.entries(gameState.players).filter(([,p])=>p && p.online!==false).sort(([,a],[,b])=>b.score-a.score);
+  const el = document.getElementById('rank-list');
+  el.innerHTML = '';
+  sorted.forEach(([id,p],i) => {
+    const nc = i===0?'gold':i===1?'silver':i===2?'bronze':'';
+    const item = document.createElement('div');
+    item.className = 'rank-item';
+    const initials = p.nick.slice(0,2).toUpperCase();
+    item.innerHTML = `
+      <div class="rank-num ${nc}">${i+1}</div>
+      <div class="player-avatar" style="width:26px;height:26px;font-size:17px">${initials}</div>
+      <div style="flex:1;font-size:19px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)">${p.nick}</div>
+      <div style="font-family:'Pretendard',sans-serif;font-size:18px;color:var(--text3)">${p.score}</div>
+    `;
+    el.appendChild(item);
+  });
+}
+
+function renderCenter() {
+  const banner = document.getElementById('center-phase-banner');
+  const cBox = document.getElementById('cipher-box-main');
+  const cText = document.getElementById('cipher-text-main');
+  const cLabel = document.getElementById('cipher-label-main');
+  const hints = document.getElementById('method-hints-area');
+  hints.innerHTML = '';
+
+  if (gameState.status==='lobby') {
+    banner.className = 'phase-banner waiting';
+    banner.textContent = 'STANDBY — 플레이어가 접속하면 게임을 시작하세요';
+    cText.textContent = '메모장을 자유롭게 사용하거나 게임 시작을 기다리세요';
+    cText.className = 'cipher-text muted';
+    cBox.className = 'cipher-box';
+    cLabel.textContent = 'MEMO BOARD';
+    return;
+  }
+
+  const encoder = gameState.turnOrder[gameState.currentTurnIdx % Math.max(gameState.turnOrder.length,1)];
+  const encoderName = gameState.players[encoder]?.nick || '출제자';
+
+  if (gameState.phase==='encoding') {
+    banner.className = 'phase-banner encoding';
+    banner.textContent = `⚔ 출제 단계 — ${encoderName}님이 암호화 중`;
+    cText.textContent = '출제자가 암호화 문제를 만들고 있습니다...';
+    cText.className = 'cipher-text muted';
+    cBox.className = 'cipher-box';
+    cLabel.textContent = 'ENCODING IN PROGRESS';
+  } else if (gameState.phase==='guessing') {
+    banner.className = 'phase-banner guessing';
+    banner.textContent = `🔍 해독 단계 — 암호문을 풀어보세요!`;
+    cText.textContent = gameState.lastEncResult || '...';
+    cText.className = 'cipher-text';
+    cBox.className = 'cipher-box active';
+    cLabel.textContent = 'ENCRYPTED MESSAGE';
+    const _keys = gameState.currentKeys || {};
+    const _keyLabels = { 1: '순열', 2: '단위', 3: '시프트', 4: '레일' };
+    if (gameState.currentMethods.length === 1) {
+      const mId = gameState.currentMethods[0];
+      const keyVal = (_keys[mId] !== undefined && _keys[mId] !== null) ? _keys[mId] : '?';
+      const chip = document.createElement('div');
+      chip.className = 'hint-chip';
+      chip.textContent = `키: ${keyVal}`;
+      hints.appendChild(chip);
+    } else {
+      gameState.clueSet.forEach(mId => {
+        const m = METHODS[mId];
+        const keyVal = (_keys[mId] !== undefined && _keys[mId] !== null) ? _keys[mId] : '?';
+        const lbl = _keyLabels[mId] || 'KEY';
+        const chip = document.createElement('div');
+        chip.className = 'hint-chip';
+        chip.textContent = `${m.name} ${lbl}: ${keyVal}`;
+        hints.appendChild(chip);
       });
     }
-  } catch(e) {
-    _sdpStatus('오류: ' + (e.message || '잘못된 코드입니다.'));
-    btn.disabled = false;
+  } else if (gameState.phase==='round_end') {
+    banner.className = 'phase-banner roundend';
+    banner.textContent = '✓ 라운드 종료 — 다음 차례로 넘어갑니다';
+    let resultText = gameState.currentRaw || '';
+    if (gameState.currentRaw && !gameState.currentRaw.startsWith('⏰')) {
+      if (gameState.currentEncSteps && gameState.currentEncSteps.length >= 2) {
+        resultText = `최종: "${gameState.lastEncResult || '?'}" ← 1차: "${gameState.currentEncSteps[0].result}" ← 원본: "${gameState.currentRaw}"`;
+      } else {
+        resultText = `암호: "${gameState.lastEncResult || '?'}" → 원본: "${gameState.currentRaw}"`;
+      }
+    }
+    cText.textContent = resultText;
+    cText.className = 'cipher-text';
+    cBox.className = 'cipher-box active';
+    cLabel.textContent = '회차 결과';
+    const myResult = gameState.guessResults[myId];
+    const iAmEncoder = myId === gameState.turnOrder[gameState.currentTurnIdx % Math.max(gameState.turnOrder.length,1)];
+    if ((myResult?.correct || iAmEncoder) && gameState.currentKeys && Object.keys(gameState.currentKeys).length > 0) {
+      const keyChip = document.createElement('div');
+      keyChip.className = 'hint-chip';
+      keyChip.style.cssText = `background:rgba(124,200,255,0.1);border:1.5px solid var(--accent2);color:var(--accent2)`;
+      const keyDesc = gameState.currentMethods.map(mId => {
+        const kv = gameState.currentKeys[mId];
+        return kv !== undefined ? `${METHODS[mId].name}: 키=${kv}` : METHODS[mId].name;
+      }).join(' → ');
+      keyChip.textContent = `🔑 ${keyDesc}`;
+      hints.appendChild(keyChip);
+    }
   }
 }
 
-async function directAddClient() {
-  showToast('접속 코드 생성 중...', 'info');
+function renderActionArea() {
+  const encUI = document.getElementById('enc-ui');
+  const guessUI = document.getElementById('guess-ui');
+  const waitUI = document.getElementById('wait-ui');
+
+  encUI.classList.remove('visible');
+  guessUI.classList.remove('visible');
+  waitUI.classList.remove('visible');
+
+  if (gameState.status==='lobby') {
+    waitUI.classList.add('visible');
+    document.getElementById('wait-text').textContent = isHost
+      ? '방 코드를 공유하고 플레이어가 접속하면 게임을 시작하세요.'
+      : '⏳ 호스트가 게임을 시작하기를 기다리는 중입니다...';
+    return;
+  }
+  if (gameState.status!=='playing') return;
+
+  const encoder = gameState.turnOrder[gameState.currentTurnIdx % Math.max(gameState.turnOrder.length,1)];
+  const iAmEncoder = myId===encoder;
+
+  if (gameState.phase==='encoding') {
+    if (iAmEncoder) {
+      encUI.classList.add('visible');
+    } else {
+      waitUI.classList.add('visible');
+      document.getElementById('wait-text').textContent = `⏳ ${gameState.players[encoder]?.nick||'출제자'}님이 암호화 문제를 만들고 있습니다. 잠시 기다려주세요!`;
+    }
+  } else if (gameState.phase==='guessing') {
+    if (!iAmEncoder) {
+      const alreadySubmitted = gameState.guessResults && gameState.guessResults[myId];
+      if (alreadySubmitted) {
+        waitUI.classList.add('visible');
+        const res = gameState.guessResults[myId];
+        document.getElementById('wait-text').textContent = res.correct
+          ? `✅ 정답! +${res.points}점 획득! 다른 플레이어를 기다리는 중...`
+          : `❌ 오답. 다른 플레이어를 기다리는 중...`;
+      } else {
+        guessUI.classList.add('visible');
+        renderGuessUI();
+        const btn = document.getElementById('btn-guess-submit');
+        btn.disabled = false;
+        btn.textContent = '해독 완료 🛡';
+      }
+    } else {
+      waitUI.classList.add('visible');
+      const submitted = Object.keys(gameState.guessResults||{}).filter(k=>k!=='_encoder_bonus').length;
+      const total = gameState.turnOrder.filter(id=>id!==encoder && gameState.players[id]?.online!==false).length;
+      document.getElementById('wait-text').textContent = `⏳ 플레이어들이 해독 중입니다... (${submitted}/${total} 제출)`;
+    }
+  } else if (gameState.phase==='round_end') {
+    waitUI.classList.add('visible');
+    document.getElementById('wait-text').textContent = '다음 차례로 넘어갑니다...';
+  }
+}
+
+// ════════════════════════════════════════
+//  GAME OVER
+// ════════════════════════════════════════
+function showGameOver() {
+  const el = document.getElementById('game-over');
+  el.style.display = 'flex';
+
+  const sorted = Object.entries(gameState.players).filter(([,p])=>p && p.online!==false).sort(([,a],[,b])=>b.score-a.score);
+  const winner = sorted[0];
+  const goWin = document.getElementById('go-winner');
+  goWin.textContent = winner ? `🏆 ${winner[1].nick} 우승!` : '게임 종료';
+  goWin.style.color = 'var(--gold)';
+
+  const rl = document.getElementById('go-rank-list');
+  rl.innerHTML = '';
+  const medals = ['🥇','🥈','🥉'];
+  sorted.forEach(([id,p],i) => {
+    const div = document.createElement('div');
+    div.className = 'go-rank-item';
+    const initials = p.nick.slice(0,2).toUpperCase();
+    div.innerHTML = `
+      <span style="font-size:26px">${medals[i]||`${i+1}.`}</span>
+      <div class="player-avatar" style="width:32px;height:32px;font-size:19px">${initials}</div>
+      <span style="flex:1;font-size:21px;font-weight:700;color:var(--text)">${p.nick}</span>
+      <span style="font-family:'Pretendard',sans-serif;font-size:21px;color:var(--gold)">${p.score}pt</span>
+    `;
+    rl.appendChild(div);
+  });
+}
+
+// ════════════════════════════════════════
+//  TOAST / ERROR
+// ════════════════════════════════════════
+function showEncError(msg) {
+  const el = document.getElementById('enc-error-msg');
+  el.textContent = msg;
+  el.style.display = 'block';
+  clearTimeout(el._timer);
+  el._timer = setTimeout(() => { el.style.display = 'none'; }, 5000);
+}
+
+function showGuessError(msg) {
+  const el = document.getElementById('guess-error-msg');
+  if (!el) return;
+  el.textContent = msg;
+  el.style.display = 'block';
+  clearTimeout(el._timer);
+  el._timer = setTimeout(() => { el.style.display = 'none'; }, 5000);
+}
+
+function showToast(msg, type='info') {
+  const old = document.querySelector('.toast');
+  if (old) old.remove();
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2800);
+}
+
+// ════════════════════════════════════════
+//  RESIZE
+// ════════════════════════════════════════
+window.addEventListener('resize', () => {
+  if (canvas.offsetWidth > 0) resizeCanvas();
+});
+
+// ════════════════════════════════════════
+//  SESSION RECOVERY
+// ════════════════════════════════════════
+const SESSION_KEY_HOST   = 'enc_game_session_host';
+const SESSION_KEY_CLIENT = 'enc_game_session_client';
+const GAMESTATE_KEY = 'enc_game_state';
+const SESSION_TTL_MS = 30 * 60 * 1000;
+
+function parseSession(raw) {
+  if (!raw) return null;
   try {
-    var offerConn = await _directMakeOffer();
-    var offerStr = JSON.stringify(offerConn.pc.localDescription);
-    _sdpEl('sdp-m-title').textContent = '📡 접속 코드';
-    _sdpEl('sdp-m-desc').textContent = '아래 코드를 참가자에게 전달하세요. 참가자의 응답 코드를 받으면 아래에 붙여넣기 하세요.';
-    _sdpEl('sdp-m-show').style.display = 'block';
-    _sdpEl('sdp-m-show-txt').value = offerStr;
-    _sdpEl('sdp-m-paste').style.display = 'block';
-    _sdpEl('sdp-m-paste-lbl').textContent = '참가자의 응답 코드';
-    _sdpEl('sdp-m-paste-txt').value = '';
-    _sdpEl('sdp-m-done').style.display = 'none';
-    _sdpEl('sdp-m-ok').disabled = false;
-    _sdpStatus('응답 코드를 기다리는 중...');
-    _sdpEl('sdp-modal').style.display = 'flex';
-    _sdpState = { stage: 'host-paste-answer', conn: offerConn };
-  } catch(e) {
-    showToast('접속 코드 생성 실패: ' + (e.message || '오류'), 'error');
+    const s = JSON.parse(raw);
+    if (!s || typeof s !== 'object') return null;
+    if (Number.isNaN(Number(s.ts))) return null;
+    return s;
+  } catch(e) { return null; }
+}
+
+function isSessionFresh(s) {
+  return !!s && (Date.now() - Number(s.ts) <= SESSION_TTL_MS);
+}
+
+function getFreshSessions() {
+  const hostParsed = parseSession(localStorage.getItem(SESSION_KEY_HOST));
+  const clientParsed = parseSession(localStorage.getItem(SESSION_KEY_CLIENT));
+  const host = isSessionFresh(hostParsed) ? hostParsed : null;
+  const client = isSessionFresh(clientParsed) ? clientParsed : null;
+  if (!host) { try { localStorage.removeItem(SESSION_KEY_HOST); } catch(e) {} }
+  if (!client) { try { localStorage.removeItem(SESSION_KEY_CLIENT); } catch(e) {} }
+  return { host, client };
+}
+
+function loadLatestSession() {
+  const fresh = getFreshSessions();
+  if (!fresh.host && !fresh.client) return null;
+  if (fresh.host && !fresh.client) return fresh.host;
+  if (!fresh.host && fresh.client) return fresh.client;
+  return Number(fresh.host.ts) >= Number(fresh.client.ts) ? fresh.host : fresh.client;
+}
+
+function saveSession() {
+  try {
+    const data = JSON.stringify({ nick: myNick, roomId, peerId: myId, isHost, ts: Date.now() });
+    if (isHost) {
+      localStorage.setItem(SESSION_KEY_HOST, data);
+      localStorage.removeItem(SESSION_KEY_CLIENT);
+    } else {
+      localStorage.setItem(SESSION_KEY_CLIENT, data);
+      localStorage.removeItem(SESSION_KEY_HOST);
+    }
+  } catch(e) {}
+}
+
+function saveGameState() {
+  try { localStorage.setItem(GAMESTATE_KEY, JSON.stringify(gameState)); } catch(e) {}
+}
+
+function loadGameState() {
+  try {
+    const raw = localStorage.getItem(GAMESTATE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch(e) { return null; }
+}
+
+function clearGameState() {
+  try { localStorage.removeItem(GAMESTATE_KEY); } catch(e) {}
+}
+
+function clearSession() {
+  try {
+    localStorage.removeItem(SESSION_KEY_HOST);
+    localStorage.removeItem(SESSION_KEY_CLIENT);
+  } catch(e) {}
+}
+
+function loadSession() {
+  try {
+    const fresh = getFreshSessions();
+    return (lobbyMode === 'host') ? (fresh.host || fresh.client) : (fresh.client || fresh.host);
+  } catch(e) { return null; }
+}
+
+function doRecover() {
+  const s = loadSession();
+  if (!s) { dismissRecovery(); return; }
+  myNick = s.nick;
+  roomId = s.roomId;
+  document.getElementById('user-nick').value = myNick;
+  document.getElementById('room-id').value = roomId.replace(/^CGv4-/, '');
+  document.getElementById('recovery-banner').style.display = 'none';
+  switchTab('join');
+  setLobbyStatus('재접속 시도 중...', '');
+  joinAsClient(s.isHost ? null : s.peerId);
+}
+
+function dismissRecovery() {
+  clearSession();
+  document.getElementById('recovery-banner').style.display = 'none';
+}
+
+function showReconnectBanner() {
+  const nextHostId = gameState.designatedNextHost;
+  const gameStarted = gameState.status === 'playing';
+
+  if (!gameStarted) {
+    showToast('⏳ 호스트 연결이 끊겼습니다. 재접속을 기다립니다...', 'info');
+    const _myIdBeforeDisconnect = myId;
+    setTimeout(function() { joinAsClient(_myIdBeforeDisconnect); }, 2000);
+    return;
+  }
+
+  if (nextHostId && myId === nextHostId) {
+    promoteToHost();
+  } else if (nextHostId) {
+    showToast('🔄 호스트가 바뀌었습니다. 잠시 후 재접속합니다...', 'info');
+    saveSession();
+    clientRetries = 0;
+    const _myIdAtDisconnect = myId;
+    setTimeout(function() { joinAsClient(_myIdAtDisconnect); }, 3000);
+  } else {
+    showToast('🚫 호스트와 연결이 끊겼습니다. 방이 종료되었습니다.', 'error');
   }
 }
 
-function directShowJoinModal(prevPeerId) {
-  _sdpEl('sdp-m-title').textContent = '🔗 접속 코드 입력';
-  _sdpEl('sdp-m-desc').textContent = '호스트에게 받은 접속 코드를 붙여넣기 해주세요.';
-  _sdpEl('sdp-m-show').style.display = 'none';
-  _sdpEl('sdp-m-paste').style.display = 'block';
-  _sdpEl('sdp-m-paste-lbl').textContent = '호스트의 접속 코드';
-  _sdpEl('sdp-m-paste-txt').value = '';
-  _sdpEl('sdp-m-done').style.display = 'none';
-  _sdpEl('sdp-m-ok').disabled = false;
-  _sdpStatus('');
-  _sdpEl('sdp-modal').style.display = 'flex';
-  _sdpState = { stage: 'client-paste-offer', _prevId: prevPeerId };
+function promoteToHost() {
+  const oldHostId = roomId;
+  const myOldPeerId = myId;
+
+  const saved = loadGameState();
+  if (saved && saved.players) {
+    Object.assign(gameState, saved);
+  }
+
+  const prevHostData = (oldHostId && gameState.players[oldHostId])
+    ? { ...gameState.players[oldHostId] } : null;
+  if (prevHostData) {
+    gameState.players[oldHostId] = { ...prevHostData, online: false };
+  }
+
+  const prevHostWasEncoder = gameState.status === 'playing' &&
+    gameState.phase === 'encoding' &&
+    gameState.turnOrder[gameState.currentTurnIdx % Math.max(gameState.turnOrder.length, 1)] === oldHostId;
+  const oldNick = (prevHostData && prevHostData.nick) || '이전 호스트';
+
+  const oldHostTurnIdx = gameState.turnOrder.indexOf(oldHostId);
+  if (oldHostTurnIdx !== -1) gameState.turnOrder.splice(oldHostTurnIdx, 1);
+
+  if (prevHostData && prevHostData.nick) {
+    const preserveKey = '_prev_' + oldHostId;
+    gameState.players[preserveKey] = { ...prevHostData, online: false };
+    delete gameState.players[oldHostId];
+  }
+
+  if (myOldPeerId !== oldHostId && gameState.players[myOldPeerId]) {
+    gameState.players[oldHostId] = { ...gameState.players[myOldPeerId], online: true };
+    delete gameState.players[myOldPeerId];
+    const tidx = gameState.turnOrder.indexOf(myOldPeerId);
+    if (tidx !== -1) gameState.turnOrder[tidx] = oldHostId;
+    else gameState.turnOrder.unshift(oldHostId);
+    if (gameState.guessResults && gameState.guessResults[myOldPeerId]) {
+      gameState.guessResults[oldHostId] = gameState.guessResults[myOldPeerId];
+      delete gameState.guessResults[myOldPeerId];
+    }
+  } else if (gameState.players[oldHostId]) {
+    gameState.players[oldHostId].online = true;
+  } else {
+    gameState.players[oldHostId] = { nick: myNick, score: 0, online: true };
+  }
+
+  const myNickSafe = (gameState.players[oldHostId] && gameState.players[oldHostId].nick) || '새 호스트';
+  gameState.pendingToast = {
+    msg: '👑 ' + myNickSafe + ' 님이 새 호스트가 되었습니다. (' + oldNick + ' 님 퇴장)',
+    type: 'info'
+  };
+
+  isHost = true;
+  roomId = oldHostId;
+  myId = oldHostId;
+  connections = {};
+  saveSession();
+
+  if (peer && !peer.destroyed) {
+    try { peer.destroy(); } catch(e) {}
+  }
+
+  let promoteRetries = 0;
+  function tryPromote() {
+    peer = createPeer(oldHostId);
+    peer.on('open', () => {
+      myId = oldHostId;
+      gameState.hostPeerId = oldHostId;
+      saveSession();
+      showToast('👑 호스트 역할을 인계받았습니다!', 'success');
+      attachHostListeners();
+      if (prevHostWasEncoder) {
+        gameState.pendingToast = {
+          msg: '🚪 ' + oldNick + ' 님(호스트)이 방을 나갔습니다. 다음 출제자로 넘어갑니다.',
+          type: 'info'
+        };
+        nextTurn();
+        return;
+      }
+      if (gameState.status === 'playing' && (gameState.phase === 'encoding' || gameState.phase === 'guessing')) {
+        startHostTimer();
+      }
+      broadcast();
+      renderAll();
+    });
+    peer.on('error', e => {
+      logPeerError('promote-host', e);
+      promoteRetries++;
+      if (promoteRetries < 10) {
+        const wait = Math.min(3000 + promoteRetries * 2000, 10000);
+        showToast('호스트 ID 취득 중... (' + promoteRetries + '/10)', 'info');
+        setTimeout(tryPromote, wait);
+      } else {
+        showToast('호스트 역할 인계 실패. 새로고침 후 다시 시도해주세요.', 'error');
+        isHost = false;
+        saveSession();
+      }
+    });
+    peer.on('disconnected', () => {
+      if (isHost && peer && !peer.destroyed) {
+        try { peer.reconnect(); } catch(e) {}
+      }
+    });
+  }
+  tryPromote();
 }
+
+window.addEventListener('beforeunload', () => {
+  if (myId && roomId) saveSession();
+  if (peer && !peer.destroyed) {
+    try { peer.destroy(); } catch(e) {}
+  }
+});
 
 // ════════════════════════════════════════
 //  SERVER SETTINGS UI
@@ -3781,334 +3228,95 @@ function toggleServerSettings() {
 
 function setServerMode(mode) {
   localStorage.setItem('enc_server_mode', mode);
-  document.getElementById('srv-pub-btn').classList.toggle('active', mode === 'public');
-  document.getElementById('srv-loc-btn').classList.toggle('active', mode === 'local');
-  document.getElementById('srv-dir-btn').classList.toggle('active', mode === 'direct');
-  document.getElementById('srv-py-btn').classList.toggle('active', mode === 'python');
-  document.getElementById('srv-pub-info').style.display = mode === 'public' ? 'block' : 'none';
-  document.getElementById('srv-local-cfg').style.display = mode === 'local' ? 'block' : 'none';
-  document.getElementById('srv-direct-cfg').style.display = mode === 'direct' ? 'block' : 'none';
-  document.getElementById('srv-python-cfg').style.display = mode === 'python' ? 'block' : 'none';
+  const isLan = mode === 'lan';
+  document.getElementById('srv-lan-btn').classList.toggle('active', isLan);
+  document.getElementById('srv-wan-btn').classList.toggle('active', !isLan);
+  document.getElementById('srv-lan-cfg').style.display = isLan ? 'block' : 'none';
+  document.getElementById('srv-wan-cfg').style.display = isLan ? 'none' : 'block';
   const dot = document.getElementById('srv-dot');
-  if (dot) {
-    if (mode === 'local') dot.className = 'srv-dot local';
-    else if (mode === 'direct') dot.className = 'srv-dot direct';
-    else if (mode === 'python') dot.className = 'srv-dot python';
-    else dot.className = 'srv-dot';
-  }
-  if (mode === 'public' || mode === 'direct' || mode === 'python') {
-    localStorage.removeItem('enc_peer_host');
-    localStorage.removeItem('enc_peer_port');
-    localStorage.removeItem('enc_peer_path');
-    localStorage.removeItem('enc_peer_secure');
-  }
+  if (dot) dot.className = 'srv-dot ' + mode;
+  if (isLan) fetchMyLanIp();
 }
 
-function saveSrvLocal() {
-  const host = (document.getElementById('srv-host-input').value || '').trim();
-  const port = (document.getElementById('srv-port-input').value || '9000').trim();
-  const secure = document.getElementById('srv-secure-chk').checked;
-  if (!host) { showToast('서버 IP를 입력하세요.', 'error'); return; }
-  localStorage.setItem('enc_peer_host', host);
-  localStorage.setItem('enc_peer_port', port || '9000');
-  localStorage.setItem('enc_peer_path', '/peerjs');
-  localStorage.setItem('enc_peer_secure', secure ? '1' : '0');
-  showToast('✅ 로컬 서버 설정이 저장되었습니다.', 'success');
-}
-
-function saveSrvPython() {
+function saveSrvLan() {
   const host = (document.getElementById('srv-ws-host-input').value || '').trim();
   const port = (document.getElementById('srv-ws-port-input').value || '9000').trim();
-  if (!host) { showToast('서버 IP를 입력하세요.', 'error'); return; }
+  if (!host) { showToast('호스트 IP를 입력하세요.', 'error'); return; }
   localStorage.setItem('enc_ws_host', host);
   localStorage.setItem('enc_ws_port', port || '9000');
-  showToast('✅ Python 서버 설정이 저장되었습니다.', 'success');
+  showToast('✅ 저장되었습니다.', 'success');
 }
 
-function downloadPythonServer() {
-  const el = document.getElementById('embedded-python-server');
-  if (!el) { showToast('서버 코드를 찾을 수 없습니다.', 'error'); return; }
-  const code = el.textContent;
-  const blob = new Blob([code], { type: 'text/plain' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'server.py';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(a.href);
+// /api/info 로 내 LAN IP 가져오기 (server.py가 실행 중일 때만 동작)
+async function fetchMyLanIp() {
+  const ipEl = document.getElementById('my-lan-ip');
+  const hintEl = document.getElementById('my-lan-ip-hint');
+  if (!ipEl) return;
+  ipEl.textContent = '감지 중...';
+  ipEl.style.color = 'var(--accent)';
+
+  // server.py가 열어주는 포트로 요청 (기본 9000)
+  const port = (localStorage.getItem('enc_ws_port') || '9000').trim();
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 2500);
+    const res = await fetch(`http://127.0.0.1:${port}/api/info`, { signal: controller.signal });
+    clearTimeout(timeoutId);
+    if (!res.ok) throw new Error('status ' + res.status);
+    const data = await res.json();
+    if (data.ip) {
+      ipEl.textContent = data.ip + ':' + (data.port || port);
+      ipEl.style.color = 'var(--accent)';
+      if (hintEl) hintEl.textContent = '이 IP:포트를 팀원에게 알려주세요 (호스트라면)';
+    } else {
+      throw new Error('no ip');
+    }
+  } catch(e) {
+    ipEl.textContent = '감지 실패';
+    ipEl.style.color = 'var(--text3)';
+    if (hintEl) hintEl.textContent = 'server.py를 먼저 실행한 뒤 이 패널을 열어보세요';
+  }
 }
 
 function initServerSettings() {
-  const mode = localStorage.getItem('enc_server_mode') || 'public';
-  const host = localStorage.getItem('enc_peer_host') || '';
-  const port = localStorage.getItem('enc_peer_port') || '9000';
-  const secure = String(localStorage.getItem('enc_peer_secure') || '0') !== '0';
+  const mode = localStorage.getItem('enc_server_mode') || 'wan';
+  const isLan = mode === 'lan';
+  document.getElementById('srv-lan-btn').classList.toggle('active', isLan);
+  document.getElementById('srv-wan-btn').classList.toggle('active', !isLan);
+  document.getElementById('srv-lan-cfg').style.display = isLan ? 'block' : 'none';
+  document.getElementById('srv-wan-cfg').style.display = isLan ? 'none' : 'block';
+  const dot = document.getElementById('srv-dot');
+  if (dot) dot.className = 'srv-dot ' + mode;
+
   const wsHost = localStorage.getItem('enc_ws_host') || '';
   const wsPort = localStorage.getItem('enc_ws_port') || '9000';
-  document.getElementById('srv-pub-btn').classList.toggle('active', mode === 'public');
-  document.getElementById('srv-loc-btn').classList.toggle('active', mode === 'local');
-  document.getElementById('srv-dir-btn').classList.toggle('active', mode === 'direct');
-  document.getElementById('srv-py-btn').classList.toggle('active', mode === 'python');
-  document.getElementById('srv-pub-info').style.display = mode === 'public' ? 'block' : 'none';
-  document.getElementById('srv-local-cfg').style.display = mode === 'local' ? 'block' : 'none';
-  document.getElementById('srv-direct-cfg').style.display = mode === 'direct' ? 'block' : 'none';
-  document.getElementById('srv-python-cfg').style.display = mode === 'python' ? 'block' : 'none';
-  const dot = document.getElementById('srv-dot');
-  if (dot) {
-    if (mode === 'local') dot.className = 'srv-dot local';
-    else if (mode === 'direct') dot.className = 'srv-dot direct';
-    else if (mode === 'python') dot.className = 'srv-dot python';
-    else dot.className = 'srv-dot';
-  }
-  const hostEl = document.getElementById('srv-host-input');
-  const portEl = document.getElementById('srv-port-input');
-  const secEl = document.getElementById('srv-secure-chk');
-  if (hostEl) hostEl.value = host;
-  if (portEl) portEl.value = port;
-  if (secEl) secEl.checked = secure;
   const wsHostEl = document.getElementById('srv-ws-host-input');
   const wsPortEl = document.getElementById('srv-ws-port-input');
   if (wsHostEl) wsHostEl.value = wsHost;
   if (wsPortEl) wsPortEl.value = wsPort;
+
+  // 같은망 모드가 이미 선택된 상태로 패널이 열리면 자동으로 IP 감지
+  if (isLan) fetchMyLanIp();
 }
 
+// ════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════
+switchTab('host');
+initServerSettings();
+
 (function checkRecovery() {
-  // 두 세션이 공존하면 최신 타임스탬프를 우선 선택
   const s = loadLatestSession();
   if (!s) return;
-  // 폼 필드 자동 채우기 + 올바른 탭으로 전환
   document.getElementById('user-nick').value = s.nick;
   document.getElementById('room-id').value = s.roomId.replace(/^CGv4-/, '');
-  // 이전 호스트였어도 재접속 시 항상 참가자로
   switchTab('join');
   const banner = document.getElementById('recovery-banner');
   if (!banner) return;
-  const roleLabel = '참가자';
   document.getElementById('recovery-info').textContent =
-    s.nick + ' (' + roleLabel + ') • 방: ' + s.roomId.replace(/^CGv4-/, '') + ' — 이전 세션을 복구하시겠습니까?';
+    s.nick + ' • 방: ' + s.roomId.replace(/^CGv4-/, '') + ' — 이전 세션을 복구하시겠습니까?';
   banner.style.display = '';
 })();
-
-initServerSettings();
-</script>
-
-<!-- ══ SDP DIRECT CONNECTION MODAL ══ -->
-<div id="sdp-modal" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(10,14,23,0.88);align-items:center;justify-content:center">
-  <div style="background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius-lg);padding:28px 32px;width:540px;max-width:92vw;max-height:92vh;overflow-y:auto">
-    <div id="sdp-m-title" style="font-family:'Pretendard',sans-serif;font-size:21px;font-weight:700;color:var(--accent);letter-spacing:2px;margin-bottom:8px"></div>
-    <div id="sdp-m-desc" style="font-size:17px;color:var(--text2);line-height:1.65;margin-bottom:16px"></div>
-    <!-- 코드 표시 영역 (복사용) -->
-    <div id="sdp-m-show" style="display:none;margin-bottom:14px">
-      <div style="font-size:14px;font-weight:700;letter-spacing:1.5px;color:var(--text3);margin-bottom:6px">접속 코드</div>
-      <textarea id="sdp-m-show-txt" readonly style="width:100%;height:140px;font-family:'Pretendard',sans-serif;font-size:12px;border:1px solid var(--border);border-radius:var(--radius);padding:10px;background:rgba(26,127,212,0.04);color:var(--text2);resize:none;outline:none;box-sizing:border-box"></textarea>
-      <button onclick="sdpCopy()" style="margin-top:8px;padding:7px 20px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius);font-size:16px;font-weight:700;cursor:pointer;font-family:'Pretendard',sans-serif">📋 코드 복사</button>
-    </div>
-    <!-- 코드 입력 영역 (붙여넣기용) -->
-    <div id="sdp-m-paste" style="display:none">
-      <div id="sdp-m-paste-lbl" style="font-size:14px;font-weight:700;letter-spacing:1.5px;color:var(--text3);margin-bottom:6px"></div>
-      <textarea id="sdp-m-paste-txt" style="width:100%;height:140px;font-family:'Pretendard',sans-serif;font-size:12px;border:1px solid var(--border);border-radius:var(--radius);padding:10px;background:var(--bg);color:var(--text);resize:none;outline:none;box-sizing:border-box" placeholder="여기에 붙여넣기..."></textarea>
-      <div style="display:flex;gap:10px;margin-top:8px;align-items:center">
-        <button id="sdp-m-ok" onclick="sdpSubmit()" style="padding:8px 24px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius);font-size:17px;font-weight:700;cursor:pointer;font-family:'Pretendard',sans-serif">확인</button>
-        <span id="sdp-m-status" style="font-size:16px;color:var(--text3)"></span>
-      </div>
-    </div>
-    <!-- 연결 완료 표시 -->
-    <div id="sdp-m-done" style="display:none;text-align:center;padding:16px 0">
-      <div style="font-size:36px;margin-bottom:10px">✅</div>
-      <div style="font-size:19px;font-weight:700;color:var(--text)">연결 완료!</div>
-    </div>
-  </div>
-</div>
-
-<!-- ══ EMBEDDED PYTHON SERVER CODE ══
-     이 블록은 브라우저에서 실행되지 않습니다.
-     JavaScript의 downloadPythonServer()가 읽어서 server.py 파일로 다운로드합니다. -->
-<script type="text/x-python" id="embedded-python-server">
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-암호화 대전 게임 - Python WebSocket 시그널링 서버
-표준 라이브러리만 사용 (pip install 불필요, Python 3.6+ 지원)
-사용법: python server.py [포트번호]   (기본값: 9000)
-"""
-import socket, threading, struct, hashlib, base64, json, sys, uuid
-from urllib.parse import parse_qs
-
-PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 9000
-_clients = {}       # peer_id -> socket
-_lock = threading.Lock()
-
-
-def _handshake(conn, raw):
-    headers = {}
-    lines = raw.decode('utf-8', errors='replace').split('\r\n')
-    path = lines[0].split(' ')[1] if lines[0] else '/'
-    for line in lines[1:]:
-        if ':' in line:
-            k, v = line.split(':', 1)
-            headers[k.strip().lower()] = v.strip()
-    key = headers.get('sec-websocket-key', '')
-    magic = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11'
-    accept = base64.b64encode(
-        hashlib.sha1((key + magic).encode()).digest()
-    ).decode()
-    conn.sendall((
-        'HTTP/1.1 101 Switching Protocols\r\n'
-        'Upgrade: websocket\r\nConnection: Upgrade\r\n'
-        f'Sec-WebSocket-Accept: {accept}\r\n\r\n'
-    ).encode())
-    return path
-
-
-def _recv_frame(conn):
-    try:
-        hdr = b''
-        while len(hdr) < 2:
-            c = conn.recv(2 - len(hdr))
-            if not c:
-                return None
-            hdr += c
-        b1, b2 = hdr[0], hdr[1]
-        opcode = b1 & 0x0f
-        if opcode == 8:             # close frame
-            return None
-        if opcode == 9:             # ping → pong
-            conn.sendall(bytes([0x8A, 0]))
-            return ''
-        masked = bool(b2 & 0x80)
-        length = b2 & 0x7f
-        if length == 126:
-            length = struct.unpack('>H', conn.recv(2))[0]
-        elif length == 127:
-            length = struct.unpack('>Q', conn.recv(8))[0]
-        mask_key = conn.recv(4) if masked else b'\x00\x00\x00\x00'
-        data = b''
-        while len(data) < length:
-            chunk = conn.recv(length - len(data))
-            if not chunk:
-                return None
-            data += chunk
-        if masked:
-            data = bytes(b ^ mask_key[i % 4] for i, b in enumerate(data))
-        return data.decode('utf-8', errors='replace')
-    except Exception:
-        return None
-
-
-def _send_frame(conn, msg):
-    data = msg.encode('utf-8')
-    n = len(data)
-    if n < 126:
-        hdr = bytes([0x81, n])
-    elif n < 65536:
-        hdr = bytes([0x81, 126]) + struct.pack('>H', n)
-    else:
-        hdr = bytes([0x81, 127]) + struct.pack('>Q', n)
-    try:
-        conn.sendall(hdr + data)
-        return True
-    except Exception:
-        return False
-
-
-def handle_client(conn, addr):
-    peer_id = None
-    try:
-        raw = b''
-        while b'\r\n\r\n' not in raw:
-            chunk = conn.recv(4096)
-            if not chunk:
-                return
-            raw += chunk
-        path = _handshake(conn, raw)
-
-        # Extract peer ID from ?id=XXX
-        qs = parse_qs(path.split('?', 1)[1]) if '?' in path else {}
-        requested_id = (qs.get('id', [None])[0] or '').strip()
-        if not requested_id or requested_id == '__random__':
-            peer_id = 'py-' + uuid.uuid4().hex[:10]
-        else:
-            peer_id = requested_id
-
-        with _lock:
-            if peer_id in _clients:
-                _send_frame(conn, json.dumps({
-                    'type': 'error', 'errType': 'unavailable-id',
-                    'message': f'{peer_id} is taken'
-                }))
-                conn.close()
-                return
-            _clients[peer_id] = conn
-
-        print(f'[+] {peer_id}  ({addr[0]})  총 접속: {len(_clients)}명')
-        _send_frame(conn, json.dumps({'type': 'open', 'id': peer_id}))
-
-        while True:
-            msg = _recv_frame(conn)
-            if msg is None:
-                break
-            if not msg:
-                continue
-            try:
-                data = json.loads(msg)
-                dst = data.get('dst')
-                msg_type = data.get('type')
-                if not dst:
-                    continue
-                with _lock:
-                    dst_conn = _clients.get(dst)
-                if msg_type == 'connect':
-                    if dst_conn:
-                        _send_frame(dst_conn, json.dumps({'type': 'connect', 'src': peer_id}))
-                        _send_frame(conn, json.dumps({'type': 'connect-ack', 'src': dst}))
-                    else:
-                        _send_frame(conn, json.dumps({
-                            'type': 'error', 'errType': 'peer-unavailable',
-                            'message': f'{dst} 에 연결할 수 없습니다'
-                        }))
-                elif dst_conn:
-                    _send_frame(dst_conn, json.dumps({**data, 'src': peer_id}))
-            except Exception as e:
-                print(f'[!] 처리 오류: {e}')
-    except Exception as e:
-        print(f'[!] {addr}: {e}')
-    finally:
-        if peer_id:
-            with _lock:
-                _clients.pop(peer_id, None)
-            print(f'[-] {peer_id}  총 접속: {len(_clients)}명')
-        try:
-            conn.close()
-        except Exception:
-            pass
-
-
-if __name__ == '__main__':
-    # LAN IP 자동 감지
-    try:
-        import socket as _s
-        s2 = _s.socket(_s.AF_INET, _s.SOCK_DGRAM)
-        s2.connect(('8.8.8.8', 80))
-        lan_ip = s2.getsockname()[0]
-        s2.close()
-    except Exception:
-        lan_ip = '127.0.0.1'
-
-    srv = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    srv.bind(('0.0.0.0', PORT))
-    srv.listen(32)
-    print('=' * 45)
-    print(f'  암호화 대전 게임 - Python 시그널링 서버')
-    print(f'  포트    : {PORT}')
-    print(f'  LAN IP  : {lan_ip}')
-    print(f'  서버 주소: ws://{lan_ip}:{PORT}')
-    print(f'  게임 설정에 위 주소를 입력하세요')
-    print('=' * 45)
-    while True:
-        conn, addr = srv.accept()
-        threading.Thread(target=handle_client, args=(conn, addr), daemon=True).start()
 </script>
 </body>
 </html>
