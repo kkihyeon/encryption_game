@@ -41,8 +41,10 @@ body {
 /* ── LOBBY ── */
 #lobby {
   position: fixed; inset: 0; z-index: 100;
-  display: flex; align-items: center; justify-content: center;
+  display: flex; align-items: flex-start; justify-content: center;
   background: radial-gradient(ellipse at 50% 40%, #dbeafe 0%, #f0f4f8 65%);
+  overflow-y: auto;
+  padding: 40px 16px;
 }
 
 .lobby-card {
@@ -1416,8 +1418,39 @@ body {
           <div class="cipher-card-badge" style="background:#a855f722;border:1.5px solid #a855f7;color:#a855f7">ANA</div>
           <div class="cipher-card-name">애너그램 암호화</div>
         </div>
-        <div class="cipher-card-desc">원문을 <strong>키값 크기의 단위</strong>로 자른 뒤, 각 단위를 <strong>역순으로 뒤집습니다</strong>.</div>
+        <div class="cipher-card-desc">원문을 <strong>키값 크기의 단위</strong>로 자른 뒤, 각 단위를 <strong>역순으로 뒤집습니다</strong>. 키가 있어야 같은 단위로 복호화가 가능합니다. 복호화는 암호화와 같은 방법(각 단위를 다시 역순)으로 수행합니다.</div>
         <div class="cipher-card-key">키 입력: 단위 크기 (정수, 권장 2–10) — <span>예: 키=3 → 3글자씩 단위로 역순</span></div>
+        <svg viewBox="0 0 460 90" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:460px;margin:10px 0;display:block">
+          <g font-family="'Pretendard', sans-serif" font-size="14" font-weight="bold">
+            <rect x="10" y="25" width="30" height="36" rx="5" fill="#a855f722" stroke="#a855f7" stroke-width="1.5"/>
+            <text x="25" y="48" text-anchor="middle" fill="#a855f7">H</text>
+            <rect x="44" y="25" width="30" height="36" rx="5" fill="#a855f722" stroke="#a855f7" stroke-width="1.5"/>
+            <text x="59" y="48" text-anchor="middle" fill="#a855f7">E</text>
+            <rect x="78" y="25" width="30" height="36" rx="5" fill="#a855f722" stroke="#a855f7" stroke-width="1.5"/>
+            <text x="93" y="48" text-anchor="middle" fill="#a855f7">L</text>
+            <rect x="115" y="25" width="30" height="36" rx="5" fill="#a855f733" stroke="#a855f7" stroke-width="1.5" stroke-dasharray="4,2"/>
+            <text x="130" y="48" text-anchor="middle" fill="#a855f7">L</text>
+            <rect x="149" y="25" width="30" height="36" rx="5" fill="#a855f733" stroke="#a855f7" stroke-width="1.5" stroke-dasharray="4,2"/>
+            <text x="164" y="48" text-anchor="middle" fill="#a855f7">O</text>
+            <text x="59" y="15" text-anchor="middle" fill="#7a95b0" font-size="9">단위 1</text>
+            <text x="147" y="15" text-anchor="middle" fill="#7a95b0" font-size="9">단위 2</text>
+          </g>
+          <text x="190" y="48" font-size="20" fill="#7a95b0" font-family="Pretendard, sans-serif">→</text>
+          <g font-family="'Pretendard', sans-serif" font-size="14" font-weight="bold">
+            <rect x="220" y="25" width="30" height="36" rx="5" fill="#4da6ff22" stroke="#4da6ff" stroke-width="1.5"/>
+            <text x="235" y="48" text-anchor="middle" fill="#4da6ff">L</text>
+            <rect x="254" y="25" width="30" height="36" rx="5" fill="#4da6ff22" stroke="#4da6ff" stroke-width="1.5"/>
+            <text x="269" y="48" text-anchor="middle" fill="#4da6ff">E</text>
+            <rect x="288" y="25" width="30" height="36" rx="5" fill="#4da6ff22" stroke="#4da6ff" stroke-width="1.5"/>
+            <text x="303" y="48" text-anchor="middle" fill="#4da6ff">H</text>
+            <rect x="325" y="25" width="30" height="36" rx="5" fill="#4da6ff33" stroke="#4da6ff" stroke-width="1.5" stroke-dasharray="4,2"/>
+            <text x="340" y="48" text-anchor="middle" fill="#4da6ff">O</text>
+            <rect x="359" y="25" width="30" height="36" rx="5" fill="#4da6ff33" stroke="#4da6ff" stroke-width="1.5" stroke-dasharray="4,2"/>
+            <text x="374" y="48" text-anchor="middle" fill="#4da6ff">L</text>
+          </g>
+          <text x="400" y="42" font-family="'Pretendard', sans-serif" font-size="11" fill="#4a6080">각 단위</text>
+          <text x="400" y="57" font-family="'Pretendard', sans-serif" font-size="11" fill="#4a6080">역순</text>
+        </svg>
         <div class="cipher-example">
           원본: <span style="color:var(--accent2)">HELLO</span> &nbsp; 키=<span style="color:#a855f7">3</span><br>
           단위 1: [H E L] → 역순 → <span style="color:#4da6ff">L E H</span><br>
@@ -1431,8 +1464,39 @@ body {
           <div class="cipher-card-badge" style="background:#22c55e22;border:1.5px solid #22c55e;color:#22c55e">CAE</div>
           <div class="cipher-card-name">카이사르 암호화</div>
         </div>
-        <div class="cipher-card-desc">알파벳 각 글자를 <strong>오른쪽으로 키값만큼 이동</strong>합니다.</div>
+        <div class="cipher-card-desc">알파벳 각 글자를 <strong>오른쪽으로 키값만큼 이동</strong>합니다. 알파벳 순서에서 Z를 넘으면 A로 순환합니다.</div>
         <div class="cipher-card-key">키 입력: 이동(시프트) 칸 수 (1–25) — <span>예: 키=3 → A는 오른쪽 3칸 → D</span></div>
+        <svg viewBox="0 0 316 170" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:316px;margin:10px 0;display:block">
+  <defs>
+  <marker id="cmarr-b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><polygon points="0,0 10,5 0,10" fill="#1a7fd4"/></marker>
+  <marker id="cmarr-o" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><polygon points="0,0 10,5 0,10" fill="#d97706"/></marker>
+</defs>
+  <rect x="13" y="71" width="219" height="32" rx="4" fill="none" stroke="#dde5ed" stroke-width="1"/>
+  <rect x="232" y="71" width="68" height="32" rx="4" fill="#fffbeb" stroke="#d97706" stroke-width="1.3" stroke-dasharray="4,2"/>
+  <text x="2" y="84" font-family="'Pretendard', sans-serif" font-size="10" fill="#4a6080">알</text>
+  <text x="2" y="95" font-family="'Pretendard', sans-serif" font-size="10" fill="#4a6080">파</text>
+  <text x="2" y="106" font-family="'Pretendard', sans-serif" font-size="10" fill="#4a6080">벳</text>
+  <rect x="15" y="75" width="20" height="24" rx="3" fill="#1a7fd4" stroke="#1565b8" stroke-width="1.5"/><text x="25" y="94" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#ffffff">A</text>
+  <rect x="37" y="75" width="20" height="24" rx="3" fill="#e8eef5" stroke="#b0c4d8" stroke-width="1.5"/><text x="47" y="94" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#1a2340">B</text>
+  <rect x="59" y="75" width="20" height="24" rx="3" fill="#e8eef5" stroke="#b0c4d8" stroke-width="1.5"/><text x="69" y="94" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#1a2340">C</text>
+  <rect x="81" y="75" width="20" height="24" rx="3" fill="#1a7fd4" stroke="#1565b8" stroke-width="1.5"/><text x="91" y="94" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#ffffff">D</text>
+  <rect x="103" y="75" width="20" height="24" rx="3" fill="#e8eef5" stroke="#b0c4d8" stroke-width="1.5"/><text x="113" y="94" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#1a2340">E</text>
+  <rect x="125" y="75" width="20" height="24" rx="3" fill="#e8eef5" stroke="#b0c4d8" stroke-width="1.5"/><text x="135" y="94" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#1a2340">F</text>
+  <text x="157" y="94" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="14" fill="#7a95b0">⋯</text>
+  <rect x="169" y="75" width="20" height="24" rx="3" fill="#d97706" stroke="#b45309" stroke-width="1.5"/><text x="179" y="94" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#ffffff">X</text>
+  <rect x="191" y="75" width="20" height="24" rx="3" fill="#d97706" stroke="#b45309" stroke-width="1.5"/><text x="201" y="94" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#ffffff">Y</text>
+  <rect x="213" y="75" width="20" height="24" rx="3" fill="#d97706" stroke="#b45309" stroke-width="1.5"/><text x="223" y="94" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#ffffff">Z</text>
+  <line x1="234" y1="55" x2="234" y2="129" stroke="#d97706" stroke-width="1.5" stroke-dasharray="4,2"/>
+  <rect x="235" y="75" width="20" height="24" rx="3" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/><text x="245" y="94" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#7c3a00">A</text>
+  <rect x="257" y="75" width="20" height="24" rx="3" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/><text x="267" y="94" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#7c3a00">B</text>
+  <rect x="279" y="75" width="20" height="24" rx="3" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/><text x="289" y="94" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#7c3a00">C</text>
+  <path d="M25,71 Q58,37 91,71" stroke="#1a7fd4" stroke-width="2" fill="none" marker-end="url(#cmarr-b)"/>
+  <text x="58" y="33" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#1a7fd4">+3</text>
+  <text x="58" y="116" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="11" fill="#1a7fd4">A → D</text>
+  <path d="M223,71 Q256,33 289,71" stroke="#d97706" stroke-width="2" fill="none" stroke-dasharray="5,2" marker-end="url(#cmarr-o)"/>
+  <text x="256" y="29" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#d97706">+3</text>
+  <text x="158" y="116" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="12" fill="#4a6080">예시: key=3 → 각 글자를 오른쪽으로 3칸 이동</text>
+        </svg>
         <div class="cipher-example">
           원본: <span style="color:var(--accent2)">ATTACK</span> &nbsp; 키=<span style="color:#22c55e">3</span><br>
           A→D, T→W, T→W, A→D, C→F, K→N<br>
@@ -1445,8 +1509,51 @@ body {
           <div class="cipher-card-badge" style="background:#4da6ff22;border:1.5px solid #4da6ff;color:#4da6ff">SKY</div>
           <div class="cipher-card-name">스키테일 암호화</div>
         </div>
-        <div class="cipher-card-desc">메시지를 <strong>키값(행 수)개의 행</strong>으로 이루어진 격자에 가로 방향으로 채운 뒤, <strong>세로 방향으로 읽어</strong> 암호문을 만듭니다.</div>
+        <div class="cipher-card-desc">고대 그리스의 암호 도구에서 유래한 방식입니다. 메시지를 <strong>키값(행 수)개의 행</strong>으로 이루어진 격자에 가로(행) 방향으로 채운 뒤, <strong>세로(열) 방향으로 읽어</strong> 암호문을 만듭니다.</div>
         <div class="cipher-card-key">키 입력: 레일(행) 수 (2–10) — <span>예: 키=3 → 3행 격자 사용</span></div>
+        <svg viewBox="0 0 500 130" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:500px;margin:10px 0;display:block">
+          <text x="10" y="16" font-family="'Pretendard', sans-serif" font-size="11" fill="#4a6080">원본: HELLOWORLD (키=3) → 3행으로 채움 → 열 방향으로 읽기</text>
+          <g font-family="'Pretendard', sans-serif" font-size="13" font-weight="bold">
+            <text x="10" y="42" fill="#7a95b0" font-size="10">행1</text>
+            <text x="10" y="76" fill="#7a95b0" font-size="10">행2</text>
+            <text x="10" y="110" fill="#7a95b0" font-size="10">행3</text>
+            <rect x="30" y="26" width="28" height="28" rx="4" fill="#4da6ff22" stroke="#4da6ff" stroke-width="1.5"/>
+            <text x="44" y="45" text-anchor="middle" fill="#4da6ff">H</text>
+            <rect x="62" y="26" width="28" height="28" rx="4" fill="#4da6ff22" stroke="#4da6ff" stroke-width="1.5"/>
+            <text x="76" y="45" text-anchor="middle" fill="#4da6ff">E</text>
+            <rect x="94" y="26" width="28" height="28" rx="4" fill="#4da6ff22" stroke="#4da6ff" stroke-width="1.5"/>
+            <text x="108" y="45" text-anchor="middle" fill="#4da6ff">L</text>
+            <rect x="126" y="26" width="28" height="28" rx="4" fill="#4da6ff22" stroke="#4da6ff" stroke-width="1.5"/>
+            <text x="140" y="45" text-anchor="middle" fill="#4da6ff">L</text>
+            <rect x="30" y="58" width="28" height="28" rx="4" fill="#4da6ff22" stroke="#4da6ff" stroke-width="1.5"/>
+            <text x="44" y="77" text-anchor="middle" fill="#4da6ff">O</text>
+            <rect x="62" y="58" width="28" height="28" rx="4" fill="#4da6ff22" stroke="#4da6ff" stroke-width="1.5"/>
+            <text x="76" y="77" text-anchor="middle" fill="#4da6ff">W</text>
+            <rect x="94" y="58" width="28" height="28" rx="4" fill="#4da6ff22" stroke="#4da6ff" stroke-width="1.5"/>
+            <text x="108" y="77" text-anchor="middle" fill="#4da6ff">O</text>
+            <rect x="126" y="58" width="28" height="28" rx="4" fill="#4da6ff22" stroke="#4da6ff" stroke-width="1.5"/>
+            <text x="140" y="77" text-anchor="middle" fill="#4da6ff">R</text>
+            <rect x="30" y="90" width="28" height="28" rx="4" fill="#4da6ff22" stroke="#4da6ff" stroke-width="1.5"/>
+            <text x="44" y="109" text-anchor="middle" fill="#4da6ff">L</text>
+            <rect x="62" y="90" width="28" height="28" rx="4" fill="#4da6ff22" stroke="#4da6ff" stroke-width="1.5"/>
+            <text x="76" y="109" text-anchor="middle" fill="#4da6ff">D</text>
+            <rect x="94" y="90" width="28" height="28" rx="4" fill="rgba(200,214,229,0.4)" stroke="#c8d6e5" stroke-width="1" stroke-dasharray="3,2"/>
+            <text x="108" y="109" text-anchor="middle" fill="#7a95b0">_</text>
+            <rect x="126" y="90" width="28" height="28" rx="4" fill="rgba(200,214,229,0.4)" stroke="#c8d6e5" stroke-width="1" stroke-dasharray="3,2"/>
+            <text x="140" y="109" text-anchor="middle" fill="#7a95b0">_</text>
+            <text x="38" y="124" text-anchor="middle" fill="#22c55e" font-size="9">↓</text>
+            <text x="70" y="124" text-anchor="middle" fill="#22c55e" font-size="9">↓</text>
+            <text x="102" y="124" text-anchor="middle" fill="#22c55e" font-size="9">↓</text>
+            <text x="134" y="124" text-anchor="middle" fill="#22c55e" font-size="9">↓</text>
+          </g>
+          <text x="165" y="72" font-size="20" fill="#7a95b0" font-family="Pretendard, sans-serif">→</text>
+          <text x="192" y="50" font-family="'Pretendard', sans-serif" font-size="11" fill="#4a6080">열 방향으로 읽기:</text>
+          <text x="192" y="70" font-family="'Pretendard', sans-serif" font-size="14" font-weight="bold" fill="#4da6ff">HOL</text>
+          <text x="192" y="88" font-family="'Pretendard', sans-serif" font-size="14" font-weight="bold" fill="#4da6ff">WED</text>
+          <text x="192" y="106" font-family="'Pretendard', sans-serif" font-size="14" font-weight="bold" fill="#4da6ff">LOR</text>
+          <text x="240" y="72" font-size="16" fill="#7a95b0">→</text>
+          <text x="260" y="78" font-family="'Pretendard', sans-serif" font-size="16" font-weight="bold" fill="#22c55e">HOLWEDLOR</text>
+        </svg>
         <div class="cipher-example">
           원본: <span style="color:var(--accent2)">HELLOWORLD</span> (레일=3)<br>
           격자: H E L L / O W O R / L D _ _<br>
