@@ -1971,20 +1971,60 @@ function attachHostListeners() {
     c.on('data', d => handleData(d, c.peer));
     c.on('close', () => {
       delete connections[c.peer];
-      if (gameState.players[c.peer]) {
-        gameState.players[c.peer].online = false;
-        if (isHost && gameState.status === 'playing' && gameState.phase === 'encoding') {
+      if (!gameState.players[c.peer]) return;
+
+      gameState.players[c.peer].online = false;
+      const nick = gameState.players[c.peer].nick || '플레이어';
+
+      // ── 게임 진행 중 처리 ──
+      if (isHost && gameState.status === 'playing') {
+        const onlinePlayers = gameState.turnOrder.filter(id => gameState.players[id]?.online !== false);
+
+        // 온라인 1인 이하 → 게임 강제 종료
+        if (onlinePlayers.length <= 1) {
+          gameState.pendingToast = { msg: '🚪 참가자가 1명 이하가 되어 게임을 종료합니다.', type: 'info' };
+          showToast('🚪 참가자가 1명 이하가 되어 게임을 종료합니다.', 'info');
+          clearInterval(timerInterval);
+          gameState.status = 'finished';
+          gameState.phase = 'idle';
+          broadcast();
+          return;
+        }
+
+        // 출제 중 출제자가 나간 경우 → 타이머 그대로 진행 (시간 초과 시 자동 nextTurn)
+        if (gameState.phase === 'encoding') {
           const encoder = gameState.turnOrder[gameState.currentTurnIdx % Math.max(gameState.turnOrder.length, 1)];
           if (encoder === c.peer) {
-            const nick = (gameState.players[c.peer] && gameState.players[c.peer].nick) || '출제자';
-            gameState.pendingToast = { msg: '🚪 ' + nick + ' 님이 방을 나갔습니다. 다음 출제자로 넘어갑니다.', type: 'info' };
-            showToast('🚪 ' + nick + ' 님이 방을 나갔습니다. 다음 출제자로 넘어갑니다.', 'info');
-            nextTurn();
+            gameState.pendingToast = { msg: '🚪 ' + nick + ' 님(출제자)이 나갔습니다. 시간 종료 후 다음 차례로 넘어갑니다.', type: 'info' };
+            showToast('🚪 ' + nick + ' 님(출제자)이 나갔습니다. 시간 종료 후 넘어갑니다.', 'info');
+            broadcast();
             return;
           }
         }
-        broadcast();
+
+        // 해독 중 해독자가 나간 경우 → 남은 해독자 모두 완료했는지 재확인
+        if (gameState.phase === 'guessing') {
+          const encoder = gameState.turnOrder[gameState.currentTurnIdx % Math.max(gameState.turnOrder.length, 1)];
+          const guessers = gameState.turnOrder.filter(id => id !== encoder && gameState.players[id]?.online !== false);
+          const allDone = guessers.length > 0 && guessers.every(id => gameState.guessResults[id]);
+          if (allDone) {
+            gameState.phase = 'round_end';
+            broadcast();
+            setTimeout(() => nextTurn(), 5000);
+            return;
+          }
+        }
       }
+
+      // ── 로비 중 1인 이하 안내 ──
+      if (isHost && gameState.status === 'lobby') {
+        const onlinePlayers = Object.values(gameState.players).filter(p => p.online !== false);
+        if (onlinePlayers.length <= 1) {
+          showToast('🚪 ' + nick + ' 님이 나갔습니다. 게임 시작에는 최소 2명이 필요합니다.', 'info');
+        }
+      }
+
+      broadcast();
     });
   });
 }
@@ -2029,7 +2069,7 @@ function joinAsClient(prevPeerId) {
     });
     setTimeout(() => {
       if (!ok) retryJoinAsClient(_prevId);
-    }, 4000);
+    }, 2500);
   });
   peer.on('error', e => {
     logPeerError('client-peer', e);
@@ -2041,12 +2081,15 @@ function retryJoinAsClient(prevId) {
   if (clientRetryTimer) return;
   clientRetries++;
   if (clientRetries <= 12) {
-    const wait = Math.min(2000 + clientRetries * 1000, 5000);
+    // 처음 3번은 빠르게 (1s/1.5s/2s), 이후 점진적 증가
+    const wait = clientRetries <= 3
+      ? clientRetries * 1000
+      : Math.min(2000 + (clientRetries - 3) * 1000, 5000);
     const sec = Math.ceil(wait / 1000);
     const inGame = document.getElementById('game-ui').style.display !== 'none';
     if (inGame) {
       if (clientRetries <= 2 || clientRetries % 3 === 0) {
-        showToast(`🔄 호스트 재접속 대기 중... (${clientRetries}/12)`, 'info');
+        showToast(`🔄 호스트 재접속 시도 중... (${clientRetries}/12)`, 'info');
       }
     } else {
       setLobbyStatus('호스트 접속 대기 중... (' + clientRetries + '/12, ' + sec + '초 후 재시도)', '');
@@ -2338,7 +2381,14 @@ function startHostTimer() {
     if (left <= 0) {
       clearInterval(timerInterval);
       if (gameState.phase === 'encoding') {
-        gameState.currentRaw = '⏰ 출제 시간 초과';
+        const encoder = gameState.turnOrder[gameState.currentTurnIdx % gameState.turnOrder.length];
+        const encoderOnline = gameState.players[encoder]?.online !== false;
+        if (!encoderOnline) {
+          // 출제자가 오프라인인 채로 시간 초과 → 해당 턴 스킵
+          gameState.currentRaw = '⏰ 출제자 부재로 건너뜀';
+        } else {
+          gameState.currentRaw = '⏰ 출제 시간 초과';
+        }
         gameState.phase = 'round_end';
         broadcast();
         setTimeout(() => nextTurn(), 5000);
@@ -3187,26 +3237,25 @@ function dismissRecovery() {
 
 function showReconnectBanner() {
   const nextHostId = gameState.designatedNextHost;
-  const gameStarted = gameState.status === 'playing';
 
-  if (!gameStarted) {
-    showToast('⏳ 호스트 연결이 끊겼습니다. 재접속을 기다립니다...', 'info');
-    const _myIdBeforeDisconnect = myId;
-    setTimeout(function() { joinAsClient(_myIdBeforeDisconnect); }, 2000);
+  // 다음 호스트가 지정돼 있고 내가 그 사람이면 즉시 승격
+  if (nextHostId && myId === nextHostId) {
+    promoteToHost();
     return;
   }
 
-  if (nextHostId && myId === nextHostId) {
-    promoteToHost();
-  } else if (nextHostId) {
-    showToast('🔄 호스트가 바뀌었습니다. 잠시 후 재접속합니다...', 'info');
+  // 다른 사람이 새 호스트로 승격 → 해당 사람의 peer ID(=roomId)로 즉시 재접속
+  if (nextHostId) {
+    showToast('🔄 호스트가 바뀌었습니다. 재접속합니다...', 'info');
     saveSession();
     clientRetries = 0;
     const _myIdAtDisconnect = myId;
-    setTimeout(function() { joinAsClient(_myIdAtDisconnect); }, 3000);
-  } else {
-    showToast('🚫 호스트와 연결이 끊겼습니다. 방이 종료되었습니다.', 'error');
+    setTimeout(function() { joinAsClient(_myIdAtDisconnect); }, 1000);
+    return;
   }
+
+  // 백업 호스트 없음 (혼자 남음)
+  showToast('🚫 호스트와 연결이 끊겼습니다. 방이 종료되었습니다.', 'error');
 }
 
 function promoteToHost() {
@@ -3279,6 +3328,7 @@ function promoteToHost() {
       saveSession();
       showToast('👑 호스트 역할을 인계받았습니다!', 'success');
       attachHostListeners();
+
       if (prevHostWasEncoder) {
         gameState.pendingToast = {
           msg: '🚪 ' + oldNick + ' 님(호스트)이 방을 나갔습니다. 다음 출제자로 넘어갑니다.',
