@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import sys; sys.dont_write_bytecode = True
 """
 암호화 대전 게임 - Python 래퍼
 ────────────────────────────────────────────────────
