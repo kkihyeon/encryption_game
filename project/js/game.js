@@ -221,24 +221,7 @@ function getEncKey(stepIdx) {
   return isNaN(n) ? undefined : n;
 }
 
-function autoFillEnc() {
-  const raw = document.getElementById('raw-input').value;
-  if (!raw || !encStepMethods[0]) return;
-  const k0 = getEncKey(0);
-  const r1 = applyEnc(raw, encStepMethods[0], k0);
-  const el1 = document.getElementById('enc-input-1');
-  if (!el1.dataset.manual) el1.value = r1;
-  if (encStepMethods[1]) {
-    const k1 = getEncKey(1);
-    const r2 = applyEnc(el1.value || r1, encStepMethods[1], k1);
-    const el2 = document.getElementById('enc-input-2');
-    if (!el2.dataset.manual) el2.value = r2;
-  }
-  checkEncReady();
-}
-
 function onRawInput() { checkEncReady(); }
-function onEncInput() { checkEncReady(); }
 
 document.getElementById('enc-input-1').oninput = function() { this.dataset.manual='1'; checkEncReady(); };
 document.getElementById('enc-input-2').oninput = function() { this.dataset.manual='1'; checkEncReady(); };

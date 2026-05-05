@@ -29,7 +29,6 @@ let gameState = {
   turnTimerStart: 0,
   guessResults: {},
   pendingToast: null,
-  designatedNextHost: null,
 };
 
 const ENC_TIME = 90;

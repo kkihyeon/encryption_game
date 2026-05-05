@@ -52,15 +52,6 @@
     <button class="btn-primary" id="lobby-btn" onclick="enterGame()">▶ 접속하기</button>
     <div class="lobby-status" id="lobby-status">닉네임과 방 코드를 입력하세요</div>
 
-    <!-- 세션 복구 배너 -->
-    <div id="recovery-banner" style="display:none;margin-top:16px;background:#f0f7ff;border:1.5px solid #bfdaff;border-radius:12px;padding:14px 18px;text-align:center">
-      <div id="recovery-info" style="font-size:14px;color:var(--text2);margin-bottom:10px"></div>
-      <div style="display:flex;gap:10px;justify-content:center">
-        <button onclick="doRecover()" style="padding:8px 20px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-weight:700;font-size:14px;cursor:pointer;font-family:'Pretendard',sans-serif">🔄 복구하기</button>
-        <button onclick="dismissRecovery()" style="padding:8px 20px;background:var(--surface2);color:var(--text3);border:1px solid var(--border);border-radius:8px;font-weight:700;font-size:14px;cursor:pointer;font-family:'Pretendard',sans-serif">✕ 무시</button>
-      </div>
-    </div>
-
     <!-- ══ 네트워크 설정 패널 ══ -->
     <div style="margin-top:14px">
       <button class="srv-toggle-btn" onclick="toggleServerSettings()">
@@ -210,7 +201,7 @@
                 <span id="step1-method-name" style="font-size:18px;font-weight:700">✕</span>
               </div>
               <span class="step-arrow">→</span>
-              <input class="enc-input" id="enc-input-1" type="text" placeholder="1단계 암호화 결과" oninput="onEncInput()">
+              <input class="enc-input" id="enc-input-1" type="text" placeholder="1단계 암호화 결과">
             </div>
             <div class="enc-step" id="step2-row" style="display:none">
               <div class="enc-label" style="width:auto;padding:0 10px">
@@ -285,7 +276,7 @@
       <h3>🏆 최종 순위</h3>
       <div id="go-rank-list"></div>
     </div>
-    <button class="btn-primary" onclick="clearSession();clearGameState();location.reload()" style="margin-top:0">새 게임 시작</button>
+    <button class="btn-primary" onclick="location.reload()" style="margin-top:0">새 게임 시작</button>
   </div>
 </div>
 

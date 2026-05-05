@@ -11,6 +11,8 @@ function resizeCanvas() {
 }
 
 function initCanvas() {
+  if (canvas._initialized) return;
+  canvas._initialized = true;
   canvas.addEventListener('mousedown', e => {
     drawing = true;
     const rect = canvas.getBoundingClientRect();

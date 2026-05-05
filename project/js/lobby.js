@@ -22,16 +22,12 @@ function enterGame() {
   if (!myNick || !val) { setLobbyStatus('닉네임과 방 코드를 입력하세요', 'error'); return; }
   roomId = 'CGv4-' + val;
 
-  const prevSession = loadSession();
-  const sameSession = prevSession && prevSession.roomId === roomId && prevSession.nick === myNick;
-  const prevPeerId = sameSession ? prevSession.peerId : null;
-
   if (lobbyMode === 'host') {
     setLobbyStatus('방 생성 중...', '');
     becomeHost();
   } else {
     setLobbyStatus('접속 시도 중...', '');
-    joinAsClient(prevPeerId);
+    joinAsClient();
   }
 }
 
@@ -52,10 +48,8 @@ function becomeHost() {
         hostCreateRetries = 0;
         myId = roomId;
         isHost = true;
-        gameState.hostPeerId = myId;
         gameState.players[myId] = { nick: myNick, score: 0, online: true };
         gameState.totalRounds = selectedRounds;
-        saveSession();
         showGameUI();
         attachHostListeners();
       });
@@ -74,11 +68,6 @@ function becomeHost() {
           }
         } else {
           setLobbyStatus('오류 (' + formatPeerError(e) + '). 다른 코드를 사용하세요.', 'error');
-        }
-      });
-      peer.on('disconnected', () => {
-        if (isHost && peer && !peer.destroyed) {
-          try { peer.reconnect(); } catch(e) {}
         }
       });
     }, delay);
@@ -112,78 +101,38 @@ function attachHostListeners() {
   });
 }
 
-let clientRetries = 0;
-let clientRetryTimer = null;
-
-function joinAsClient(prevPeerId) {
+function joinAsClient() {
   isHost = false;
-  saveSession();
-  if (clientRetryTimer) { clearTimeout(clientRetryTimer); clientRetryTimer = null; }
-
   if (peer && !peer.destroyed) {
     try { peer.destroy(); } catch(e) {}
   }
-  const _prevId = prevPeerId || null;
   peer = createPeer(undefined);
   peer.on('open', id => {
     myId = id;
-    saveSession();
     const c = peer.connect(roomId, { reliable: true });
     let ok = false;
     c.on('open', () => {
-      ok = true; conn = c;
-      clientRetries = 0;
+      ok = true;
+      conn = c;
       conn.on('data', d => handleData(d, 'host'));
       conn.on('close', () => {
-        isHost = false;
-        saveSession();
-        showReconnectBanner();
+        showToast('호스트와의 연결이 끊겼습니다.', 'error');
       });
-      if (_prevId && _prevId !== myId) {
-        conn.send({ type: 'rejoin', nick: myNick, peerId: myId, prevPeerId: _prevId });
-      } else {
-        conn.send({ type: 'join', nick: myNick, peerId: myId });
-      }
+      conn.send({ type: 'join', nick: myNick, peerId: myId });
       showGameUI();
     });
     c.on('error', e => {
       logPeerError('client-connect', e);
-      if (!ok) retryJoinAsClient(_prevId);
+      if (!ok) setLobbyStatus('방을 찾을 수 없습니다. 호스트가 먼저 접속해야 합니다.', 'error');
     });
     setTimeout(() => {
-      if (!ok) retryJoinAsClient(_prevId);
+      if (!ok) setLobbyStatus('방을 찾을 수 없습니다. 호스트가 먼저 접속해야 합니다.', 'error');
     }, 4000);
   });
   peer.on('error', e => {
     logPeerError('client-peer', e);
-    retryJoinAsClient(_prevId);
+    setLobbyStatus('연결 오류: ' + formatPeerError(e), 'error');
   });
-}
-
-function retryJoinAsClient(prevId) {
-  if (clientRetryTimer) return;
-  clientRetries++;
-  if (clientRetries <= 12) {
-    const wait = Math.min(2000 + clientRetries * 1000, 5000);
-    const sec = Math.ceil(wait / 1000);
-    const inGame = document.getElementById('game-ui').style.display !== 'none';
-    if (inGame) {
-      if (clientRetries <= 2 || clientRetries % 3 === 0) {
-        showToast(`🔄 호스트 재접속 대기 중... (${clientRetries}/12)`, 'info');
-      }
-    } else {
-      setLobbyStatus('호스트 접속 대기 중... (' + clientRetries + '/12, ' + sec + '초 후 재시도)', '');
-    }
-    clientRetryTimer = setTimeout(function() { clientRetryTimer = null; joinAsClient(prevId); }, wait);
-  } else {
-    clientRetries = 0;
-    const inGame = document.getElementById('game-ui').style.display !== 'none';
-    if (inGame) {
-      showToast('🚫 호스트를 찾을 수 없습니다.', 'error');
-    } else {
-      setLobbyStatus('방을 찾을 수 없습니다. 호스트가 아직 접속하지 않았거나 방 코드를 확인하세요.', 'error');
-    }
-  }
 }
 
 function setLobbyStatus(msg, type) {
@@ -194,8 +143,6 @@ function setLobbyStatus(msg, type) {
 
 function leaveRoom() {
   if (!confirm('방을 나가시겠습니까?')) return;
-  clearSession();
-  clearGameState();
   if (peer) { try { peer.destroy(); } catch(e) {} }
   location.reload();
 }
