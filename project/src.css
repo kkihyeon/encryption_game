@@ -1,3 +1,4 @@
+/* ── 전역: 디자인 토큰 (색상·반경·그림자 CSS 변수) ── */
 :root {
   --bg: #f9fafb;
   --surface: #ffffff;
@@ -20,6 +21,7 @@
   --shadow: 0 4px 16px rgba(0,0,0,0.08);
 }
 
+/* ── 전역: 기본 폰트 & 배경 ── */
 .mono { font-family: 'Pretendard', sans-serif; font-weight: 700; }
 
 body {
@@ -625,6 +627,7 @@ body {
   margin-left: 6px;
 }
 
+/* ── 전역: 스크롤바 스타일 ── */
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }

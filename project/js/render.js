@@ -1,5 +1,6 @@
 // ════════════════════════════════════════
 //  CLIENT TIMER
+//  인게임: 클라이언트가 로컬에서 독립적으로 타이머 진행 (sync 전송 지연 보정)
 // ════════════════════════════════════════
 function startClientTimer() {
   if (clientTimerInterval) clearInterval(clientTimerInterval);
@@ -20,6 +21,7 @@ function startClientTimer() {
 
 // ════════════════════════════════════════
 //  GUIDE
+//  가이드 오버레이 열기/닫기 및 탭 전환
 // ════════════════════════════════════════
 function openGuide() {
   document.getElementById('guide-overlay').classList.add('visible');
@@ -37,7 +39,10 @@ function switchGuideTab(tab) {
 
 // ════════════════════════════════════════
 //  RENDER
+//  인게임: UI 전체 갱신 및 각 영역별 렌더 함수
 // ════════════════════════════════════════
+
+// 로비 → 인게임 전환: 로비 숨기고 game-ui 표시, 캔버스·방식 셀렉터 초기화
 function showGameUI() {
   document.getElementById('lobby').style.display = 'none';
   const ui = document.getElementById('game-ui');
@@ -49,6 +54,7 @@ function showGameUI() {
   renderAll();
 }
 
+// 인게임: 헤더·플레이어·순위·중앙·액션 전체 동기화 (sync 수신 또는 상태 변경 시마다 호출)
 function renderAll() {
   renderHeader();
   renderPlayerList();
@@ -58,6 +64,7 @@ function renderAll() {
   if (gameState.status==='finished') showGameOver();
 }
 
+// 인게임 헤더: 페이즈명·타이머·라운드·내 역할 뱃지 표시
 function renderHeader() {
   const phases = { encoding:'출제 단계', guessing:'해독 단계', round_end:'라운드 종료', idle:'대기 중' };
   document.getElementById('phase-label').textContent = phases[gameState.phase]||'대기 중';
@@ -88,6 +95,7 @@ function renderHeader() {
   }
 }
 
+// 인게임 사이드: 참가자 카드 목록 (턴 순서대로, 역할·점수·제출 상태 표시)
 function renderPlayerList() {
   const list = document.getElementById('player-list');
   list.innerHTML = '';
@@ -134,6 +142,7 @@ function renderPlayerList() {
     list.appendChild(card);
   });
 
+  // 플레이어가 1명이면 빈 슬롯 표시 (최소 2명 슬롯 보장)
   const shown = displayOrder.length;
   for (let i=shown; i<Math.max(shown,2); i++) {
     const g = document.createElement('div');
@@ -143,6 +152,7 @@ function renderPlayerList() {
   }
 }
 
+// 인게임 사이드: 점수 순위 목록 (상위 3위 메달 색상)
 function renderRankList() {
   const sorted = Object.entries(gameState.players).filter(([,p])=>p && p.online!==false).sort(([,a],[,b])=>b.score-a.score);
   const el = document.getElementById('rank-list');
@@ -162,6 +172,10 @@ function renderRankList() {
   });
 }
 
+// 인게임 중앙: 페이즈 배너 + 암호문 + 힌트 칩 표시
+// - encoding: 출제 중 안내
+// - guessing: 암호문·힌트 공개 (1방식=키값, 2방식=방식명+키값)
+// - round_end: 원본·암호문 공개 및 정답자·출제자에게만 키값 공개
 function renderCenter() {
   const banner = document.getElementById('center-phase-banner');
   const cBox = document.getElementById('cipher-box-main');
@@ -200,6 +214,7 @@ function renderCenter() {
     const _keys = gameState.currentKeys || {};
     const _keyLabels = { 1: '순열', 2: '단위', 3: '시프트', 4: '레일' };
     if (gameState.currentMethods.length === 1) {
+      // 방식 1개: 키값만 힌트로 표시
       const mId = gameState.currentMethods[0];
       const keyVal = (_keys[mId] !== undefined && _keys[mId] !== null) ? _keys[mId] : '?';
       const chip = document.createElement('div');
@@ -207,6 +222,7 @@ function renderCenter() {
       chip.textContent = `키: ${keyVal}`;
       hints.appendChild(chip);
     } else {
+      // 방식 2개: clueSet(정렬된 ID)으로 방식명+키값 힌트 표시 (순서 비공개)
       gameState.clueSet.forEach(mId => {
         const m = METHODS[mId];
         const keyVal = (_keys[mId] !== undefined && _keys[mId] !== null) ? _keys[mId] : '?';
@@ -232,6 +248,7 @@ function renderCenter() {
     cText.className = 'cipher-text';
     cBox.className = 'cipher-box active';
     cLabel.textContent = '회차 결과';
+    // 정답자 또는 출제자에게만 키값 공개
     const myResult = gameState.guessResults[myId];
     const iAmEncoder = myId === gameState.turnOrder[gameState.currentTurnIdx % Math.max(gameState.turnOrder.length,1)];
     if ((myResult?.correct || iAmEncoder) && gameState.currentKeys && Object.keys(gameState.currentKeys).length > 0) {
@@ -248,6 +265,7 @@ function renderCenter() {
   }
 }
 
+// 인게임 액션 영역: 페이즈·역할에 따라 출제 UI / 해독 UI / 대기 UI 토글
 function renderActionArea() {
   const encUI = document.getElementById('enc-ui');
   const guessUI = document.getElementById('guess-ui');
@@ -306,6 +324,7 @@ function renderActionArea() {
 
 // ════════════════════════════════════════
 //  GAME OVER
+//  게임 종료 화면: 우승자 및 최종 순위 렌더
 // ════════════════════════════════════════
 function showGameOver() {
   const el = document.getElementById('game-over');
@@ -336,7 +355,10 @@ function showGameOver() {
 
 // ════════════════════════════════════════
 //  TOAST / ERROR
+//  인게임: 에러 메시지 및 토스트 알림 표시
 // ════════════════════════════════════════
+
+// 인게임(출제 UI): 암호화 오류 메시지 (5초 후 자동 숨김)
 function showEncError(msg) {
   const el = document.getElementById('enc-error-msg');
   el.textContent = msg;
@@ -345,6 +367,7 @@ function showEncError(msg) {
   el._timer = setTimeout(() => { el.style.display = 'none'; }, 5000);
 }
 
+// 인게임(해독 UI): 오답 오류 메시지 (5초 후 자동 숨김)
 function showGuessError(msg) {
   const el = document.getElementById('guess-error-msg');
   if (!el) return;
@@ -354,6 +377,7 @@ function showGuessError(msg) {
   el._timer = setTimeout(() => { el.style.display = 'none'; }, 5000);
 }
 
+// 공통: 화면 하단 토스트 알림 (2.8초 후 자동 제거)
 function showToast(msg, type='info') {
   const old = document.querySelector('.toast');
   if (old) old.remove();

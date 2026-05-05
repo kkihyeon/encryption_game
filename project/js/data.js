@@ -1,7 +1,12 @@
 // ════════════════════════════════════════
 //  DATA HANDLING
+//  P2P 메시지 수신 처리 및 상태 동기화 (공통)
 // ════════════════════════════════════════
+
+// 수신 메시지 라우팅: sync(공통) → 클라이언트 전용 → 호스트 전용 순서로 처리
 function handleData(data, fromId) {
+
+  // 공통: 호스트 → 클라이언트 상태 동기화 (매 1초 broadcast)
   if (data.type === 'sync') {
     const prevTurnIdx = gameState.currentTurnIdx;
     const prevPhase = gameState.phase;
@@ -22,6 +27,7 @@ function handleData(data, fromId) {
     return;
   }
 
+  // 클라이언트 전용: 암호화 검증 실패 / 해독 결과 / 리액션 수신
   if (!isHost) {
     if (data.type === 'enc_invalid') {
       showEncError('❌ 암호화 결과가 올바르지 않습니다. 다시 확인해주세요.');
@@ -45,6 +51,8 @@ function handleData(data, fromId) {
   }
 
   // ── 호스트 전용 처리 ──
+
+  // 인게임(호스트): 새 플레이어 접속 — players·turnOrder에 추가 후 sync
   if (data.type === 'join') {
     gameState.players[fromId] = { nick: data.nick, score: 0, online: true };
     if (gameState.status === 'playing' && !gameState.turnOrder.includes(fromId)) {
@@ -54,6 +62,7 @@ function handleData(data, fromId) {
     return;
   }
 
+  // 인게임(호스트): 출제자가 암호화 결과 제출 — 서버에서 재검증 후 해독 단계로 전환
   if (data.type === 'enc_submit') {
     if (gameState.phase !== 'encoding') return;
     const encoder = gameState.turnOrder[gameState.currentTurnIdx % gameState.turnOrder.length];
@@ -79,6 +88,7 @@ function handleData(data, fromId) {
     gameState.currentEncSteps = steps;
     gameState.lastEncResult = data.finalResult;
     gameState.currentKeys = keys || {};
+    // clueSet: 방식 ID를 오름차순 정렬하여 힌트로 공개 (암호화 순서는 숨김)
     gameState.clueSet = methods.length >= 2 ? [...methods].sort((a, b) => a - b) : [];
     gameState.guessResults = {};
     gameState.phase = 'guessing';
@@ -89,9 +99,10 @@ function handleData(data, fromId) {
     return;
   }
 
+  // 인게임(호스트): 해독자가 답 제출 — 정답·순서 검증 후 점수 부여
   if (data.type === 'guess_submit') {
     if (gameState.phase !== 'guessing') return;
-    if (gameState.guessResults[fromId]) return;
+    if (gameState.guessResults[fromId]) return; // 중복 제출 방지
     const elapsed = Math.floor((Date.now() - gameState.turnTimerStart) / 1000);
     const timeLeft = Math.max(0, GUESS_TIME - elapsed);
     const encoder = gameState.turnOrder[gameState.currentTurnIdx % gameState.turnOrder.length];
@@ -101,7 +112,7 @@ function handleData(data, fromId) {
     const success = orderOK && answerOK;
 
     if (success) {
-      const pts = 10 + Math.floor(timeLeft * 0.04);
+      const pts = 10 + Math.floor(timeLeft * 0.04); // 기본 10pt + 남은 시간 보너스
       gameState.guessResults[fromId] = { correct: true, points: pts };
       if (gameState.players[fromId]) gameState.players[fromId].score += pts;
       if (fromId === myId) showToast(`✅ 정답! +${pts}pt 획득!`, 'success');
@@ -116,6 +127,7 @@ function handleData(data, fromId) {
       return;
     }
 
+    // 모든 해독자가 제출했으면 round_end로 전환 (5초 후 다음 턴)
     const guessers = gameState.turnOrder.filter(id => id !== encoder && gameState.players[id]?.online !== false);
     const allDone = guessers.every(id => gameState.guessResults[id]);
     if (allDone) {
@@ -128,6 +140,7 @@ function handleData(data, fromId) {
     return;
   }
 
+  // 인게임(호스트): 리액션 이모지 — 발신자 제외 전체 중계
   if (data.type === 'reaction') {
     Object.entries(connections).forEach(([id, c]) => { if (id !== fromId) c.send(data); });
     showFloatingReaction(data.emoji);
@@ -135,6 +148,7 @@ function handleData(data, fromId) {
   }
 }
 
+// 호스트 → 전체 클라이언트에 gameState를 sync 메시지로 전송 후 자신도 renderAll
 function broadcast() {
   if (!isHost) return;
   const msg = { type: 'sync', state: gameState };
@@ -143,6 +157,7 @@ function broadcast() {
   renderAll();
 }
 
+// 공통: 호스트면 handleData 직접 호출, 클라이언트면 conn.send
 function send(data) {
   if (isHost) handleData(data, myId);
   else conn.send(data);

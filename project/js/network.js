@@ -1,16 +1,21 @@
 // ════════════════════════════════════════
 //  NETWORK MODE
+//  WAN(PeerJS P2P) vs LAN(WebSocket) 모드 선택 및 연결 생성 (공통)
 // ════════════════════════════════════════
+
+// localStorage 설정값으로 LAN 모드 여부 확인
 function isLanMode() {
   return localStorage.getItem('enc_server_mode') === 'lan';
 }
 
+// LAN 모드에서 사용할 WebSocket 서버 URL 조합
 function _getWsUrl() {
   const host = (localStorage.getItem('enc_ws_host') || '127.0.0.1').trim();
   const port = (localStorage.getItem('enc_ws_port') || '9000').trim();
   return 'ws://' + host + ':' + port;
 }
 
+// WAN 모드 PeerJS 옵션 (STUN 서버 목록)
 function getPeerOptions() {
   const opts = {
     debug: PEER_DEBUG_LEVEL,
@@ -19,6 +24,7 @@ function getPeerOptions() {
   return opts;
 }
 
+// 모드에 따라 PeerJS(WAN) 또는 WsPeer(LAN) 인스턴스 생성
 function createPeer(id) {
   if (isLanMode()) {
     const wsUrl = _getWsUrl();
@@ -44,7 +50,10 @@ function logPeerError(context, e) {
 
 // ════════════════════════════════════════
 //  WS PEER (같은망 / Python 서버 전용)
+//  PeerJS API를 흉내내어 lobby.js·data.js가 WAN/LAN을 구분하지 않아도 되게 함
 // ════════════════════════════════════════
+
+// WsPeer 위에서 동작하는 단일 연결 객체 (PeerJS DataConnection 호환 인터페이스)
 class WsConn {
   constructor(peer, remoteId) {
     this._peer = peer;
@@ -69,6 +78,7 @@ class WsConn {
   }
 }
 
+// Python server.py WebSocket 릴레이를 통해 P2P를 흉내내는 피어 (PeerJS Peer 호환 인터페이스)
 class WsPeer {
   constructor(id, wsUrl) {
     this._reqId = id || null;
@@ -88,6 +98,7 @@ class WsPeer {
   _emit(evt, ...args) {
     (this._evts[evt] || []).forEach(cb => { try { cb(...args); } catch(e) {} });
   }
+  // WebSocket 연결 초기화 및 메시지 라우팅
   _doConnect() {
     if (this.destroyed) return;
     const url = this._wsUrl + '?id=' + encodeURIComponent(this._reqId || '__random__');

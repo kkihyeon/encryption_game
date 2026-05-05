@@ -1,6 +1,9 @@
 // ════════════════════════════════════════
 //  LOBBY
+//  로비 페이지 UI 제어 및 P2P 연결 초기화
 // ════════════════════════════════════════
+
+// 로비: 방 만들기(host) / 방 참가하기(join) 탭 전환
 function switchTab(mode) {
   lobbyMode = mode;
   document.getElementById('tab-host').classList.toggle('active', mode==='host');
@@ -9,6 +12,7 @@ function switchTab(mode) {
   document.getElementById('lobby-btn').textContent = mode==='host' ? '▶ 방 만들기' : '▶ 참가하기';
 }
 
+// 로비: 라운드 수 선택 (뱃지 활성화)
 function selectRound(n) {
   selectedRounds = n;
   document.querySelectorAll('.round-badge').forEach(el => {
@@ -16,6 +20,7 @@ function selectRound(n) {
   });
 }
 
+// 로비: 입력값 검증 후 호스트/클라이언트로 분기
 function enterGame() {
   myNick = document.getElementById('user-nick').value.trim();
   const val = document.getElementById('room-id').value.trim().toUpperCase();
@@ -34,6 +39,7 @@ function enterGame() {
 let hostCreateRetries = 0;
 let hostRetryTimer = null;
 
+// 로비(호스트): roomId로 PeerJS 방 생성, 동일 ID 충돌 시 최대 8회 재시도
 function becomeHost() {
   if (hostRetryTimer) { clearTimeout(hostRetryTimer); hostRetryTimer = null; }
 
@@ -74,6 +80,7 @@ function becomeHost() {
   }
 }
 
+// 인게임(호스트): 새 클라이언트 접속 이벤트 — join·data·close 처리
 function attachHostListeners() {
   peer.on('connection', c => {
     c.on('open', () => {
@@ -101,6 +108,7 @@ function attachHostListeners() {
   });
 }
 
+// 로비(클라이언트): 호스트 방에 연결 후 join 메시지 전송
 function joinAsClient() {
   isHost = false;
   if (peer && !peer.destroyed) {
@@ -135,12 +143,14 @@ function joinAsClient() {
   });
 }
 
+// 로비: 상태 메시지 표시 (error=빨강 / ok=초록 / 기본=회색)
 function setLobbyStatus(msg, type) {
   const el = document.getElementById('lobby-status');
   el.textContent = msg;
   el.style.color = type==='error' ? '#ff8080' : type==='ok' ? '#15803d' : 'var(--text3)';
 }
 
+// 공통: 방 나가기 — peer 소멸 후 페이지 새로고침
 function leaveRoom() {
   if (!confirm('방을 나가시겠습니까?')) return;
   if (peer) { try { peer.destroy(); } catch(e) {} }

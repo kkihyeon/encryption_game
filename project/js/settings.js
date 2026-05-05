@@ -1,14 +1,17 @@
 // ════════════════════════════════════════
 //  SERVER SETTINGS UI
+//  로비: 네트워크 설정 패널 (WAN/LAN 모드 선택 및 저장)
 // ════════════════════════════════════════
 let _srvPanelOpen = false;
 
+// 로비: 네트워크 설정 패널 펼치기/접기 토글
 function toggleServerSettings() {
   _srvPanelOpen = !_srvPanelOpen;
   document.getElementById('srv-panel').style.display = _srvPanelOpen ? 'block' : 'none';
   document.getElementById('srv-arrow').textContent = _srvPanelOpen ? '▲' : '▼';
 }
 
+// 로비: WAN(P2P) / LAN(WebSocket) 모드 전환 및 해당 설정 패널 표시
 function setServerMode(mode) {
   localStorage.setItem('enc_server_mode', mode);
   const isLan = mode === 'lan';
@@ -21,6 +24,7 @@ function setServerMode(mode) {
   if (isLan) fetchMyLanIp();
 }
 
+// 로비(LAN): 호스트 IP·포트 저장
 function saveSrvLan() {
   const host = (document.getElementById('srv-ws-host-input').value || '').trim();
   const port = (document.getElementById('srv-ws-port-input').value || '9000').trim();
@@ -30,6 +34,7 @@ function saveSrvLan() {
   showToast('✅ 저장되었습니다.', 'success');
 }
 
+// 로비(LAN): server.py /api/info 엔드포인트에서 내 IP 자동 감지 (2.5초 타임아웃)
 async function fetchMyLanIp() {
   const ipEl = document.getElementById('my-lan-ip');
   const hintEl = document.getElementById('my-lan-ip-hint');
@@ -59,6 +64,7 @@ async function fetchMyLanIp() {
   }
 }
 
+// 로비: 페이지 로드 시 localStorage 설정값을 패널 UI에 반영
 function initServerSettings() {
   const mode = localStorage.getItem('enc_server_mode') || 'wan';
   const isLan = mode === 'lan';

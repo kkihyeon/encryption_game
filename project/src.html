@@ -10,7 +10,11 @@
 </head>
 <body>
 
-<!-- ══ LOBBY ══ -->
+<!-- ══════════════════════════════════════════════════
+     페이지 1: LOBBY
+     닉네임·방코드 입력 → 방 만들기(호스트) / 방 참가하기(클라이언트) 선택
+     게임 시작 전 전체 화면을 덮는 고정 오버레이 (z-index: 100)
+     ══════════════════════════════════════════════════ -->
 <div id="lobby">
   <div class="lobby-card">
     <div class="lobby-title">
@@ -110,7 +114,11 @@
   </div>
 </div>
 
-<!-- ══ GAME UI ══ -->
+<!-- ══════════════════════════════════════════════════
+     페이지 2: GAME UI (인게임)
+     로비 입장 후 표시. 헤더(페이즈/타이머/라운드) + 사이드 패널(참가자/순위)
+     + 중앙 캔버스 + 액션 영역(출제 UI / 해독 UI / 대기 UI)으로 구성
+     ══════════════════════════════════════════════════ -->
 <div id="game-ui" style="display:none; height:100vh; flex-direction:column">
 
   <!-- Header -->
@@ -267,7 +275,11 @@
   </div>
 </div>
 
-<!-- ══ GAME OVER ══ -->
+<!-- ══════════════════════════════════════════════════
+     페이지 3: GAME OVER (게임 종료)
+     모든 라운드가 끝나면 game-ui 위에 겹쳐서 표시 (z-index: 200)
+     최종 우승자 및 점수 순위 표시 → 새 게임 시작(location.reload)
+     ══════════════════════════════════════════════════ -->
 <div id="game-over" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(236,242,248,0.97);align-items:center;justify-content:center">
   <div class="go-card">
     <div class="go-title">게임 종료</div>
@@ -280,7 +292,12 @@
   </div>
 </div>
 
-<!-- ══ GUIDE OVERLAY ══ -->
+<!-- ══════════════════════════════════════════════════
+     페이지 4: GUIDE OVERLAY (게임 가이드)
+     로비의 📖 버튼으로 열리는 전체 화면 오버레이 (z-index: 300)
+     탭 1: 게임 흐름 가이드 + 인게임 UI 주석 목업
+     탭 2: 4가지 암호화 방식 설명 카드 (키순서/애너그램/카이사르/스키테일)
+     ══════════════════════════════════════════════════ -->
 <div id="guide-overlay">
   <div class="guide-header">
     <span class="guide-header-title">GUIDE</span>
@@ -426,6 +443,7 @@
 
     <!-- 암호화 가이드 탭 -->
     <div class="cipher-guide" id="gpanel-cipher">
+      <!-- 암호화 방식 1: 키 순서 (KEY) — 순열 키로 n글자 단위 재배열 -->
       <div class="cipher-card">
         <div class="cipher-card-header">
           <div class="cipher-card-badge" style="background:#ff6b3522;border:1.5px solid #ff6b35;color:#ff6b35">KEY</div>
@@ -464,6 +482,7 @@
         </div>
       </div>
 
+      <!-- 암호화 방식 2: 애너그램 (ANA) — unit 크기 단위로 역순 뒤집기 -->
       <div class="cipher-card">
         <div class="cipher-card-header">
           <div class="cipher-card-badge" style="background:#a855f722;border:1.5px solid #a855f7;color:#a855f7">ANA</div>
@@ -510,6 +529,7 @@
         </div>
       </div>
 
+      <!-- 암호화 방식 3: 카이사르 (CAE) — 알파벳을 shift 칸 오른쪽 이동 (Z→A 순환) -->
       <div class="cipher-card">
         <div class="cipher-card-header">
           <div class="cipher-card-badge" style="background:#22c55e22;border:1.5px solid #22c55e;color:#22c55e">CAE</div>
@@ -555,6 +575,7 @@
         </div>
       </div>
 
+      <!-- 암호화 방식 4: 스키테일 (SKY) — rails행 격자에 가로로 채우고 세로로 읽기 -->
       <div class="cipher-card">
         <div class="cipher-card-header">
           <div class="cipher-card-badge" style="background:#4da6ff22;border:1.5px solid #4da6ff;color:#4da6ff">SKY</div>
