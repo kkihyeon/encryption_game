@@ -1,22 +1,23 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import sys; sys.dont_write_bytecode = True
 """
 암호화 대전 게임 - Python 래퍼
 ────────────────────────────────────────────────────
 실행: python server.py [포트]   (기본값: 9000)
 
-하나의 포트에서 세 가지를 동시에 처리합니다:
+하나의 포트에서 네 가지를 동시에 처리합니다:
   1) HTTP  GET /          → src.html 서빙
-  2) HTTP  GET /api/info  → LAN IP·포트 JSON 반환
-  3) WebSocket            → 게임 플레이어 간 메시지 중계
+  2) HTTP  GET /src.css, /js/*.js  → 정적 파일 서빙
+  3) HTTP  GET /api/info  → LAN IP·포트 JSON 반환
+  4) WebSocket            → 게임 플레이어 간 메시지 중계
 
 표준 라이브러리만 사용 (pip install 불필요, Python 3.6+)
 ────────────────────────────────────────────────────
 """
+import sys
+sys.dont_write_bytecode = True
 
 import os
-import sys
 import json
 import socket
 import struct
@@ -31,6 +32,9 @@ from urllib.parse import parse_qs, urlparse
 # ── 설정 ─────────────────────────────────────────
 PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 9000
 
+# WebSocket 수신 메시지 최대 크기 (과도한 메시지로 인한 메모리 소진 방지)
+MAX_WS_MSG = 2 * 1024 * 1024  # 2 MB
+
 def resource_path(filename):
     """
     --onefile 빌드 시 PyInstaller는 임시폴더(sys._MEIPASS)에 파일을 풀어놓음.
@@ -41,6 +45,19 @@ def resource_path(filename):
     return os.path.join(os.path.dirname(os.path.abspath(__file__)), filename)
 
 HTML_FILE = resource_path('src.html')
+
+# 정적 파일 서빙 기준 디렉터리 (path traversal 방지에 사용)
+BASE_DIR = os.path.realpath(
+    sys._MEIPASS if hasattr(sys, '_MEIPASS')
+    else os.path.dirname(os.path.abspath(__file__))
+)
+
+# 허용된 파일 확장자 → Content-Type 매핑
+CONTENT_TYPES = {
+    '.html': 'text/html; charset=utf-8',
+    '.css':  'text/css; charset=utf-8',
+    '.js':   'text/javascript; charset=utf-8',
+}
 
 # ── WebSocket 클라이언트 목록 ─────────────────────
 _ws_clients = {}   # peer_id -> socket
@@ -118,6 +135,11 @@ def ws_recv_frame(conn):
             raw = recv_exact(8)
             if raw is None: return None
             length = struct.unpack('>Q', raw)[0]
+
+        # 비정상적으로 큰 메시지 차단
+        if length > MAX_WS_MSG:
+            print(f'  [WS!] 메시지 크기 초과 ({length} bytes) — 연결 차단')
+            return None
 
         mask_key = recv_exact(4) if masked else b'\x00\x00\x00\x00'
         if mask_key is None: return None
@@ -274,6 +296,33 @@ def serve_html(conn):
         body = f.read()
     http_response(conn, '200 OK', 'text/html; charset=utf-8', body)
 
+def serve_static(conn, clean_path):
+    """
+    CSS·JS 정적 파일 서빙.
+    - BASE_DIR 외부 경로 차단 (path traversal 방지)
+    - 허용 확장자(.css, .js)만 서빙
+    """
+    rel = clean_path.lstrip('/')
+    target = os.path.realpath(os.path.join(BASE_DIR, rel))
+
+    # BASE_DIR 밖 접근 차단
+    if not target.startswith(BASE_DIR + os.sep):
+        serve_not_found(conn)
+        return
+
+    _, ext = os.path.splitext(target)
+    if ext.lower() not in CONTENT_TYPES:
+        serve_not_found(conn)
+        return
+
+    if not os.path.isfile(target):
+        serve_not_found(conn)
+        return
+
+    with open(target, 'rb') as f:
+        body = f.read()
+    http_response(conn, '200 OK', CONTENT_TYPES[ext.lower()], body)
+
 def serve_api_info(conn):
     """GET /api/info → {ip, port} JSON"""
     body = json.dumps({'ip': LAN_IP, 'port': PORT}, ensure_ascii=False).encode('utf-8')
@@ -313,17 +362,17 @@ def handle_connection(conn, addr):
             return
 
         # ── 일반 HTTP 요청 ──
-        clean_path = urlparse(path).path.rstrip('/')
+        clean_path = urlparse(path).path
 
-        if clean_path in ('', '/'):
+        if clean_path.rstrip('/') in ('', '/'):
             serve_html(conn)
         elif clean_path == '/api/info':
             serve_api_info(conn)
         else:
-            serve_not_found(conn)
+            serve_static(conn, clean_path)
 
-    except Exception as e:
-        pass
+    except Exception:
+        pass  # 연결 초기화 중 소켓 오류 (클라이언트 조기 종료 등)
     finally:
         try:
             conn.close()
