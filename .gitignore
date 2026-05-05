@@ -5,3 +5,8 @@
 __pycache__/
 *.pyc
 *.pyo
+
+# PyInstaller 빌드 산물
+project/build/
+project/dist/
+project/*.spec
