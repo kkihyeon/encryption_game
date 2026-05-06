@@ -43,6 +43,8 @@ function startHostTimer() {
     if (left <= 0) {
       clearInterval(timerInterval);
       if (gameState.phase === 'encoding') {
+        const encoder = gameState.turnOrder[gameState.currentTurnIdx % gameState.turnOrder.length];
+        if (gameState.players[encoder]) gameState.players[encoder].score -= 5;
         gameState.currentRaw = '⏰ 출제 시간 초과';
         gameState.phase = 'round_end';
         broadcast();
