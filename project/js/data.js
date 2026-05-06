@@ -37,7 +37,7 @@ function handleData(data, fromId) {
       if (data.correct) {
         showToast(`✅ 정답! +${data.points}pt 획득!`, 'success');
       } else {
-        showGuessError('❌ 오답! 계속 시도할 수 있습니다.');
+        showGuessError(`❌ 오답! ${data.points}pt 감점. 계속 시도할 수 있습니다.`);
         const btn = document.getElementById('btn-guess-submit');
         if (btn) { btn.disabled = false; btn.textContent = '해독 완료 🛡'; }
       }
@@ -118,11 +118,13 @@ function handleData(data, fromId) {
       if (fromId === myId) showToast(`✅ 정답! +${pts}pt 획득!`, 'success');
       else { const c = connections[fromId]; if (c) c.send({ type: 'guess_result', correct: true, points: pts }); }
     } else {
+      const PENALTY = 5;
+      if (gameState.players[fromId]) gameState.players[fromId].score -= PENALTY;
       if (fromId === myId) {
-        showGuessError('❌ 오답! 계속 시도할 수 있습니다.');
+        showGuessError(`❌ 오답! -${PENALTY}pt 감점. 계속 시도할 수 있습니다.`);
         const btn = document.getElementById('btn-guess-submit');
         if (btn) { btn.disabled = false; btn.textContent = '해독 완료 🛡'; }
-      } else { const c = connections[fromId]; if (c) c.send({ type: 'guess_result', correct: false, points: 0 }); }
+      } else { const c = connections[fromId]; if (c) c.send({ type: 'guess_result', correct: false, points: -PENALTY }); }
       broadcast();
       return;
     }
