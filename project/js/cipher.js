@@ -58,17 +58,15 @@ function keyEnc(s, keyNum) {
 // rails행 격자에 가로로 채우고 세로(열) 방향으로 읽어 암호문 생성
 function scytaleEnc(s, rails) {
   rails = Math.max(2, rails || 3);
-  const len = s.length;
-  const cols = Math.ceil(len / rails);
-  const padded = s.padEnd(rails * cols, '_');
+  const cols = Math.ceil(s.length / rails);
   let result = '';
   for (let col = 0; col < cols; col++) {
     for (let row = 0; row < rails; row++) {
       const idx = row * cols + col;
-      if (idx < rails * cols) result += padded[idx];
+      if (idx < s.length) result += s[idx];
     }
   }
-  return result.slice(0, len + (result.slice(len).replace(/_/g,'').length));
+  return result;
 }
 
 // 방식 ID(1~4)에 따라 해당 암호화 함수 호출
