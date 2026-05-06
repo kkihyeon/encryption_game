@@ -121,15 +121,14 @@ function handleData(data, fromId) {
   if (data.type === 'guess_submit') {
     if (gameState.phase !== 'guessing') return;
     if (gameState.guessResults[fromId]) return; // 중복 제출 방지
-    const elapsed = Math.floor((Date.now() - gameState.turnTimerStart) / 1000);
-    const timeLeft = Math.max(0, GUESS_TIME - elapsed);
     const encoder = gameState.turnOrder[gameState.currentTurnIdx % gameState.turnOrder.length];
     const orderOK = JSON.stringify(data.methodOrder) === JSON.stringify(gameState.currentMethods);
     const answerOK = data.answer.trim().toLowerCase() === gameState.currentRaw.trim().toLowerCase();
     const success = orderOK && answerOK;
 
     if (success) {
-      const pts = 10 + Math.floor(timeLeft * 0.04); // 기본 10pt + 남은 시간 보너스
+      const correctCount = Object.values(gameState.guessResults).filter(r => r.correct).length;
+      const pts = Math.max(1, 10 - correctCount); // 1등 10pt, 2등 9pt, 3등 8pt ...
       gameState.guessResults[fromId] = { correct: true, points: pts };
       if (gameState.players[fromId]) gameState.players[fromId].score += pts;
       if (fromId === myId) showToast(`✅ 정답! +${pts}pt 획득!`, 'success');
