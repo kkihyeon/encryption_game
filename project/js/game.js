@@ -100,7 +100,7 @@ function nextTurn() {
 // 인게임: 새 턴 시작 시 캔버스·메모·입력 필드·선택 상태 초기화
 function resetLocalState() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  document.getElementById('memo-area').value = '';
+  // 메모장은 개인 메모 공간이므로 턴이 바뀌어도 유지
   document.getElementById('raw-input').value = '';
   document.getElementById('enc-input-1').value = '';
   document.getElementById('enc-input-2').value = '';
