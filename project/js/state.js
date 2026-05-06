@@ -8,6 +8,7 @@ let peer, myId, isHost = false, roomId = '';
 let myNick = '', selectedRounds = 1;
 let connections = {}, conn = null; // connections: 호스트가 관리하는 클라이언트 맵
 let lobbyMode = 'host';            // 로비: 현재 선택된 탭 (host | join)
+let disconnectExpected = false;    // nick_taken으로 의도적 연결 해제 시 close 토스트 억제용
 
 // 인게임 — 캔버스 상태
 let currentMode = 'draw', drawColor = '#000000';

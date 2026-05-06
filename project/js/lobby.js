@@ -124,10 +124,11 @@ function joinAsClient() {
       conn = c;
       conn.on('data', d => handleData(d, 'host'));
       conn.on('close', () => {
+        if (disconnectExpected) { disconnectExpected = false; return; }
         showToast('호스트와의 연결이 끊겼습니다.', 'error');
       });
       conn.send({ type: 'join', nick: myNick, peerId: myId });
-      showGameUI();
+      // showGameUI()는 호스트의 join_ok 수신 후 호출
     });
     c.on('error', e => {
       logPeerError('client-connect', e);

@@ -27,8 +27,18 @@ function handleData(data, fromId) {
     return;
   }
 
-  // 클라이언트 전용: 암호화 검증 실패 / 해독 결과 / 리액션 수신
+  // 클라이언트 전용: 닉네임 중복 거부 / 입장 승인 / 암호화 검증 실패 / 해독 결과 / 리액션 수신
   if (!isHost) {
+    if (data.type === 'nick_taken') {
+      disconnectExpected = true;
+      setLobbyStatus('닉네임이 중복됩니다. 다른 닉네임을 사용하세요.', 'error');
+      if (conn) { try { conn.close(); } catch(e) {} conn = null; }
+      return;
+    }
+    if (data.type === 'join_ok') {
+      showGameUI();
+      return;
+    }
     if (data.type === 'enc_invalid') {
       showEncError('❌ 암호화 결과가 올바르지 않습니다. 다시 확인해주세요.');
       return;
@@ -52,12 +62,20 @@ function handleData(data, fromId) {
 
   // ── 호스트 전용 처리 ──
 
-  // 인게임(호스트): 새 플레이어 접속 — players·turnOrder에 추가 후 sync
+  // 인게임(호스트): 새 플레이어 접속 — 닉네임 중복 확인 후 players·turnOrder에 추가
   if (data.type === 'join') {
+    const nickTaken = Object.values(gameState.players).some(p => p.nick === data.nick && p.online !== false);
+    if (nickTaken) {
+      const c = connections[fromId];
+      if (c) c.send({ type: 'nick_taken' });
+      return;
+    }
     gameState.players[fromId] = { nick: data.nick, score: 0, online: true };
     if (gameState.status === 'playing' && !gameState.turnOrder.includes(fromId)) {
       gameState.turnOrder.push(fromId);
     }
+    const c = connections[fromId];
+    if (c) c.send({ type: 'join_ok' });
     broadcast();
     return;
   }
