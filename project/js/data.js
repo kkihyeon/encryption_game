@@ -106,8 +106,8 @@ function handleData(data, fromId) {
     gameState.currentEncSteps = steps;
     gameState.lastEncResult = data.finalResult;
     gameState.currentKeys = keys || {};
-    // clueSet: 방식 ID를 오름차순 정렬하여 힌트로 공개 (암호화 순서는 숨김)
-    gameState.clueSet = methods.length >= 2 ? [...methods].sort((a, b) => a - b) : [];
+    // clueSet: 방식 ID를 오름차순 정렬하여 힌트로 공개 (암호화 순서는 숨김, 1개여도 선택 필요)
+    gameState.clueSet = [...methods].sort((a, b) => a - b);
     gameState.guessResults = {};
     gameState.phase = 'guessing';
     gameState.turnTimerStart = Date.now();
@@ -124,8 +124,7 @@ function handleData(data, fromId) {
     const elapsed = Math.floor((Date.now() - gameState.turnTimerStart) / 1000);
     const timeLeft = Math.max(0, GUESS_TIME - elapsed);
     const encoder = gameState.turnOrder[gameState.currentTurnIdx % gameState.turnOrder.length];
-    const isSingleMethod = gameState.currentMethods.length === 1;
-    const orderOK = isSingleMethod ? true : JSON.stringify(data.methodOrder) === JSON.stringify(gameState.currentMethods);
+    const orderOK = JSON.stringify(data.methodOrder) === JSON.stringify(gameState.currentMethods);
     const answerOK = data.answer.trim().toLowerCase() === gameState.currentRaw.trim().toLowerCase();
     const success = orderOK && answerOK;
 

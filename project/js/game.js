@@ -298,36 +298,32 @@ function renderGuessUI() {
   guessUIBuiltForTurn = gameState.currentTurnIdx;
   steps.innerHTML = '';
 
-  const isSingle = gameState.currentMethods.length === 1;
   const label = document.getElementById('guess-ui-label');
-  if (label) label.textContent = isSingle ? '원본 메시지 입력' : '복호화 순서 추측 및 원본 입력';
   const num = gameState.clueSet.length;
-  guessMethodOrder = [];
-  if (!isSingle) {
-    guessMethodOrder = new Array(num).fill(null);
-    for (let i=0; i<num; i++) {
-      const div = document.createElement('div');
-      div.className = 'guess-step';
-      const sn = document.createElement('div');
-      sn.className = 'step-num'; sn.textContent = i+1;
-      const row = document.createElement('div');
-      row.className = 'guess-method-row';
-      gameState.clueSet.forEach(mId => {
-        const m = METHODS[mId];
-        const btn = document.createElement('button');
-        btn.className = `guess-m-btn m${mId}`;
-        btn.dataset.mid = mId; btn.dataset.step = i;
-        btn.textContent = m.name;
-        btn.onclick = () => {
-          document.querySelectorAll(`.guess-m-btn[data-step="${i}"]`).forEach(b => b.classList.remove('sel'));
-          btn.classList.add('sel');
-          guessMethodOrder[i] = mId;
-        };
-        row.appendChild(btn);
-      });
-      div.appendChild(sn); div.appendChild(row);
-      steps.appendChild(div);
-    }
+  if (label) label.textContent = num === 1 ? '암호화 방식 선택 및 원본 입력' : '복호화 순서 추측 및 원본 입력';
+  guessMethodOrder = new Array(num).fill(null);
+  for (let i=0; i<num; i++) {
+    const div = document.createElement('div');
+    div.className = 'guess-step';
+    const sn = document.createElement('div');
+    sn.className = 'step-num'; sn.textContent = i+1;
+    const row = document.createElement('div');
+    row.className = 'guess-method-row';
+    gameState.clueSet.forEach(mId => {
+      const m = METHODS[mId];
+      const btn = document.createElement('button');
+      btn.className = `guess-m-btn m${mId}`;
+      btn.dataset.mid = mId; btn.dataset.step = i;
+      btn.textContent = m.name;
+      btn.onclick = () => {
+        document.querySelectorAll(`.guess-m-btn[data-step="${i}"]`).forEach(b => b.classList.remove('sel'));
+        btn.classList.add('sel');
+        guessMethodOrder[i] = mId;
+      };
+      row.appendChild(btn);
+    });
+    div.appendChild(sn); div.appendChild(row);
+    steps.appendChild(div);
   }
 }
 
@@ -335,10 +331,9 @@ function renderGuessUI() {
 function submitGuess() {
   const answer = document.getElementById('guess-answer').value.trim();
   if (!answer) { showToast('원본 메시지를 입력하세요', 'error'); return; }
-  const isSingle = gameState.currentMethods.length === 1;
-  if (!isSingle && guessMethodOrder.some(v => v===null)) { showToast('모든 단계의 방식을 선택하세요', 'error'); return; }
+  if (guessMethodOrder.some(v => v===null)) { showToast('암호화 방식을 선택하세요', 'error'); return; }
   const btn = document.getElementById('btn-guess-submit');
   btn.disabled = true;
   btn.textContent = '확인 중...';
-  send({ type: 'guess_submit', methodOrder: isSingle ? [] : guessMethodOrder, answer });
+  send({ type: 'guess_submit', methodOrder: guessMethodOrder, answer });
 }
