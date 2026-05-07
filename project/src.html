@@ -451,28 +451,40 @@
         </div>
         <div class="cipher-card-desc">원문을 <strong>키의 자릿수 크기</strong>만큼 단위로 자른 뒤, 각 단위의 글자를 <strong>키 숫자가 나타내는 순서</strong>로 재배열합니다.</div>
         <div class="cipher-card-key">키 입력: 순열 숫자 (예: <span>21</span>, <span>312</span>, <span>4132</span>) — 각 자릿수는 1~n 범위의 중복 없는 위치 번호</div>
-        <svg viewBox="0 0 500 100" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:500px;margin:10px 0;display:block">
+        <svg viewBox="0 0 485 105" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:485px;margin:10px 0;display:block">
+          <!-- 왼쪽: ABC 주황 박스 (키 적용 대상) -->
           <g font-family="'Pretendard', sans-serif" font-size="14" font-weight="bold">
-            <rect x="10" y="30" width="36" height="36" rx="6" fill="#ff6b3522" stroke="#ff6b35" stroke-width="1.5"/><text x="28" y="53" text-anchor="middle" fill="#ff6b35">A</text>
-            <rect x="50" y="30" width="36" height="36" rx="6" fill="#ff6b3522" stroke="#ff6b35" stroke-width="1.5"/><text x="68" y="53" text-anchor="middle" fill="#ff6b35">B</text>
-            <rect x="90" y="30" width="36" height="36" rx="6" fill="#ff6b3522" stroke="#ff6b35" stroke-width="1.5"/><text x="108" y="53" text-anchor="middle" fill="#ff6b35">C</text>
-            <text x="28" y="20" text-anchor="middle" fill="#7a95b0" font-size="10">①</text>
-            <text x="68" y="20" text-anchor="middle" fill="#7a95b0" font-size="10">②</text>
-            <text x="108" y="20" text-anchor="middle" fill="#7a95b0" font-size="10">③</text>
+            <rect x="5" y="30" width="36" height="36" rx="6" fill="#ff6b3522" stroke="#ff6b35" stroke-width="1.5"/><text x="23" y="53" text-anchor="middle" fill="#ff6b35">A</text>
+            <rect x="45" y="30" width="36" height="36" rx="6" fill="#ff6b3522" stroke="#ff6b35" stroke-width="1.5"/><text x="63" y="53" text-anchor="middle" fill="#ff6b35">B</text>
+            <rect x="85" y="30" width="36" height="36" rx="6" fill="#ff6b3522" stroke="#ff6b35" stroke-width="1.5"/><text x="103" y="53" text-anchor="middle" fill="#ff6b35">C</text>
+            <text x="23" y="20" text-anchor="middle" fill="#7a95b0" font-size="10">①</text>
+            <text x="63" y="20" text-anchor="middle" fill="#7a95b0" font-size="10">②</text>
+            <text x="103" y="20" text-anchor="middle" fill="#7a95b0" font-size="10">③</text>
           </g>
-          <text x="145" y="50" font-family="'Pretendard', sans-serif" font-size="12" fill="#7a95b0">키=312</text>
-          <text x="190" y="54" font-size="20" fill="#7a95b0" font-family="Pretendard, sans-serif">→</text>
+          <!-- 왼쪽: DE 회색 점선 박스 (나머지) -->
           <g font-family="'Pretendard', sans-serif" font-size="14" font-weight="bold">
-            <rect x="220" y="30" width="36" height="36" rx="6" fill="#22c55e22" stroke="#22c55e" stroke-width="1.5"/><text x="238" y="53" text-anchor="middle" fill="#22c55e">C</text>
-            <rect x="260" y="30" width="36" height="36" rx="6" fill="#22c55e22" stroke="#22c55e" stroke-width="1.5"/><text x="278" y="53" text-anchor="middle" fill="#22c55e">A</text>
-            <rect x="300" y="30" width="36" height="36" rx="6" fill="#22c55e22" stroke="#22c55e" stroke-width="1.5"/><text x="318" y="53" text-anchor="middle" fill="#22c55e">B</text>
-            <text x="238" y="20" text-anchor="middle" fill="#7a95b0" font-size="10">③→1</text>
-            <text x="278" y="20" text-anchor="middle" fill="#7a95b0" font-size="10">①→2</text>
-            <text x="318" y="20" text-anchor="middle" fill="#7a95b0" font-size="10">②→3</text>
+            <rect x="129" y="30" width="36" height="36" rx="6" fill="rgba(200,214,229,0.2)" stroke="#c8d6e5" stroke-width="1" stroke-dasharray="3,2"/><text x="147" y="53" text-anchor="middle" fill="#7a95b0">D</text>
+            <rect x="169" y="30" width="36" height="36" rx="6" fill="rgba(200,214,229,0.2)" stroke="#c8d6e5" stroke-width="1" stroke-dasharray="3,2"/><text x="187" y="53" text-anchor="middle" fill="#7a95b0">E</text>
+            <text x="167" y="20" text-anchor="middle" fill="#7a95b0" font-size="9">나머지</text>
           </g>
-          <text x="345" y="50" font-family="'Pretendard', sans-serif" font-size="11" fill="#4a6080">3번→1위</text>
-          <text x="345" y="65" font-family="'Pretendard', sans-serif" font-size="11" fill="#4a6080">1번→2위</text>
-          <text x="345" y="80" font-family="'Pretendard', sans-serif" font-size="11" fill="#4a6080">2번→3위</text>
+          <!-- 중앙: 키 레이블 및 화살표 -->
+          <text x="215" y="47" font-family="'Pretendard', sans-serif" font-size="12" fill="#7a95b0">키=312</text>
+          <text x="252" y="54" font-size="20" fill="#7a95b0" font-family="Pretendard, sans-serif">→</text>
+          <!-- 오른쪽: CAB 초록 박스 (재배열 결과) -->
+          <g font-family="'Pretendard', sans-serif" font-size="14" font-weight="bold">
+            <rect x="278" y="30" width="36" height="36" rx="6" fill="#22c55e22" stroke="#22c55e" stroke-width="1.5"/><text x="296" y="53" text-anchor="middle" fill="#22c55e">C</text>
+            <rect x="318" y="30" width="36" height="36" rx="6" fill="#22c55e22" stroke="#22c55e" stroke-width="1.5"/><text x="336" y="53" text-anchor="middle" fill="#22c55e">A</text>
+            <rect x="358" y="30" width="36" height="36" rx="6" fill="#22c55e22" stroke="#22c55e" stroke-width="1.5"/><text x="376" y="53" text-anchor="middle" fill="#22c55e">B</text>
+            <text x="296" y="20" text-anchor="middle" fill="#7a95b0" font-size="10">③→1</text>
+            <text x="336" y="20" text-anchor="middle" fill="#7a95b0" font-size="10">①→2</text>
+            <text x="376" y="20" text-anchor="middle" fill="#7a95b0" font-size="10">②→3</text>
+          </g>
+          <!-- 오른쪽: DE 회색 점선 박스 (그대로 통과) -->
+          <g font-family="'Pretendard', sans-serif" font-size="14" font-weight="bold">
+            <rect x="402" y="30" width="36" height="36" rx="6" fill="rgba(200,214,229,0.2)" stroke="#c8d6e5" stroke-width="1" stroke-dasharray="3,2"/><text x="420" y="53" text-anchor="middle" fill="#7a95b0">D</text>
+            <rect x="442" y="30" width="36" height="36" rx="6" fill="rgba(200,214,229,0.2)" stroke="#c8d6e5" stroke-width="1" stroke-dasharray="3,2"/><text x="460" y="53" text-anchor="middle" fill="#7a95b0">E</text>
+            <text x="440" y="20" text-anchor="middle" fill="#7a95b0" font-size="9">그대로</text>
+          </g>
         </svg>
         <div class="cipher-example">
           원본: <span style="color:var(--accent2)">ABCDE</span> &nbsp; 키=<span style="color:#ff6b35">312</span> (자릿수 3 → 3글자씩 자름)<br>
