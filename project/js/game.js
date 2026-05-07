@@ -309,7 +309,7 @@ function renderGuessUI() {
     sn.className = 'step-num'; sn.textContent = i+1;
     const row = document.createElement('div');
     row.className = 'guess-method-row';
-    gameState.clueSet.forEach(mId => {
+    [1, 2, 3, 4].forEach(mId => {
       const m = METHODS[mId];
       const btn = document.createElement('button');
       btn.className = `guess-m-btn m${mId}`;

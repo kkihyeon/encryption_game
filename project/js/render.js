@@ -82,7 +82,7 @@ function renderHeader() {
   }
 
   document.getElementById('round-info').textContent =
-    gameState.status==='playing' ? `${gameState.currentRound} / ${gameState.totalRounds}` : '0 / 0';
+    gameState.status==='playing' ? `${gameState.currentRound} / ${gameState.totalRounds}` : `0 / ${gameState.totalRounds || 0}`;
 
   const me = gameState.players[myId];
   if (me) {
@@ -186,7 +186,7 @@ function renderCenter() {
 
   if (gameState.status==='lobby') {
     banner.className = 'phase-banner waiting';
-    banner.textContent = 'STANDBY — 플레이어가 접속하면 게임을 시작하세요';
+    banner.textContent = `STANDBY — ${gameState.totalRounds || 0}라운드 게임 | 플레이어 접속 대기 중`;
     cText.textContent = '메모장을 자유롭게 사용하거나 게임 시작을 기다리세요';
     cText.className = 'cipher-text muted';
     cBox.className = 'cipher-box';
