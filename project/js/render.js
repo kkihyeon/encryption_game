@@ -290,9 +290,11 @@ function renderActionArea() {
   if (gameState.phase==='encoding') {
     if (iAmEncoder) {
       encUI.classList.add('visible');
+      mgHide();
     } else {
       waitUI.classList.add('visible');
       document.getElementById('wait-text').textContent = `⏳ ${gameState.players[encoder]?.nick||'출제자'}님이 암호화 문제를 만들고 있습니다. 잠시 기다려주세요!`;
+      mgShow();
     }
   } else if (gameState.phase==='guessing') {
     if (!iAmEncoder) {
@@ -303,22 +305,26 @@ function renderActionArea() {
         document.getElementById('wait-text').textContent = res.correct
           ? `✅ 정답! +${res.points}점 획득! 다른 플레이어를 기다리는 중...`
           : `❌ 오답. 다른 플레이어를 기다리는 중...`;
+        mgHide();
       } else {
         guessUI.classList.add('visible');
         renderGuessUI();
         const btn = document.getElementById('btn-guess-submit');
         btn.disabled = false;
         btn.textContent = '해독 완료 🛡';
+        mgHide();
       }
     } else {
       waitUI.classList.add('visible');
       const submitted = Object.keys(gameState.guessResults||{}).filter(k=>k!=='_encoder_bonus').length;
       const total = gameState.turnOrder.filter(id=>id!==encoder && gameState.players[id]?.online!==false).length;
       document.getElementById('wait-text').textContent = `⏳ 플레이어들이 해독 중입니다... (${submitted}/${total} 제출)`;
+      mgShow();
     }
   } else if (gameState.phase==='round_end') {
     waitUI.classList.add('visible');
     document.getElementById('wait-text').textContent = '다음 차례로 넘어갑니다...';
+    mgHide();
   }
 }
 

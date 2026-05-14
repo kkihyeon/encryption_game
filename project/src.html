@@ -258,6 +258,10 @@
         <!-- WAITING UI -->
         <div class="wait-ui" id="wait-ui">
           <div class="wait-text" id="wait-text">대기 중...</div>
+          <!-- 대기 중 블록 쌓기 미니게임 (출제자 대기 / 해독자 대기 시에만 표시) -->
+          <div id="mini-game-wrap" style="display:none;flex-direction:column;align-items:center;gap:0">
+            <canvas id="stack-canvas" width="200" height="220" style="display:block;border-radius:10px;cursor:pointer" onclick="mgDrop()"></canvas>
+          </div>
           <div class="reaction-btns">
             <button class="reaction-btn" onclick="sendReaction('🔥')">🔥</button>
             <button class="reaction-btn" onclick="sendReaction('💡')">💡</button>
@@ -654,6 +658,7 @@
 
 <script src="js/cipher.js"></script>
 <script src="js/state.js"></script>
+<script src="js/minigame.js"></script>
 <script src="js/network.js"></script>
 <script src="js/canvas.js"></script>
 <script src="js/render.js"></script>
