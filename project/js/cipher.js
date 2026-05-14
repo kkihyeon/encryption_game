@@ -47,9 +47,7 @@ function keyEnc(s, keyNum) {
     if (chunk.length === n) {
       result += order.map(o => chunk[o - 1]).join('');
     } else {
-      for (let j = 0; j < order.length; j++) {
-        if (order[j] <= chunk.length) result += chunk[order[j] - 1];
-      }
+      result += chunk; // 나머지 청크는 키 자릿수보다 짧으므로 순서 그대로
     }
   }
   return result;
