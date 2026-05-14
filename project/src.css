@@ -35,9 +35,42 @@ body {
 #lobby {
   position: fixed; inset: 0; z-index: 100;
   display: flex; align-items: flex-start; justify-content: center;
-  background: radial-gradient(ellipse at 50% 40%, #dbeafe 0%, #f0f4f8 65%);
-  overflow-y: auto;
+  background: linear-gradient(160deg, #eef3fd 0%, #f5f7ff 45%, #f0f4fb 100%);
+  overflow: hidden;
   padding: 40px 16px;
+}
+
+/* 배경 블롭 (블러 처리된 컬러 원) */
+.lb {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(55px);
+  will-change: transform;
+}
+.lb1 {
+  width: 520px; height: 520px;
+  background: rgba(255, 195, 38, 0.58);
+  right: -100px; bottom: -120px;
+  animation: lb-drift 10s ease-in-out infinite;
+}
+.lb2 {
+  width: 440px; height: 440px;
+  background: rgba(49, 130, 246, 0.52);
+  left: -90px; bottom: -80px;
+  animation: lb-drift 12s ease-in-out infinite reverse;
+}
+.lb3 {
+  width: 380px; height: 380px;
+  background: rgba(100, 155, 255, 0.42);
+  right: 60px; top: -90px;
+  animation: lb-drift 14s ease-in-out infinite 2s;
+}
+
+@keyframes lb-drift {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  30%       { transform: translate(28px, -22px) scale(1.06); }
+  65%       { transform: translate(-18px, 16px) scale(0.96); }
 }
 
 .lobby-card {
