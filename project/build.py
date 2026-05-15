@@ -21,7 +21,7 @@ def main():
     print('=' * 50)
 
     # 필수 파일 확인
-    for f in ['server.py', 'src.html', 'src.css', 'js']:
+    for f in ['server.py', 'src.html', 'src.css', 'js', '암호화대전게임배경.png']:
         if not os.path.exists(f):
             print(f'  [오류] {f} 를 찾을 수 없습니다.')
             input('  아무 키나 누르세요...')
@@ -45,6 +45,7 @@ def main():
         '--add-data', f'src.html{sep}.',
         '--add-data', f'src.css{sep}.',
         '--add-data', f'js{sep}js',
+        '--add-data', f'암호화대전게임배경.png{sep}.',
         'server.py',
     ]
 
