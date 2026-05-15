@@ -27,7 +27,7 @@ import threading
 import uuid
 import webbrowser
 import time
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import parse_qs, urlparse, unquote
 
 # ── 설정 ─────────────────────────────────────────
 PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 9000
@@ -305,11 +305,12 @@ def serve_html(conn):
 
 def serve_static(conn, clean_path):
     """
-    CSS·JS 정적 파일 서빙.
+    CSS·JS·이미지 정적 파일 서빙.
     - BASE_DIR 외부 경로 차단 (path traversal 방지)
-    - 허용 확장자(.css, .js)만 서빙
+    - 허용 확장자만 서빙
+    - URL 인코딩된 한글 파일명 디코딩 처리
     """
-    rel = clean_path.lstrip('/')
+    rel = unquote(clean_path.lstrip('/'))
     target = os.path.realpath(os.path.join(BASE_DIR, rel))
 
     # BASE_DIR 밖 접근 차단
