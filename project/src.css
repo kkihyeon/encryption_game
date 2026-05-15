@@ -37,7 +37,7 @@ body {
   display: flex; align-items: flex-end; justify-content: center;
   background: url('암호화대전게임배경.png') center / cover no-repeat;
   overflow-y: auto;
-  padding: 0 16px 20px;
+  padding: 0 16px 90px;
 }
 
 .lobby-card {
