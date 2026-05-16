@@ -6,7 +6,7 @@
 // ID → 방식 매핑 (name=표시명, color=UI 색상, short=칩 약어)
 const METHODS = {
   1: { name: '키 순서', color: '#ff6b35', short: 'KEY' },
-  2: { name: '애너그램', color: '#a855f7', short: 'ANA' },
+  2: { name: '에너그램', color: '#a855f7', short: 'ANA' },
   3: { name: '카이사르', color: '#22c55e', short: 'CAE' },
   4: { name: '스키테일', color: '#4da6ff', short: 'SKY' }
 };

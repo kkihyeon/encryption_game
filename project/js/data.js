@@ -49,7 +49,7 @@ function handleData(data, fromId) {
       } else {
         showGuessError('❌ 오답! 계속 시도할 수 있습니다.');
         const btn = document.getElementById('btn-guess-submit');
-        if (btn) { btn.disabled = false; btn.textContent = '해독 완료 🛡'; }
+        if (btn) { btn.disabled = false; btn.textContent = '복호화 완료 🛡'; }
       }
       return;
     }

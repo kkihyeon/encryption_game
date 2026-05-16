@@ -66,7 +66,7 @@ function renderAll() {
 
 // 인게임 헤더: 페이즈명·타이머·라운드·내 역할 뱃지 표시
 function renderHeader() {
-  const phases = { encoding:'출제 단계', guessing:'해독 단계', round_end:'라운드 종료', idle:'대기 중' };
+  const phases = { encoding:'암호화 단계', guessing:'복호화 단계', round_end:'라운드 종료', idle:'대기 중' };
   document.getElementById('phase-label').textContent = phases[gameState.phase]||'대기 중';
 
   const timerEl = document.getElementById('timer-display');
@@ -123,7 +123,7 @@ function renderPlayerList() {
 
     let badge = '';
     if (isEncoder) badge = `<div class="player-turn-badge" style="background:rgba(255,60,60,0.18);color:#ff6060;border-color:rgba(255,60,60,0.4)">⚔ 출제 중</div>`;
-    else if (isGuesser && !alreadyGuessed) badge = `<div class="player-turn-badge guessing">🔍 해독 중</div>`;
+    else if (isGuesser && !alreadyGuessed) badge = `<div class="player-turn-badge guessing">🔍 복호화 중</div>`;
     else if (isGuesser && alreadyGuessed) {
       const res = gameState.guessResults[id];
       badge = res?.correct
@@ -199,14 +199,14 @@ function renderCenter() {
 
   if (gameState.phase==='encoding') {
     banner.className = 'phase-banner encoding';
-    banner.textContent = `⚔ 출제 단계 — ${encoderName}님이 암호화 중`;
+    banner.textContent = `⚔ 암호화 단계 — ${encoderName}님이 암호화 중`;
     cText.textContent = '출제자가 암호화 문제를 만들고 있습니다...';
     cText.className = 'cipher-text muted';
     cBox.className = 'cipher-box';
     cLabel.textContent = 'ENCODING IN PROGRESS';
   } else if (gameState.phase==='guessing') {
     banner.className = 'phase-banner guessing';
-    banner.textContent = `🔍 해독 단계 — 암호문을 풀어보세요!`;
+    banner.textContent = `🔍 복호화 단계 — 암호문을 풀어보세요!`;
     cText.textContent = gameState.lastEncResult || '...';
     cText.className = 'cipher-text';
     cBox.className = 'cipher-box active';
@@ -311,14 +311,14 @@ function renderActionArea() {
         renderGuessUI();
         const btn = document.getElementById('btn-guess-submit');
         btn.disabled = false;
-        btn.textContent = '해독 완료 🛡';
+        btn.textContent = '복호화 완료 🛡';
         mgHide();
       }
     } else {
       waitUI.classList.add('visible');
       const submitted = Object.keys(gameState.guessResults||{}).filter(k=>k!=='_encoder_bonus').length;
       const total = gameState.turnOrder.filter(id=>id!==encoder && gameState.players[id]?.online!==false).length;
-      document.getElementById('wait-text').textContent = `⏳ 플레이어들이 해독 중입니다... (${submitted}/${total} 제출)`;
+      document.getElementById('wait-text').textContent = `⏳ 플레이어들이 복호화 중입니다... (${submitted}/${total} 제출)`;
       mgShow();
     }
   } else if (gameState.phase==='round_end') {

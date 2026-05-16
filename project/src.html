@@ -295,7 +295,7 @@
      페이지 4: GUIDE OVERLAY (게임 가이드)
      로비의 📖 버튼으로 열리는 전체 화면 오버레이 (z-index: 300)
      탭 1: 게임 흐름 가이드 + 인게임 UI 주석 목업
-     탭 2: 4가지 암호화 방식 설명 카드 (키순서/애너그램/카이사르/스키테일)
+     탭 2: 4가지 암호화 방식 설명 카드 (키순서/에너그램/카이사르/스키테일)
      ══════════════════════════════════════════════════ -->
 <div id="guide-overlay">
   <div class="guide-header">
@@ -400,7 +400,7 @@
           <div class="ann-entry"><span class="ann-num">&#9314;</span><div class="ann-entry-text"><strong>라운드 진행</strong>현재 라운드&#160;/&#160;총 라운드 수를 표시합니다.</div></div>
           <div class="ann-entry"><span class="ann-num">&#9315;</span><div class="ann-entry-text"><strong>플레이어 패널</strong>참가자 목록과 점수 순위. <span style="color:var(--accent)">파란 아우라</span>=출제자, <span style="color:var(--gold)">골드 아우라</span>=해독 중.</div></div>
           <div class="ann-entry"><span class="ann-num">&#9316;</span><div class="ann-entry-text"><strong>페이즈 배너</strong>현재 단계 안내. 출제=파랑, 해독=골드, 결과=초록으로 색상이 바뀝니다.</div></div>
-          <div class="ann-entry"><span class="ann-num">&#9317;</span><div class="ann-entry-text"><strong>캔버스 툴바</strong>그리기/메모장 전환, 펜&#183;지우기&#183;색상 선택. 그리기와 메모는 <strong>나에게만</strong> 보입니다.</div></div>
+          <div class="ann-entry"><span class="ann-num">&#9317;</span><div class="ann-entry-text"><strong>캔버스 툴바</strong>그리기/메모장 전환, 펜&#183;지우기&#183;색상 선택. 그리기와 메모는 '나에게만' 보입니다.</div></div>
           <div class="ann-entry"><span class="ann-num">&#9318;</span><div class="ann-entry-text"><strong>암호문</strong>출제자가 제출한 암호화 메시지. 배경 캔버스에 그림&#183;메모로 힌트를 남길 수 있습니다.</div></div>
           <div class="ann-entry"><span class="ann-num">&#9319;</span><div class="ann-entry-text"><strong>힌트 칩</strong>암호화 방식 2개 사용 시 종류만 표시(순서 비공개). 1개 방식 사용 시 힌트 없음.</div></div>
           <div class="ann-entry"><span class="ann-num">&#9320;</span><div class="ann-entry-text"><strong>액션 영역</strong>출제자: 방식&#183;키&#183;메시지 입력 / 해독자: 순서 추측 및 원본 메시지 입력 후 제출.</div></div>
@@ -493,11 +493,11 @@
         </div>
       </div>
 
-      <!-- 암호화 방식 2: 애너그램 (ANA) — unit 크기 단위로 역순 뒤집기 -->
+      <!-- 암호화 방식 2: 대칭 에너그램 (ANA) — unit 크기 단위로 역순 뒤집기 -->
       <div class="cipher-card">
         <div class="cipher-card-header">
           <div class="cipher-card-badge" style="background:#a855f722;border:1.5px solid #a855f7;color:#a855f7">ANA</div>
-          <div class="cipher-card-name">애너그램 암호화</div>
+          <div class="cipher-card-name">대칭 에너그램 암호화</div>
         </div>
         <div class="cipher-card-desc">원문을 <strong>키값 크기의 단위</strong>로 자른 뒤, 각 단위를 <strong>역순으로 뒤집습니다</strong>. 키가 있어야 같은 단위로 복호화가 가능합니다. 복호화는 암호화와 같은 방법(각 단위를 다시 역순)으로 수행합니다.</div>
         <div class="cipher-card-key">키 입력: 단위 크기 (정수, 권장 2–10) — <span>예: 키=3 → 3글자씩 단위로 역순</span></div>
@@ -586,14 +586,14 @@
         </div>
       </div>
 
-      <!-- 암호화 방식 4: 스키테일 (SKY) — rails행 격자에 가로로 채우고 세로로 읽기 -->
+      <!-- 암호화 방식 4: 행렬 스키테일 (SKY) — rails행 격자에 가로로 채우고 세로로 읽기 -->
       <div class="cipher-card">
         <div class="cipher-card-header">
           <div class="cipher-card-badge" style="background:#4da6ff22;border:1.5px solid #4da6ff;color:#4da6ff">SKY</div>
-          <div class="cipher-card-name">스키테일 암호화</div>
+          <div class="cipher-card-name">행렬 스키테일 암호화</div>
         </div>
-        <div class="cipher-card-desc">고대 그리스의 암호 도구에서 유래한 방식입니다. 메시지를 <strong>키값(행 수)개의 행</strong>으로 이루어진 격자에 가로(행) 방향으로 채운 뒤, <strong>세로(열) 방향으로 읽어</strong> 암호문을 만듭니다. 마지막 행이 다 채워지지 않으면 <strong>빈 칸은 건너뛰어</strong> 암호문 길이는 원본과 동일합니다.</div>
-        <div class="cipher-card-key">키 입력: 레일(행) 수 (2–10) — <span>예: 키=3 → 3행 격자 사용</span></div>
+        <div class="cipher-card-desc">고대 그리스의 암호 도구에서 유래한 방식입니다. 눕힌 막대기 옆면의 개수를 행 개수, 각 면을 행으로 봅니다. 메시지를 <strong>키값(행 수)개의 행</strong>으로 이루어진 격자에 가로(행) 방향으로 채운 뒤, <strong>세로(열) 방향으로 읽어</strong> 암호문을 만듭니다. 마지막 행이 다 채워지지 않으면 <strong>빈 칸은 건너뛰어</strong> 암호문 길이는 원본과 동일합니다.</div>
+        <div class="cipher-card-key">키 입력: 행 수 (2–10) — <span>예: 키=3 → 3행 격자 사용</span></div>
         <svg viewBox="0 0 500 130" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:500px;margin:10px 0;display:block">
           <text x="10" y="16" font-family="'Pretendard', sans-serif" font-size="11" fill="#4a6080">원본: HELLOWORLD (키=3) → 3행으로 채움 → 열 방향으로 읽기</text>
           <g font-family="'Pretendard', sans-serif" font-size="13" font-weight="bold">
@@ -639,7 +639,7 @@
           <text x="256" y="80" font-family="'Pretendard', sans-serif" font-size="14" font-weight="bold" fill="#22c55e">HOLEWDLOLR</text>
         </svg>
         <div class="cipher-example">
-          원본: <span style="color:var(--accent2)">HELLOWORLD</span> (레일=3, 10글자 → 3×4 격자)<br>
+          원본: <span style="color:var(--accent2)">HELLOWORLD</span> (행=3, 10글자 → 3×4 격자)<br>
           격자: H E L L / O W O R / L D <span style="color:#7a95b0">_ _</span><br>
           세로 방향으로 읽기: <span class="arrow">→</span> HOL·EWD·LO·LR<br>
           <span style="color:#7a95b0;font-size:0.92em">▸ 빈 칸(_)은 건너뛰므로 암호문은 10글자 그대로</span><br>
