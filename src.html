@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>암호화 대전 게임</title>
+<script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="src.css">
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════
+     페이지 1: LOBBY
+     닉네임·방코드 입력 → 방 만들기(호스트) / 방 참가하기(클라이언트) 선택
+     게임 시작 전 전체 화면을 덮는 고정 오버레이 (z-index: 100)
+     ══════════════════════════════════════════════════ -->
+<div id="lobby">
+  <div class="lobby-card">
+    <div style="text-align:center;margin-bottom:20px">
+      <button onclick="openGuide()" style="background:rgba(26,127,212,0.08);border:1px solid var(--border);border-radius:var(--radius);color:var(--text2);padding:8px 20px;font-size:19px;font-weight:700;letter-spacing:2px;cursor:pointer;font-family:'Pretendard',sans-serif;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text2)'">📖 게임 가이드</button>
+    </div>
+
+    <div class="role-tabs">
+      <button class="role-tab active" id="tab-host" onclick="switchTab('host')">🏠 방 만들기</button>
+      <button class="role-tab" id="tab-join" onclick="switchTab('join')">🚪 방 참가하기</button>
+    </div>
+
+    <div class="field-group">
+      <label>닉네임</label>
+      <input id="user-nick" type="text" placeholder="예: 홍길동">
+    </div>
+    <div class="field-group">
+      <label>방 코드</label>
+      <input id="room-id" type="text" placeholder="예: ALPHA7" style="text-transform:uppercase">
+    </div>
+
+    <div id="host-options">
+      <div class="field-group">
+        <label style="margin-bottom:10px">라운드 수</label>
+        <div class="round-row">
+          <div class="round-badge active" data-r="1" onclick="selectRound(1)">1R</div>
+          <div class="round-badge" data-r="2" onclick="selectRound(2)">2R</div>
+          <div class="round-badge" data-r="3" onclick="selectRound(3)">3R</div>
+          <div class="round-badge" data-r="4" onclick="selectRound(4)">4R</div>
+          <div class="round-badge" data-r="5" onclick="selectRound(5)">5R</div>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn-primary" id="lobby-btn" onclick="enterGame()">▶ 접속하기</button>
+    <div class="lobby-status" id="lobby-status">닉네임과 방 코드를 입력하세요</div>
+
+    <!-- ══ 네트워크 설정 패널 ══ -->
+    <div style="margin-top:14px">
+      <button class="srv-toggle-btn" onclick="toggleServerSettings()">
+        <span class="srv-dot" id="srv-dot"></span>
+        <span style="flex:1">⚙️ 네트워크 설정</span>
+        <span id="srv-arrow">▼</span>
+      </button>
+      <div id="srv-panel" style="display:none">
+        <div class="srv-panel-body">
+
+          <!-- 모드 선택 탭 -->
+          <div class="srv-mode-row">
+            <button class="srv-mode-btn" id="srv-wan-btn" onclick="setServerMode('wan')">🌐 다른망 (P2P)</button>
+            <button class="srv-mode-btn" id="srv-lan-btn" onclick="setServerMode('lan')">🏠 같은망 (로컬)</button>
+          </div>
+
+          <!-- 다른망 안내 -->
+          <div id="srv-wan-cfg">
+            <div class="srv-note">
+              인터넷을 통해 P2P로 연결합니다. 별도 설정 없이 방 코드만 공유하면 됩니다.<br>
+              단, 같은 WiFi 환경에서는 연결이 불안정할 수 있습니다.
+            </div>
+          </div>
+
+          <!-- 같은망 설정 -->
+          <div id="srv-lan-cfg" style="display:none">
+            <div class="srv-note">
+              모두 <code>python server.py</code>를 실행한 뒤,<br>
+              호스트 한 명의 IP를 나머지 팀원이 아래에 입력해 접속합니다.
+            </div>
+
+            <!-- 내 IP 표시 박스 -->
+            <div class="lan-ip-box">
+              <div class="lan-ip-label">내 IP 주소 (호스트라면 팀원에게 알려주세요)</div>
+              <div class="lan-ip-value" id="my-lan-ip">감지 중...</div>
+              <div class="lan-ip-hint" id="my-lan-ip-hint">server.py가 실행 중이어야 표시됩니다</div>
+            </div>
+
+            <!-- 호스트 IP 입력 -->
+            <div class="srv-input-row">
+              <label>호스트 IP</label>
+              <input class="srv-input" id="srv-ws-host-input" type="text" placeholder="예: 192.168.0.10">
+            </div>
+            <div class="srv-input-row">
+              <label>포트</label>
+              <input class="srv-input" id="srv-ws-port-input" type="text" placeholder="9000" style="max-width:100px">
+              <button class="srv-save-btn" onclick="saveSrvLan()">저장</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+    <!-- /네트워크 설정 패널 -->
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     페이지 2: GAME UI (인게임)
+     로비 입장 후 표시. 헤더(페이즈/타이머/라운드) + 사이드 패널(참가자/순위)
+     + 중앙 캔버스 + 액션 영역(출제 UI / 해독 UI / 대기 UI)으로 구성
+     ══════════════════════════════════════════════════ -->
+<div id="game-ui" style="display:none; height:100vh; flex-direction:column">
+
+  <!-- Header -->
+  <div class="hdr">
+    <div class="hdr-left">
+      <span class="hdr-title">암호화 대전</span>
+    </div>
+    <div class="hdr-center">
+      <div class="hdr-stat">
+        <span class="hdr-stat-label">PHASE</span>
+        <span class="hdr-stat-value" id="phase-label" style="font-size:19px;letter-spacing:2px">대기 중</span>
+      </div>
+      <div class="hdr-stat">
+        <span class="hdr-stat-label">TIMER</span>
+        <span class="hdr-stat-value mono" id="timer-display">--:--</span>
+      </div>
+      <div class="hdr-stat">
+        <span class="hdr-stat-label">ROUND</span>
+        <span class="hdr-stat-value" id="round-info">0 / 0</span>
+      </div>
+    </div>
+    <div class="hdr-right">
+      <span id="my-role-badge" class="my-badge" style="display:none"></span>
+      <button id="host-start-btn" class="host-btn" onclick="hostStartGame()" style="display:none">▶ 게임 시작</button>
+      <button class="host-btn" onclick="leaveRoom()" style="background:rgba(255,90,90,0.08);border-color:rgba(255,90,90,0.3);color:#ff8080">← 방 나가기</button>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div class="main-layout">
+
+    <!-- Side: Players + Ranking -->
+    <div class="side-panel">
+      <div class="panel-header">참가자</div>
+      <div id="player-list"></div>
+      <div style="flex:1"></div>
+      <div class="panel-header" style="border-top:1px solid var(--border)">🏆 순위</div>
+      <div id="rank-list"></div>
+    </div>
+
+    <!-- Center -->
+    <div class="center-area">
+      <div class="phase-banner waiting" id="center-phase-banner">STANDBY — 플레이어 대기 중</div>
+
+      <!-- Toolbar -->
+      <div class="toolbar">
+        <button class="tool-btn active" id="btn-mode-draw" onclick="setBoardMode('draw')">🎨 그리기</button>
+        <button class="tool-btn" id="btn-mode-memo" onclick="setBoardMode('memo')">📝 메모장</button>
+        <div style="width:1px;height:20px;background:var(--border);margin:0 4px;flex-shrink:0"></div>
+        <button class="tool-btn active" id="btn-draw" onclick="setMode('draw')">✏ 펜</button>
+        <button class="tool-btn" id="btn-erase" onclick="setMode('erase')">◻ 지우기</button>
+        <div class="color-dot selected" style="background:#000" data-color="#000000" onclick="setColor(this)"></div>
+        <div class="color-dot" style="background:#ff6b35" data-color="#ff6b35" onclick="setColor(this)"></div>
+        <div class="color-dot" style="background:#a855f7" data-color="#a855f7" onclick="setColor(this)"></div>
+        <div class="color-dot" style="background:#22c55e" data-color="#22c55e" onclick="setColor(this)"></div>
+        <div class="color-dot" style="background:#4da6ff" data-color="#4da6ff" onclick="setColor(this)"></div>
+        <button class="tool-btn" id="btn-clear-draw" onclick="clearCanvas()">🗑 전체 삭제</button>
+        <div class="spacer"></div>
+      </div>
+
+      <!-- Canvas + Cipher overlay -->
+      <div class="canvas-wrapper">
+        <canvas id="shared-canvas"></canvas>
+        <textarea id="memo-area" placeholder="메모장 — 개인 메모를 자유롭게 입력하세요"></textarea>
+        <div class="cipher-overlay" id="cipher-overlay">
+          <div class="cipher-box" id="cipher-box-main">
+            <label id="cipher-label-main">ENCODED MESSAGE</label>
+            <div class="cipher-text muted" id="cipher-text-main">메모장을 자유롭게 사용하거나 게임 시작을 기다리세요</div>
+          </div>
+          <div class="method-hints" id="method-hints-area"></div>
+        </div>
+      </div>
+
+      <!-- Action area -->
+      <div class="action-area">
+
+        <!-- ENCODING UI -->
+        <div class="enc-ui" id="enc-ui">
+          <div class="section-label">암호화 입력 — 최대 2단계 조합 가능</div>
+          <div id="enc-error-msg" class="enc-error-msg"></div>
+          <div id="enc-steps-container">
+            <div class="enc-step">
+              <div class="enc-label">원본</div>
+              <input class="enc-input" id="raw-input" type="text" placeholder="암호화할 메시지를 입력하세요" oninput="onRawInput()">
+            </div>
+            <div class="enc-step" id="step1-row" style="display:none">
+              <div class="enc-label" id="step1-label-wrap" style="width:auto;padding:0 10px">
+                <span id="step1-method-name" style="font-size:18px;font-weight:700">✕</span>
+              </div>
+              <span class="step-arrow">→</span>
+              <input class="enc-input" id="enc-input-1" type="text" placeholder="1단계 암호화 결과">
+            </div>
+            <div class="enc-step" id="step2-row" style="display:none">
+              <div class="enc-label" style="width:auto;padding:0 10px">
+                <span id="step2-method-name" style="font-size:18px;font-weight:700">✕</span>
+              </div>
+              <span class="step-arrow">→</span>
+              <input class="enc-input" id="enc-input-2" type="text" placeholder="2단계 암호화 결과">
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+            <span style="font-size:18px;color:var(--text3);font-weight:700;letter-spacing:1px">방식 추가:</span>
+            <div class="method-grid" style="margin:0" id="method-selector"></div>
+          </div>
+          <div class="btn-row">
+            <button class="btn-action blue" id="btn-enc-submit" onclick="submitEncoding()" disabled>암호 출제 제출 ⚔</button>
+          </div>
+          <div class="reaction-btns" style="margin-top:10px">
+            <button class="reaction-btn" onclick="sendReaction('🔥')">🔥</button>
+            <button class="reaction-btn" onclick="sendReaction('💡')">💡</button>
+            <button class="reaction-btn" onclick="sendReaction('😤')">😤</button>
+            <button class="reaction-btn" onclick="sendReaction('👀')">👀</button>
+            <button class="reaction-btn" onclick="sendReaction('🤯')">🤯</button>
+            <button class="reaction-btn" onclick="sendReaction('⏳')">⏳</button>
+          </div>
+        </div>
+
+        <!-- GUESSING UI -->
+        <div class="guess-ui" id="guess-ui">
+          <div class="section-label" id="guess-ui-label">복호화 순서 추측 및 원본 입력</div>
+          <div id="guess-error-msg" class="enc-error-msg"></div>
+          <div class="guess-steps" id="guess-steps"></div>
+          <div style="display:flex;gap:10px;align-items:center">
+            <input class="enc-input" id="guess-answer" type="text" placeholder="복호화된 원본 메시지를 입력하세요" style="flex:1">
+            <button class="btn-action gold" id="btn-guess-submit" onclick="submitGuess()">해독 완료 🛡</button>
+          </div>
+          <div class="reaction-btns" style="margin-top:10px">
+            <button class="reaction-btn" onclick="sendReaction('🔥')">🔥</button>
+            <button class="reaction-btn" onclick="sendReaction('💡')">💡</button>
+            <button class="reaction-btn" onclick="sendReaction('😤')">😤</button>
+            <button class="reaction-btn" onclick="sendReaction('👀')">👀</button>
+            <button class="reaction-btn" onclick="sendReaction('🤯')">🤯</button>
+            <button class="reaction-btn" onclick="sendReaction('⏳')">⏳</button>
+          </div>
+        </div>
+
+        <!-- WAITING UI -->
+        <div class="wait-ui" id="wait-ui">
+          <div class="wait-text" id="wait-text">대기 중...</div>
+          <!-- 대기 중 블록 쌓기 미니게임 (출제자 대기 / 해독자 대기 시에만 표시) -->
+          <div id="mini-game-wrap" style="display:none;flex-direction:column;align-items:center;gap:0">
+            <canvas id="stack-canvas" width="200" height="220" style="display:block;border-radius:10px;cursor:pointer" onclick="mgDrop()"></canvas>
+          </div>
+          <div class="reaction-btns">
+            <button class="reaction-btn" onclick="sendReaction('🔥')">🔥</button>
+            <button class="reaction-btn" onclick="sendReaction('💡')">💡</button>
+            <button class="reaction-btn" onclick="sendReaction('😤')">😤</button>
+            <button class="reaction-btn" onclick="sendReaction('👀')">👀</button>
+            <button class="reaction-btn" onclick="sendReaction('🤯')">🤯</button>
+            <button class="reaction-btn" onclick="sendReaction('⏳')">⏳</button>
+          </div>
+          <div style="font-size:18px;color:var(--text3)">리액션으로 분위기를 띄워보세요!</div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     페이지 3: GAME OVER (게임 종료)
+     모든 라운드가 끝나면 game-ui 위에 겹쳐서 표시 (z-index: 200)
+     최종 우승자 및 점수 순위 표시 → 새 게임 시작(location.reload)
+     ══════════════════════════════════════════════════ -->
+<div id="game-over" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(236,242,248,0.97);align-items:center;justify-content:center">
+  <div class="go-card">
+    <div class="go-title">게임 종료</div>
+    <div class="go-winner" id="go-winner"></div>
+    <div class="go-ranking">
+      <h3>🏆 최종 순위</h3>
+      <div id="go-rank-list"></div>
+    </div>
+    <button class="btn-primary" onclick="location.reload()" style="margin-top:0">새 게임 시작</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     페이지 4: GUIDE OVERLAY (게임 가이드)
+     로비의 📖 버튼으로 열리는 전체 화면 오버레이 (z-index: 300)
+     탭 1: 게임 흐름 가이드 + 인게임 UI 주석 목업
+     탭 2: 4가지 암호화 방식 설명 카드 (키순서/에너그램/카이사르/스키테일)
+     ══════════════════════════════════════════════════ -->
+<div id="guide-overlay">
+  <div class="guide-header">
+    <span class="guide-header-title">GUIDE</span>
+    <div class="guide-tabs">
+      <button class="guide-tab active" id="gtab-game" onclick="switchGuideTab('game')">🎮 게임 가이드</button>
+      <button class="guide-tab" id="gtab-cipher" onclick="switchGuideTab('cipher')">🔐 암호화 가이드</button>
+    </div>
+    <button class="guide-close-btn" onclick="closeGuide()">✕</button>
+  </div>
+  <div class="guide-body">
+
+    <!-- 게임 가이드 탭 -->
+    <div class="game-preview active" id="gpanel-game">
+      <div class="ann-wrap">
+        <div class="ann-mock">
+          <div class="ann-mock-hdr">
+            <span class="ann-mock-logo">⚔ 암호화 대전 게임</span>
+            <div class="ann-mock-stats">
+              <div class="ann-mock-stat"><span class="ann-sl">PHASE</span><span class="ann-sv">해독 중</span></div>
+              <div class="ann-mock-stat"><span class="ann-sl">TIMER</span><span class="ann-sv">01:45</span></div>
+              <div class="ann-mock-stat"><span class="ann-sl">ROUND</span><span class="ann-sv">2 / 5</span></div>
+            </div>
+            <div class="ann-mock-hdr-right"></div>
+          </div>
+          <div class="ann-mock-body">
+            <div class="ann-mock-side">
+              <div class="ann-mock-ph-hdr">PLAYERS</div>
+              <div class="ann-mock-pc encoder">
+                <div class="ann-mock-av encoder">A</div>
+                <div><div class="ann-mock-nm">Alice</div><div class="ann-mock-sc">850 pts</div></div>
+                <span class="ann-mock-tbadge">출제</span>
+              </div>
+              <div class="ann-mock-pc guessing">
+                <div class="ann-mock-av guessing">B</div>
+                <div><div class="ann-mock-nm">Bob</div><div class="ann-mock-sc">400 pts</div></div>
+                <span class="ann-mock-tbadge guessing">해독</span>
+              </div>
+              <div class="ann-mock-pc guessing">
+                <div class="ann-mock-av guessing">C</div>
+                <div><div class="ann-mock-nm">Carol</div><div class="ann-mock-sc">200 pts</div></div>
+                <span class="ann-mock-tbadge guessing">해독</span>
+              </div>
+              <div class="ann-mock-ph-hdr" style="margin-top:6px">RANK</div>
+              <div class="ann-mock-rk-entry">🥇 Alice · 850</div>
+              <div class="ann-mock-rk-entry">🥈 Bob · 400</div>
+              <div class="ann-mock-rk-entry">🥉 Carol · 200</div>
+            </div>
+            <div class="ann-mock-col">
+              <div class="ann-mock-banner guessing">🛡 해독 단계 — 암호문을 해독하고 원본 메시지를 입력하세요</div>
+              <div class="ann-mock-toolbar">
+                <button class="ann-mock-tbtn active">🎨 그리기</button>
+                <button class="ann-mock-tbtn">📝 메모장</button>
+                <span class="ann-vsep"></span>
+                <button class="ann-mock-tbtn active">✏ 펜</button>
+                <button class="ann-mock-tbtn">◻ 지우기</button>
+                <span class="ann-dot-c" style="background:#4da6ff"></span>
+                <span class="ann-dot-c" style="background:#f5c842"></span>
+                <span class="ann-dot-c" style="background:#15803d"></span>
+                <span class="ann-mock-spacer"></span>
+                <button class="ann-mock-tbtn">🗑 삭제</button>
+              </div>
+              <div class="ann-mock-canvas">
+                <svg class="ann-mock-deco-svg" viewBox="0 0 600 200" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+                  <path d="M10 80 Q50 40 90 80 T170 80 T250 70 T330 85 T410 78" stroke="rgba(26,127,212,0.18)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                  <path d="M30 130 L70 100 L120 125 L170 90 L220 120 L270 100" stroke="rgba(200,154,16,0.14)" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+                  <circle cx="500" cy="80" r="28" stroke="rgba(26,127,212,0.09)" stroke-width="1.5" fill="none"/>
+                </svg>
+                <div class="ann-mock-cipher">
+                  <div class="ann-mock-cl">ENCODED MESSAGE</div>
+                  <div class="ann-mock-ct">KHOOR · ZRUOG</div>
+                </div>
+                <div class="ann-mock-hints">
+                  <span class="ann-mock-hchip">CAESAR</span>
+                  <span class="ann-mock-hchip">KEY</span>
+                </div>
+              </div>
+              <div class="ann-mock-action">
+                <div class="ann-mock-albl">복호화 순서 추측 및 원본 입력</div>
+                <div class="ann-mock-arow">
+                  <span class="ann-mock-order-chip">① CAESAR</span>
+                  <span class="ann-mock-order-chip">② KEY</span>
+                  <span class="ann-mock-ainput">hello world</span>
+                  <span class="ann-mock-asub">해독 완료 🛡</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <span class="ann-pin" style="top:21px;left:33%">&#9312;</span>
+          <span class="ann-pin" style="top:21px;left:50%">&#9313;</span>
+          <span class="ann-pin" style="top:21px;left:68%">&#9314;</span>
+          <span class="ann-pin" style="top:230px;left:11%">&#9315;</span>
+          <span class="ann-pin" style="top:57px;left:61%">&#9316;</span>
+          <span class="ann-pin" style="top:84px;left:88%">&#9317;</span>
+          <span class="ann-pin" style="top:232px;left:78%">&#9318;</span>
+          <span class="ann-pin" style="top:305px;left:78%">&#9319;</span>
+          <span class="ann-pin" style="top:470px;left:78%">&#9320;</span>
+        </div>
+        <div class="ann-legend">
+          <div class="ann-entry"><span class="ann-num">&#9312;</span><div class="ann-entry-text"><strong>현재 페이즈</strong>출제(⚔)&#183;해독(🛡)&#183;결과(✨) 단계를 실시간 표시합니다.</div></div>
+          <div class="ann-entry"><span class="ann-num">&#9313;</span><div class="ann-entry-text"><strong>타이머</strong>남은 시간. 10초 이하면 빨간색으로 깜빡입니다.</div></div>
+          <div class="ann-entry"><span class="ann-num">&#9314;</span><div class="ann-entry-text"><strong>라운드 진행</strong>현재 라운드&#160;/&#160;총 라운드 수를 표시합니다.</div></div>
+          <div class="ann-entry"><span class="ann-num">&#9315;</span><div class="ann-entry-text"><strong>플레이어 패널</strong>참가자 목록과 점수 순위. <span style="color:var(--accent)">파란 아우라</span>=출제자, <span style="color:var(--gold)">골드 아우라</span>=해독 중.</div></div>
+          <div class="ann-entry"><span class="ann-num">&#9316;</span><div class="ann-entry-text"><strong>페이즈 배너</strong>현재 단계 안내. 출제=파랑, 해독=골드, 결과=초록으로 색상이 바뀝니다.</div></div>
+          <div class="ann-entry"><span class="ann-num">&#9317;</span><div class="ann-entry-text"><strong>캔버스 툴바</strong>그리기/메모장 전환, 펜&#183;지우기&#183;색상 선택. 그리기와 메모는 '나에게만' 보입니다.</div></div>
+          <div class="ann-entry"><span class="ann-num">&#9318;</span><div class="ann-entry-text"><strong>암호문</strong>출제자가 제출한 암호화 메시지. 배경 캔버스에 그림&#183;메모로 힌트를 남길 수 있습니다.</div></div>
+          <div class="ann-entry"><span class="ann-num">&#9319;</span><div class="ann-entry-text"><strong>힌트 칩</strong>암호화 방식 2개 사용 시 종류만 표시(순서 비공개). 1개 방식 사용 시 힌트 없음.</div></div>
+          <div class="ann-entry"><span class="ann-num">&#9320;</span><div class="ann-entry-text"><strong>액션 영역</strong>출제자: 방식&#183;키&#183;메시지 입력 / 해독자: 순서 추측 및 원본 메시지 입력 후 제출.</div></div>
+        </div>
+      </div>
+
+      <div class="preview-section">
+        <div class="preview-section-title">📋 게임 흐름</div>
+        <div class="flow-diagram">
+          <div class="flow-step enc">
+            <span class="flow-step-icon">⚔</span>
+            <div class="flow-step-title">출제 단계</div>
+            <div class="flow-step-sub">출제자가 암호화 방식(최대 2가지)·키·원본 메시지를 선택해 암호문을 만들고 제출<br><span style="color:var(--accent)">90초</span></div>
+          </div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step guess">
+            <span class="flow-step-icon">🔍</span>
+            <div class="flow-step-title">해독 단계</div>
+            <div class="flow-step-sub">해독자들이 암호문을 분석하고 복호화 순서와 원본 메시지를 추측해 제출<br><span style="color:var(--gold)">120초</span></div>
+          </div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step end">
+            <span class="flow-step-icon">✨</span>
+            <div class="flow-step-title">결과 공개</div>
+            <div class="flow-step-sub">원본 메시지 공개. 정답자·출제자에게만 키값 공개.<br>정답=<span style="color:#15803d">+10pt+보너스</span> 오답=0</div>
+          </div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step" style="border-top:3px solid var(--text3)">
+            <span class="flow-step-icon">🔄</span>
+            <div class="flow-step-title">다음 차례</div>
+            <div class="flow-step-sub">모든 플레이어가 한 번씩 출제한 후 라운드 종료. 설정한 라운드 수까지 반복.</div>
+          </div>
+        </div>
+        <div style="margin-top:12px;padding:10px 14px;background:rgba(245,200,66,0.06);border-radius:var(--radius);border-left:3px solid var(--gold);font-size:18px;color:var(--text2)">
+          <strong style="color:var(--gold)">출제자 보너스:</strong> 해독자가 틀릴 때마다 출제자에게 <strong>+5pt</strong> 지급. 점수는 라운드가 끝날 때 최종 공개됩니다.
+        </div>
+      </div>
+    </div>
+
+    <!-- 암호화 가이드 탭 -->
+    <div class="cipher-guide" id="gpanel-cipher">
+      <!-- 암호화 방식 1: 키 순서 (KEY) — 순열 키로 n글자 단위 재배열 -->
+      <div class="cipher-card">
+        <div class="cipher-card-header">
+          <div class="cipher-card-badge" style="background:#ff6b3522;border:1.5px solid #ff6b35;color:#ff6b35">KEY</div>
+          <div class="cipher-card-name">키 순서 암호화</div>
+        </div>
+        <div class="cipher-card-desc">원문을 <strong>키의 자릿수 크기</strong>만큼 단위로 자른 뒤, 각 단위의 글자를 <strong>키 숫자가 나타내는 순서</strong>로 재배열합니다.</div>
+        <div class="cipher-card-key">키 입력: 순열 숫자 (예: <span>21</span>, <span>312</span>, <span>4132</span>) — 각 자릿수는 1~n 범위의 중복 없는 위치 번호</div>
+        <svg viewBox="0 0 485 105" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:485px;margin:10px 0;display:block">
+          <!-- 왼쪽: ABC 주황 박스 (키 적용 대상) -->
+          <g font-family="'Pretendard', sans-serif" font-size="14" font-weight="bold">
+            <rect x="5" y="30" width="36" height="36" rx="6" fill="#ff6b3522" stroke="#ff6b35" stroke-width="1.5"/><text x="23" y="53" text-anchor="middle" fill="#ff6b35">A</text>
+            <rect x="45" y="30" width="36" height="36" rx="6" fill="#ff6b3522" stroke="#ff6b35" stroke-width="1.5"/><text x="63" y="53" text-anchor="middle" fill="#ff6b35">B</text>
+            <rect x="85" y="30" width="36" height="36" rx="6" fill="#ff6b3522" stroke="#ff6b35" stroke-width="1.5"/><text x="103" y="53" text-anchor="middle" fill="#ff6b35">C</text>
+            <text x="23" y="20" text-anchor="middle" fill="#7a95b0" font-size="10">①</text>
+            <text x="63" y="20" text-anchor="middle" fill="#7a95b0" font-size="10">②</text>
+            <text x="103" y="20" text-anchor="middle" fill="#7a95b0" font-size="10">③</text>
+          </g>
+          <!-- 왼쪽: DE 회색 점선 박스 (나머지) -->
+          <g font-family="'Pretendard', sans-serif" font-size="14" font-weight="bold">
+            <rect x="129" y="30" width="36" height="36" rx="6" fill="rgba(200,214,229,0.2)" stroke="#c8d6e5" stroke-width="1" stroke-dasharray="3,2"/><text x="147" y="53" text-anchor="middle" fill="#7a95b0">D</text>
+            <rect x="169" y="30" width="36" height="36" rx="6" fill="rgba(200,214,229,0.2)" stroke="#c8d6e5" stroke-width="1" stroke-dasharray="3,2"/><text x="187" y="53" text-anchor="middle" fill="#7a95b0">E</text>
+            <text x="167" y="20" text-anchor="middle" fill="#7a95b0" font-size="9">나머지</text>
+          </g>
+          <!-- 중앙: 키 레이블 및 화살표 -->
+          <text x="215" y="47" font-family="'Pretendard', sans-serif" font-size="12" fill="#7a95b0">키=312</text>
+          <text x="252" y="54" font-size="20" fill="#7a95b0" font-family="Pretendard, sans-serif">→</text>
+          <!-- 오른쪽: CAB 초록 박스 (재배열 결과) -->
+          <g font-family="'Pretendard', sans-serif" font-size="14" font-weight="bold">
+            <rect x="278" y="30" width="36" height="36" rx="6" fill="#22c55e22" stroke="#22c55e" stroke-width="1.5"/><text x="296" y="53" text-anchor="middle" fill="#22c55e">C</text>
+            <rect x="318" y="30" width="36" height="36" rx="6" fill="#22c55e22" stroke="#22c55e" stroke-width="1.5"/><text x="336" y="53" text-anchor="middle" fill="#22c55e">A</text>
+            <rect x="358" y="30" width="36" height="36" rx="6" fill="#22c55e22" stroke="#22c55e" stroke-width="1.5"/><text x="376" y="53" text-anchor="middle" fill="#22c55e">B</text>
+            <text x="296" y="20" text-anchor="middle" fill="#7a95b0" font-size="10">③→1</text>
+            <text x="336" y="20" text-anchor="middle" fill="#7a95b0" font-size="10">①→2</text>
+            <text x="376" y="20" text-anchor="middle" fill="#7a95b0" font-size="10">②→3</text>
+          </g>
+          <!-- 오른쪽: DE 회색 점선 박스 (그대로 통과) -->
+          <g font-family="'Pretendard', sans-serif" font-size="14" font-weight="bold">
+            <rect x="402" y="30" width="36" height="36" rx="6" fill="rgba(200,214,229,0.2)" stroke="#c8d6e5" stroke-width="1" stroke-dasharray="3,2"/><text x="420" y="53" text-anchor="middle" fill="#7a95b0">D</text>
+            <rect x="442" y="30" width="36" height="36" rx="6" fill="rgba(200,214,229,0.2)" stroke="#c8d6e5" stroke-width="1" stroke-dasharray="3,2"/><text x="460" y="53" text-anchor="middle" fill="#7a95b0">E</text>
+            <text x="440" y="20" text-anchor="middle" fill="#7a95b0" font-size="9">그대로</text>
+          </g>
+        </svg>
+        <div class="cipher-example">
+          원본: <span style="color:var(--accent2)">ABCDE</span> &nbsp; 키=<span style="color:#ff6b35">312</span> (자릿수 3 → 3글자씩 자름)<br>
+          1번째 단위 [A B C] → 3위=C, 1위=A, 2위=B → <span style="color:#22c55e">C A B</span><br>
+          나머지 [D E] → 키 자릿수(3)보다 짧아 순서 그대로 → <span style="color:#22c55e">D E</span><br>
+          <span class="arrow">→</span> 암호문: <span style="color:#ff6b35">CABDE</span>
+        </div>
+      </div>
+
+      <!-- 암호화 방식 2: 대칭 에너그램 (ANA) — unit 크기 단위로 역순 뒤집기 -->
+      <div class="cipher-card">
+        <div class="cipher-card-header">
+          <div class="cipher-card-badge" style="background:#a855f722;border:1.5px solid #a855f7;color:#a855f7">ANA</div>
+          <div class="cipher-card-name">대칭 에너그램 암호화</div>
+        </div>
+        <div class="cipher-card-desc">원문을 <strong>키값 크기의 단위</strong>로 자른 뒤, 각 단위를 <strong>역순으로 뒤집습니다</strong>. 키가 있어야 같은 단위로 복호화가 가능합니다. 복호화는 암호화와 같은 방법(각 단위를 다시 역순)으로 수행합니다.</div>
+        <div class="cipher-card-key">키 입력: 단위 크기 (정수, 권장 2–10) — <span>예: 키=3 → 3글자씩 단위로 역순</span></div>
+        <svg viewBox="0 0 460 90" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:460px;margin:10px 0;display:block">
+          <g font-family="'Pretendard', sans-serif" font-size="14" font-weight="bold">
+            <rect x="10" y="25" width="30" height="36" rx="5" fill="#a855f722" stroke="#a855f7" stroke-width="1.5"/>
+            <text x="25" y="48" text-anchor="middle" fill="#a855f7">H</text>
+            <rect x="44" y="25" width="30" height="36" rx="5" fill="#a855f722" stroke="#a855f7" stroke-width="1.5"/>
+            <text x="59" y="48" text-anchor="middle" fill="#a855f7">E</text>
+            <rect x="78" y="25" width="30" height="36" rx="5" fill="#a855f722" stroke="#a855f7" stroke-width="1.5"/>
+            <text x="93" y="48" text-anchor="middle" fill="#a855f7">L</text>
+            <rect x="115" y="25" width="30" height="36" rx="5" fill="#a855f733" stroke="#a855f7" stroke-width="1.5" stroke-dasharray="4,2"/>
+            <text x="130" y="48" text-anchor="middle" fill="#a855f7">L</text>
+            <rect x="149" y="25" width="30" height="36" rx="5" fill="#a855f733" stroke="#a855f7" stroke-width="1.5" stroke-dasharray="4,2"/>
+            <text x="164" y="48" text-anchor="middle" fill="#a855f7">O</text>
+            <text x="59" y="15" text-anchor="middle" fill="#7a95b0" font-size="9">단위 1</text>
+            <text x="147" y="15" text-anchor="middle" fill="#7a95b0" font-size="9">단위 2</text>
+          </g>
+          <text x="190" y="48" font-size="20" fill="#7a95b0" font-family="Pretendard, sans-serif">→</text>
+          <g font-family="'Pretendard', sans-serif" font-size="14" font-weight="bold">
+            <rect x="220" y="25" width="30" height="36" rx="5" fill="#4da6ff22" stroke="#4da6ff" stroke-width="1.5"/>
+            <text x="235" y="48" text-anchor="middle" fill="#4da6ff">L</text>
+            <rect x="254" y="25" width="30" height="36" rx="5" fill="#4da6ff22" stroke="#4da6ff" stroke-width="1.5"/>
+            <text x="269" y="48" text-anchor="middle" fill="#4da6ff">E</text>
+            <rect x="288" y="25" width="30" height="36" rx="5" fill="#4da6ff22" stroke="#4da6ff" stroke-width="1.5"/>
+            <text x="303" y="48" text-anchor="middle" fill="#4da6ff">H</text>
+            <rect x="325" y="25" width="30" height="36" rx="5" fill="#4da6ff33" stroke="#4da6ff" stroke-width="1.5" stroke-dasharray="4,2"/>
+            <text x="340" y="48" text-anchor="middle" fill="#4da6ff">O</text>
+            <rect x="359" y="25" width="30" height="36" rx="5" fill="#4da6ff33" stroke="#4da6ff" stroke-width="1.5" stroke-dasharray="4,2"/>
+            <text x="374" y="48" text-anchor="middle" fill="#4da6ff">L</text>
+          </g>
+          <text x="400" y="42" font-family="'Pretendard', sans-serif" font-size="11" fill="#4a6080">각 단위</text>
+          <text x="400" y="57" font-family="'Pretendard', sans-serif" font-size="11" fill="#4a6080">역순</text>
+        </svg>
+        <div class="cipher-example">
+          원본: <span style="color:var(--accent2)">HELLO</span> &nbsp; 키=<span style="color:#a855f7">3</span><br>
+          단위 1: [H E L] → 역순 → <span style="color:#4da6ff">L E H</span><br>
+          단위 2: [L O] → 역순 → <span style="color:#4da6ff">O L</span><br>
+          <span class="arrow">→</span> 암호문: <span style="color:#a855f7">LEHOL</span>
+        </div>
+      </div>
+
+      <!-- 암호화 방식 3: 카이사르 (CAE) — 알파벳을 shift 칸 오른쪽 이동 (Z→A 순환) -->
+      <div class="cipher-card">
+        <div class="cipher-card-header">
+          <div class="cipher-card-badge" style="background:#22c55e22;border:1.5px solid #22c55e;color:#22c55e">CAE</div>
+          <div class="cipher-card-name">카이사르 암호화</div>
+        </div>
+        <div class="cipher-card-desc">알파벳 각 글자를 <strong>오른쪽으로 키값만큼 이동</strong>합니다. 알파벳 순서에서 Z를 넘으면 A로 순환합니다.</div>
+        <div class="cipher-card-key">키 입력: 이동(시프트) 칸 수 (1–25) — <span>예: 키=3 → A는 오른쪽 3칸 → D</span></div>
+        <svg viewBox="0 0 316 170" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:316px;margin:10px 0;display:block">
+  <defs>
+  <marker id="cmarr-b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><polygon points="0,0 10,5 0,10" fill="#1a7fd4"/></marker>
+  <marker id="cmarr-o" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><polygon points="0,0 10,5 0,10" fill="#d97706"/></marker>
+</defs>
+  <rect x="13" y="71" width="219" height="32" rx="4" fill="none" stroke="#dde5ed" stroke-width="1"/>
+  <rect x="232" y="71" width="68" height="32" rx="4" fill="#fffbeb" stroke="#d97706" stroke-width="1.3" stroke-dasharray="4,2"/>
+  <text x="2" y="84" font-family="'Pretendard', sans-serif" font-size="10" fill="#4a6080">알</text>
+  <text x="2" y="95" font-family="'Pretendard', sans-serif" font-size="10" fill="#4a6080">파</text>
+  <text x="2" y="106" font-family="'Pretendard', sans-serif" font-size="10" fill="#4a6080">벳</text>
+  <rect x="15" y="75" width="20" height="24" rx="3" fill="#1a7fd4" stroke="#1565b8" stroke-width="1.5"/><text x="25" y="94" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#ffffff">A</text>
+  <rect x="37" y="75" width="20" height="24" rx="3" fill="#e8eef5" stroke="#b0c4d8" stroke-width="1.5"/><text x="47" y="94" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#1a2340">B</text>
+  <rect x="59" y="75" width="20" height="24" rx="3" fill="#e8eef5" stroke="#b0c4d8" stroke-width="1.5"/><text x="69" y="94" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#1a2340">C</text>
+  <rect x="81" y="75" width="20" height="24" rx="3" fill="#1a7fd4" stroke="#1565b8" stroke-width="1.5"/><text x="91" y="94" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#ffffff">D</text>
+  <rect x="103" y="75" width="20" height="24" rx="3" fill="#e8eef5" stroke="#b0c4d8" stroke-width="1.5"/><text x="113" y="94" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#1a2340">E</text>
+  <rect x="125" y="75" width="20" height="24" rx="3" fill="#e8eef5" stroke="#b0c4d8" stroke-width="1.5"/><text x="135" y="94" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#1a2340">F</text>
+  <text x="157" y="94" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="14" fill="#7a95b0">⋯</text>
+  <rect x="169" y="75" width="20" height="24" rx="3" fill="#d97706" stroke="#b45309" stroke-width="1.5"/><text x="179" y="94" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#ffffff">X</text>
+  <rect x="191" y="75" width="20" height="24" rx="3" fill="#d97706" stroke="#b45309" stroke-width="1.5"/><text x="201" y="94" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#ffffff">Y</text>
+  <rect x="213" y="75" width="20" height="24" rx="3" fill="#d97706" stroke="#b45309" stroke-width="1.5"/><text x="223" y="94" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#ffffff">Z</text>
+  <line x1="234" y1="55" x2="234" y2="129" stroke="#d97706" stroke-width="1.5" stroke-dasharray="4,2"/>
+  <rect x="235" y="75" width="20" height="24" rx="3" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/><text x="245" y="94" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#7c3a00">A</text>
+  <rect x="257" y="75" width="20" height="24" rx="3" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/><text x="267" y="94" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#7c3a00">B</text>
+  <rect x="279" y="75" width="20" height="24" rx="3" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/><text x="289" y="94" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#7c3a00">C</text>
+  <path d="M25,71 Q58,37 91,71" stroke="#1a7fd4" stroke-width="2" fill="none" marker-end="url(#cmarr-b)"/>
+  <text x="58" y="33" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#1a7fd4">+3</text>
+  <text x="58" y="116" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="11" fill="#1a7fd4">A → D</text>
+  <path d="M223,71 Q256,33 289,71" stroke="#d97706" stroke-width="2" fill="none" stroke-dasharray="5,2" marker-end="url(#cmarr-o)"/>
+  <text x="256" y="29" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#d97706">+3</text>
+  <text x="158" y="116" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="12" fill="#4a6080">예시: key=3 → 각 글자를 오른쪽으로 3칸 이동</text>
+        </svg>
+        <div class="cipher-example">
+          원본: <span style="color:var(--accent2)">ATTACK</span> &nbsp; 키=<span style="color:#22c55e">3</span><br>
+          A→D, T→W, T→W, A→D, C→F, K→N<br>
+          <span class="arrow">→</span> 암호문: <span style="color:#22c55e">DWWDFN</span>
+        </div>
+      </div>
+
+      <!-- 암호화 방식 4: 행렬 스키테일 (SKY) — rails행 격자에 가로로 채우고 세로로 읽기 -->
+      <div class="cipher-card">
+        <div class="cipher-card-header">
+          <div class="cipher-card-badge" style="background:#4da6ff22;border:1.5px solid #4da6ff;color:#4da6ff">SKY</div>
+          <div class="cipher-card-name">행렬 스키테일 암호화</div>
+        </div>
+        <div class="cipher-card-desc">고대 그리스의 암호 도구에서 유래한 방식입니다. 눕힌 막대기 옆면의 개수를 행 개수, 각 면을 행으로 봅니다. 메시지를 <strong>키값(행 수)개의 행</strong>으로 이루어진 격자에 가로(행) 방향으로 채운 뒤, <strong>세로(열) 방향으로 읽어</strong> 암호문을 만듭니다. 마지막 행이 다 채워지지 않으면 <strong>빈 칸은 건너뛰어</strong> 암호문 길이는 원본과 동일합니다.</div>
+        <div class="cipher-card-key">키 입력: 행 수 (2–10) — <span>예: 키=3 → 3행 격자 사용</span></div>
+        <svg viewBox="0 0 500 130" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:500px;margin:10px 0;display:block">
+          <text x="10" y="16" font-family="'Pretendard', sans-serif" font-size="11" fill="#4a6080">원본: HELLOWORLD (키=3) → 3행으로 채움 → 열 방향으로 읽기</text>
+          <g font-family="'Pretendard', sans-serif" font-size="13" font-weight="bold">
+            <text x="10" y="42" fill="#7a95b0" font-size="10">행1</text>
+            <text x="10" y="76" fill="#7a95b0" font-size="10">행2</text>
+            <text x="10" y="110" fill="#7a95b0" font-size="10">행3</text>
+            <rect x="30" y="26" width="28" height="28" rx="4" fill="#4da6ff22" stroke="#4da6ff" stroke-width="1.5"/>
+            <text x="44" y="45" text-anchor="middle" fill="#4da6ff">H</text>
+            <rect x="62" y="26" width="28" height="28" rx="4" fill="#4da6ff22" stroke="#4da6ff" stroke-width="1.5"/>
+            <text x="76" y="45" text-anchor="middle" fill="#4da6ff">E</text>
+            <rect x="94" y="26" width="28" height="28" rx="4" fill="#4da6ff22" stroke="#4da6ff" stroke-width="1.5"/>
+            <text x="108" y="45" text-anchor="middle" fill="#4da6ff">L</text>
+            <rect x="126" y="26" width="28" height="28" rx="4" fill="#4da6ff22" stroke="#4da6ff" stroke-width="1.5"/>
+            <text x="140" y="45" text-anchor="middle" fill="#4da6ff">L</text>
+            <rect x="30" y="58" width="28" height="28" rx="4" fill="#4da6ff22" stroke="#4da6ff" stroke-width="1.5"/>
+            <text x="44" y="77" text-anchor="middle" fill="#4da6ff">O</text>
+            <rect x="62" y="58" width="28" height="28" rx="4" fill="#4da6ff22" stroke="#4da6ff" stroke-width="1.5"/>
+            <text x="76" y="77" text-anchor="middle" fill="#4da6ff">W</text>
+            <rect x="94" y="58" width="28" height="28" rx="4" fill="#4da6ff22" stroke="#4da6ff" stroke-width="1.5"/>
+            <text x="108" y="77" text-anchor="middle" fill="#4da6ff">O</text>
+            <rect x="126" y="58" width="28" height="28" rx="4" fill="#4da6ff22" stroke="#4da6ff" stroke-width="1.5"/>
+            <text x="140" y="77" text-anchor="middle" fill="#4da6ff">R</text>
+            <rect x="30" y="90" width="28" height="28" rx="4" fill="#4da6ff22" stroke="#4da6ff" stroke-width="1.5"/>
+            <text x="44" y="109" text-anchor="middle" fill="#4da6ff">L</text>
+            <rect x="62" y="90" width="28" height="28" rx="4" fill="#4da6ff22" stroke="#4da6ff" stroke-width="1.5"/>
+            <text x="76" y="109" text-anchor="middle" fill="#4da6ff">D</text>
+            <rect x="94" y="90" width="28" height="28" rx="4" fill="rgba(200,214,229,0.4)" stroke="#c8d6e5" stroke-width="1" stroke-dasharray="3,2"/>
+            <text x="108" y="109" text-anchor="middle" fill="#7a95b0">_</text>
+            <rect x="126" y="90" width="28" height="28" rx="4" fill="rgba(200,214,229,0.4)" stroke="#c8d6e5" stroke-width="1" stroke-dasharray="3,2"/>
+            <text x="140" y="109" text-anchor="middle" fill="#7a95b0">_</text>
+            <text x="38" y="124" text-anchor="middle" fill="#22c55e" font-size="9">↓</text>
+            <text x="70" y="124" text-anchor="middle" fill="#22c55e" font-size="9">↓</text>
+            <text x="102" y="124" text-anchor="middle" fill="#22c55e" font-size="9">↓</text>
+            <text x="134" y="124" text-anchor="middle" fill="#22c55e" font-size="9">↓</text>
+          </g>
+          <text x="165" y="72" font-size="20" fill="#7a95b0" font-family="Pretendard, sans-serif">→</text>
+          <text x="192" y="43" font-family="'Pretendard', sans-serif" font-size="11" fill="#4a6080">열 방향으로 읽기:</text>
+          <text x="192" y="59" font-family="'Pretendard', sans-serif" font-size="13" font-weight="bold" fill="#4da6ff">HOL</text>
+          <text x="192" y="75" font-family="'Pretendard', sans-serif" font-size="13" font-weight="bold" fill="#4da6ff">EWD</text>
+          <text x="192" y="91" font-family="'Pretendard', sans-serif" font-size="13" font-weight="bold" fill="#4da6ff">LO</text>
+          <text x="192" y="107" font-family="'Pretendard', sans-serif" font-size="13" font-weight="bold" fill="#4da6ff">LR</text>
+          <text x="236" y="80" font-size="16" fill="#7a95b0">→</text>
+          <text x="256" y="80" font-family="'Pretendard', sans-serif" font-size="14" font-weight="bold" fill="#22c55e">HOLEWDLOLR</text>
+        </svg>
+        <div class="cipher-example">
+          원본: <span style="color:var(--accent2)">HELLOWORLD</span> (행=3, 10글자 → 3×4 격자)<br>
+          격자: H E L L / O W O R / L D <span style="color:#7a95b0">_ _</span><br>
+          세로 방향으로 읽기: <span class="arrow">→</span> HOL·EWD·LO·LR<br>
+          <span style="color:#7a95b0;font-size:0.92em">▸ 빈 칸(_)은 건너뛰므로 암호문은 10글자 그대로</span><br>
+          <span class="arrow">→</span> 암호문: <span style="color:#4da6ff">HOLEWDLOLR</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="js/cipher.js"></script>
+<script src="js/state.js"></script>
+<script src="js/minigame.js"></script>
+<script src="js/network.js"></script>
+<script src="js/canvas.js"></script>
+<script src="js/render.js"></script>
+<script src="js/lobby.js"></script>
+<script src="js/data.js"></script>
+<script src="js/game.js"></script>
+<script src="js/settings.js"></script>
+<script src="js/init.js"></script>
+</body>
+</html>
