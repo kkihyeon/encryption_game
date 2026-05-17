@@ -17,7 +17,7 @@
      ══════════════════════════════════════════════════ -->
 <div id="lobby">
   <div class="lobby-card">
-    <div style="text-align:center;margin-bottom:20px">
+    <div style="text-align:center;margin-bottom:10px">
       <button onclick="openGuide()" style="background:rgba(26,127,212,0.08);border:1px solid var(--border);border-radius:var(--radius);color:var(--text2);padding:8px 20px;font-size:19px;font-weight:700;letter-spacing:2px;cursor:pointer;font-family:'Pretendard',sans-serif;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text2)'">📖 게임 가이드</button>
     </div>
 
@@ -32,7 +32,7 @@
     </div>
     <div class="field-group">
       <label>방 코드</label>
-      <input id="room-id" type="text" placeholder="예: ALPHA7" style="text-transform:uppercase">
+      <input id="room-id" type="text" placeholder="예: room123" style="text-transform:uppercase">
     </div>
 
     <div id="host-options">
@@ -70,15 +70,13 @@
           <!-- 다른망 안내 -->
           <div id="srv-wan-cfg">
             <div class="srv-note">
-              인터넷을 통해 P2P로 연결합니다. 별도 설정 없이 방 코드만 공유하면 됩니다.<br>
-              단, 같은 WiFi 환경에서는 연결이 불안정할 수 있습니다.
+              인터넷을 통해 P2P로 연결합니다. 별도 설정 없이 방 코드를 공유합니다.
             </div>
           </div>
 
           <!-- 같은망 설정 -->
           <div id="srv-lan-cfg" style="display:none">
             <div class="srv-note">
-              모두 <code>python server.py</code>를 실행한 뒤,<br>
               호스트 한 명의 IP를 나머지 팀원이 아래에 입력해 접속합니다.
             </div>
 
@@ -97,7 +95,7 @@
             <div class="srv-input-row">
               <label>포트</label>
               <input class="srv-input" id="srv-ws-port-input" type="text" placeholder="9000" style="max-width:100px">
-              <button class="srv-save-btn" onclick="saveSrvLan()">저장</button>
+              <button class="srv-save-btn" onclick="saveSrvLan()">연결</button>
             </div>
           </div>
 
@@ -604,7 +602,7 @@
           <div class="cipher-card-name">행렬 스키테일 암호화</div>
         </div>
         <div class="cipher-card-desc">고대 그리스의 암호 도구에서 유래한 방식입니다. 눕힌 막대기 옆면을 행으로 보고 막대기에 감은 종이들을 열로 봅니다. 메시지를 <strong>키값(열 수,감은 종이 횟수)</strong>으로 이루어진 격자에 가로(행) 방향으로 채운 뒤, <strong>세로(열) 방향으로 읽어</strong> 암호문을 만듭니다. 마지막 행이 다 채워지지 않으면 <strong>빈 칸은 건너뜁니다.</strong> 암호문 길이는 원본과 동일합니다.</div>
-        <div class="cipher-card-key">키 입력: 열 수 (2–10) — <span>예: 키=4 → 4열격자 사용</span></div>
+        <div class="cipher-card-key">키 입력: 열 수 (2–10) — <span>예: 키=4 → 4열 격자 사용</span></div>
         <svg viewBox="0 0 500 130" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:500px;margin:10px 0;display:block">
           <text x="10" y="9" font-family="'Pretendard', sans-serif" font-size="11" fill="#4a6080">원본: HELLOWORLD (키=4) → 각 4열로 채우면서 행을 내려옴 → 열 방향으로 읽기</text>
           <g font-family="'Pretendard', sans-serif" font-size="13" font-weight="bold">
