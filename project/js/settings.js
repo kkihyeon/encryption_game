@@ -60,7 +60,7 @@ async function fetchMyLanIp() {
   } catch(e) {
     ipEl.textContent = '감지 실패';
     ipEl.style.color = 'var(--text3)';
-    if (hintEl) hintEl.textContent = 'server.py를 먼저 실행한 뒤 이 패널을 열어보세요';
+    if (hintEl) hintEl.textContent = 'server.py가 먼저 실행중인지 확인하세요';
   }
 }
 
