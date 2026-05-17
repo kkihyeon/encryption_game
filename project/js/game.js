@@ -58,6 +58,11 @@ function startHostTimer() {
             gameState.guessResults[id] = { correct: false, points: 0 };
           }
         });
+        // 모든 해독자가 실패한 경우 출제자에게 +5pt
+        const allFailed = guessers.length > 0 && guessers.every(id => !gameState.guessResults[id]?.correct);
+        if (allFailed && gameState.players[encoder]) {
+          gameState.players[encoder].score += 5;
+        }
         gameState.phase = 'round_end';
         broadcast();
         setTimeout(() => nextTurn(), 5000);
@@ -218,7 +223,7 @@ function renderKeyInput(stepIdx, methodId) {
   if (methodId === 1) { keyInput.placeholder = '예: 312'; keyInput.value = '21'; keyInput.maxLength = 9; }
   else if (methodId === 2) { keyInput.placeholder = '단위'; keyInput.value = '3'; keyInput.maxLength = 3; keyInput.inputMode = 'numeric'; }
   else if (methodId === 3) { keyInput.placeholder = '시프트'; keyInput.value = '3'; keyInput.maxLength = 2; keyInput.inputMode = 'numeric'; }
-  else if (methodId === 4) { keyInput.placeholder = '레일'; keyInput.value = '3'; keyInput.maxLength = 2; keyInput.inputMode = 'numeric'; }
+  else if (methodId === 4) { keyInput.placeholder = '열'; keyInput.value = '3'; keyInput.maxLength = 2; keyInput.inputMode = 'numeric'; }
   else { return; }
   keyInput.oninput = () => { checkEncReady(); };
   const encInput = document.getElementById(`enc-input-${stepIdx+1}`);

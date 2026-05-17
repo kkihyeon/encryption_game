@@ -26,7 +26,12 @@ function anagramEnc(s, unit) {
   unit = Math.max(1, parseInt(unit) || 3);
   let result = '';
   for (let i = 0; i < s.length; i += unit) {
-    result += s.slice(i, i + unit).split('').reverse().join('');
+    const chunk = s.slice(i, i + unit);
+    if (chunk.length === unit) {
+      result += chunk.split('').reverse().join('');
+    } else {
+      result += chunk; // 키 값보다 짧은 나머지 청크는 그대로 유지
+    }
   }
   return result;
 }
@@ -53,13 +58,13 @@ function keyEnc(s, keyNum) {
   return result;
 }
 
-// rails행 격자에 가로로 채우고 세로(열) 방향으로 읽어 암호문 생성
-function scytaleEnc(s, rails) {
-  rails = Math.max(2, rails || 3);
-  const cols = Math.ceil(s.length / rails);
+// cols열 격자에 가로로 채우고 세로(열) 방향으로 읽어 암호문 생성
+function scytaleEnc(s, cols) {
+  cols = Math.max(2, cols || 3);
+  const rows = Math.ceil(s.length / cols);
   let result = '';
   for (let col = 0; col < cols; col++) {
-    for (let row = 0; row < rails; row++) {
+    for (let row = 0; row < rows; row++) {
       const idx = row * cols + col;
       if (idx < s.length) result += s[idx];
     }
