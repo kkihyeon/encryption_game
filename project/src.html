@@ -107,6 +107,11 @@
     <!-- /네트워크 설정 패널 -->
 
   </div>
+
+  <!-- 개발진 워터마크 -->
+  <div style="position:fixed;bottom:16px;right:35px;text-align:left;opacity:0.5;pointer-events:none;user-select:none;font-family:'Pretendard',sans-serif;font-size:11px;line-height:1.7;color:#ffffff">
+    <div>© 권기현,신동혁</div>
+  </div>
 </div>
 
 <!-- ══════════════════════════════════════════════════
@@ -398,8 +403,8 @@
           <div class="ann-entry"><span class="ann-num">&#9312;</span><div class="ann-entry-text"><strong>현재 페이즈</strong>출제(⚔)&#183;해독(🛡)&#183;결과(✨) 단계를 실시간 표시합니다.</div></div>
           <div class="ann-entry"><span class="ann-num">&#9313;</span><div class="ann-entry-text"><strong>타이머</strong>남은 시간. 10초 이하면 빨간색으로 깜빡입니다.</div></div>
           <div class="ann-entry"><span class="ann-num">&#9314;</span><div class="ann-entry-text"><strong>라운드 진행</strong>현재 라운드&#160;/&#160;총 라운드 수를 표시합니다.</div></div>
-          <div class="ann-entry"><span class="ann-num">&#9315;</span><div class="ann-entry-text"><strong>플레이어 패널</strong>참가자 목록과 점수 순위. <span style="color:var(--accent)">파란 아우라</span>=출제자, <span style="color:var(--gold)">골드 아우라</span>=해독 중.</div></div>
-          <div class="ann-entry"><span class="ann-num">&#9316;</span><div class="ann-entry-text"><strong>페이즈 배너</strong>현재 단계 안내. 출제=파랑, 해독=골드, 결과=초록으로 색상이 바뀝니다.</div></div>
+          <div class="ann-entry"><span class="ann-num">&#9315;</span><div class="ann-entry-text"><strong>플레이어 패널</strong>참가자 목록과 점수 순위. <br><span style="color:var(--accent3)">빨강 라벨</span>=출제자, <span style="color:var(--gold)">노랑 라벨</span>=해독자 .</div></div>
+          <div class="ann-entry"><span class="ann-num">&#9316;</span><div class="ann-entry-text"><strong>페이즈 배너</strong>현재 단계 안내. 출제=<span style="color:var(--accent3)">빨강</span>, 해독=<span style="color:var(--gold)">노랑</span>, 결과=<span style="color:#15803d">초록</span>으로 색상이 바뀝니다.</div></div>
           <div class="ann-entry"><span class="ann-num">&#9317;</span><div class="ann-entry-text"><strong>캔버스 툴바</strong>그리기/메모장 전환, 펜&#183;지우기&#183;색상 선택. 그리기와 메모는 '나에게만' 보입니다.</div></div>
           <div class="ann-entry"><span class="ann-num">&#9318;</span><div class="ann-entry-text"><strong>암호문</strong>출제자가 제출한 암호화 메시지. 배경 캔버스에 그림&#183;메모로 힌트를 남길 수 있습니다.</div></div>
           <div class="ann-entry"><span class="ann-num">&#9319;</span><div class="ann-entry-text"><strong>힌트 칩</strong>암호화 방식 2개 사용 시 종류만 표시(순서 비공개). 1개 방식 사용 시 힌트 없음.</div></div>
@@ -413,7 +418,7 @@
           <div class="flow-step enc">
             <span class="flow-step-icon">⚔</span>
             <div class="flow-step-title">출제 단계</div>
-            <div class="flow-step-sub">출제자가 암호화 방식(최대 2가지)·키·원본 메시지를 선택해 암호문을 만들고 제출<br><span style="color:var(--accent)">90초</span></div>
+            <div class="flow-step-sub">출제자가 암호화 방식(최대 2가지)·키·원본 메시지를 선택해 암호문을 만들고 제출<br><span style="color:var(--accent3)">90초</span></div>
           </div>
           <div class="flow-arrow">→</div>
           <div class="flow-step guess">
@@ -425,7 +430,7 @@
           <div class="flow-step end">
             <span class="flow-step-icon">✨</span>
             <div class="flow-step-title">결과 공개</div>
-            <div class="flow-step-sub">원본 메시지 공개. 정답자·출제자에게만 키값 공개.<br>정답=<span style="color:#15803d">+10pt+보너스</span> 오답=0</div>
+            <div class="flow-step-sub">원본 메시지 공개. 정답자·출제자에게만 키값 공개.<br>점수 반영</div>
           </div>
           <div class="flow-arrow">→</div>
           <div class="flow-step" style="border-top:3px solid var(--text3)">
@@ -434,8 +439,14 @@
             <div class="flow-step-sub">모든 플레이어가 한 번씩 출제한 후 라운드 종료. 설정한 라운드 수까지 반복.</div>
           </div>
         </div>
+        <div style="margin-top:12px;padding:10px 14px;background:rgba(245,200,66,0.06);border-radius:var(--radius);border-left:3px solid var(--accent3);font-size:18px;color:var(--text2)">
+          <strong style="color:var(--accent3)">출제자 보너스:</strong> 시간 내 모든 해독자가 실패한 경우 <strong>+5pt</strong>지급.
+        </div>
+        <div style="margin-top:12px;padding:10px 14px;background:rgba(245,200,66,0.06);border-radius:var(--radius);border-left:3px solid var(--accent3);font-size:18px;color:var(--text2)">
+          <strong style="color:var(--accent3)">출제자 페널티:</strong> 시간내 출제 실패 시 <strong>-5pt</strong>차감.
+        </div>
         <div style="margin-top:12px;padding:10px 14px;background:rgba(245,200,66,0.06);border-radius:var(--radius);border-left:3px solid var(--gold);font-size:18px;color:var(--text2)">
-          <strong style="color:var(--gold)">출제자 보너스:</strong> 해독자가 틀릴 때마다 출제자에게 <strong>+5pt</strong> 지급. 점수는 라운드가 끝날 때 최종 공개됩니다.
+          <strong style="color:var(--gold)">해독자 보너스:</strong> 문제를 맞춘 순서대로 <strong>+10pt</strong>부터 차등 지급.
         </div>
       </div>
     </div>
@@ -499,7 +510,7 @@
           <div class="cipher-card-badge" style="background:#a855f722;border:1.5px solid #a855f7;color:#a855f7">ANA</div>
           <div class="cipher-card-name">대칭 에너그램 암호화</div>
         </div>
-        <div class="cipher-card-desc">원문을 <strong>키값 크기의 단위</strong>로 자른 뒤, 각 단위를 <strong>역순으로 뒤집습니다</strong>. 키가 있어야 같은 단위로 복호화가 가능합니다. 복호화는 암호화와 같은 방법(각 단위를 다시 역순)으로 수행합니다.</div>
+        <div class="cipher-card-desc">원문을 <strong>키값 크기의 단위</strong>로 자른 뒤, 각 단위를 <strong>역순으로 뒤집습니다</strong>. 키 값보다 짧은 단위의 문장이 남는 경우 그대로 둡니다. 복호화는 암호화와 같은 방법(각 단위를 다시 역순)으로 수행합니다.</div>
         <div class="cipher-card-key">키 입력: 단위 크기 (정수, 권장 2–10) — <span>예: 키=3 → 3글자씩 단위로 역순</span></div>
         <svg viewBox="0 0 460 90" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:460px;margin:10px 0;display:block">
           <g font-family="'Pretendard', sans-serif" font-size="14" font-weight="bold">
@@ -525,18 +536,18 @@
             <rect x="288" y="25" width="30" height="36" rx="5" fill="#4da6ff22" stroke="#4da6ff" stroke-width="1.5"/>
             <text x="303" y="48" text-anchor="middle" fill="#4da6ff">H</text>
             <rect x="325" y="25" width="30" height="36" rx="5" fill="#4da6ff33" stroke="#4da6ff" stroke-width="1.5" stroke-dasharray="4,2"/>
-            <text x="340" y="48" text-anchor="middle" fill="#4da6ff">O</text>
+            <text x="340" y="48" text-anchor="middle" fill="#4da6ff">L</text>
             <rect x="359" y="25" width="30" height="36" rx="5" fill="#4da6ff33" stroke="#4da6ff" stroke-width="1.5" stroke-dasharray="4,2"/>
-            <text x="374" y="48" text-anchor="middle" fill="#4da6ff">L</text>
+            <text x="374" y="48" text-anchor="middle" fill="#4da6ff">O</text>
+            <text x="269" y="15" text-anchor="middle" fill="#7a95b0" font-size="9">역순</text>
+            <text x="359" y="15" text-anchor="middle" fill="#7a95b0" font-size="9">유지 2</text>
           </g>
-          <text x="400" y="42" font-family="'Pretendard', sans-serif" font-size="11" fill="#4a6080">각 단위</text>
-          <text x="400" y="57" font-family="'Pretendard', sans-serif" font-size="11" fill="#4a6080">역순</text>
         </svg>
         <div class="cipher-example">
           원본: <span style="color:var(--accent2)">HELLO</span> &nbsp; 키=<span style="color:#a855f7">3</span><br>
           단위 1: [H E L] → 역순 → <span style="color:#4da6ff">L E H</span><br>
-          단위 2: [L O] → 역순 → <span style="color:#4da6ff">O L</span><br>
-          <span class="arrow">→</span> 암호문: <span style="color:#a855f7">LEHOL</span>
+          단위 2: [L O] → 유지 → <span style="color:#4da6ff">L O</span><br>
+          <span class="arrow">→</span> 암호문: <span style="color:#a855f7">LEHLO</span>
         </div>
       </div>
 
@@ -577,7 +588,7 @@
   <text x="58" y="116" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="11" fill="#1a7fd4">A → D</text>
   <path d="M223,71 Q256,33 289,71" stroke="#d97706" stroke-width="2" fill="none" stroke-dasharray="5,2" marker-end="url(#cmarr-o)"/>
   <text x="256" y="29" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="13" font-weight="700" fill="#d97706">+3</text>
-  <text x="158" y="116" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="12" fill="#4a6080">예시: key=3 → 각 글자를 오른쪽으로 3칸 이동</text>
+  <text x="179" y="116" text-anchor="middle" font-family="'Pretendard', sans-serif" font-size="12" fill="#4a6080">key=3 → 각 글자를 오른쪽으로 3칸 이동</text>
         </svg>
         <div class="cipher-example">
           원본: <span style="color:var(--accent2)">ATTACK</span> &nbsp; 키=<span style="color:#22c55e">3</span><br>
@@ -592,11 +603,15 @@
           <div class="cipher-card-badge" style="background:#4da6ff22;border:1.5px solid #4da6ff;color:#4da6ff">SKY</div>
           <div class="cipher-card-name">행렬 스키테일 암호화</div>
         </div>
-        <div class="cipher-card-desc">고대 그리스의 암호 도구에서 유래한 방식입니다. 눕힌 막대기 옆면의 개수를 행 개수, 각 면을 행으로 봅니다. 메시지를 <strong>키값(행 수)개의 행</strong>으로 이루어진 격자에 가로(행) 방향으로 채운 뒤, <strong>세로(열) 방향으로 읽어</strong> 암호문을 만듭니다. 마지막 행이 다 채워지지 않으면 <strong>빈 칸은 건너뛰어</strong> 암호문 길이는 원본과 동일합니다.</div>
-        <div class="cipher-card-key">키 입력: 행 수 (2–10) — <span>예: 키=3 → 3행 격자 사용</span></div>
+        <div class="cipher-card-desc">고대 그리스의 암호 도구에서 유래한 방식입니다. 눕힌 막대기 옆면을 행으로 보고 막대기에 감은 종이들을 열로 봅니다. 메시지를 <strong>키값(열 수,감은 종이 횟수)</strong>으로 이루어진 격자에 가로(행) 방향으로 채운 뒤, <strong>세로(열) 방향으로 읽어</strong> 암호문을 만듭니다. 마지막 행이 다 채워지지 않으면 <strong>빈 칸은 건너뜁니다.</strong> 암호문 길이는 원본과 동일합니다.</div>
+        <div class="cipher-card-key">키 입력: 열 수 (2–10) — <span>예: 키=4 → 4열격자 사용</span></div>
         <svg viewBox="0 0 500 130" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:500px;margin:10px 0;display:block">
-          <text x="10" y="16" font-family="'Pretendard', sans-serif" font-size="11" fill="#4a6080">원본: HELLOWORLD (키=3) → 3행으로 채움 → 열 방향으로 읽기</text>
+          <text x="10" y="9" font-family="'Pretendard', sans-serif" font-size="11" fill="#4a6080">원본: HELLOWORLD (키=4) → 각 4열로 채우면서 행을 내려옴 → 열 방향으로 읽기</text>
           <g font-family="'Pretendard', sans-serif" font-size="13" font-weight="bold">
+            <text x="39" y="25" fill="#7a95b0" font-size="10">열1</text>
+            <text x="70" y="25" fill="#7a95b0" font-size="10">열2</text>
+            <text x="102" y="25" fill="#7a95b0" font-size="10">열3</text>
+            <text x="132" y="25" fill="#7a95b0" font-size="10">열4</text>
             <text x="10" y="42" fill="#7a95b0" font-size="10">행1</text>
             <text x="10" y="76" fill="#7a95b0" font-size="10">행2</text>
             <text x="10" y="110" fill="#7a95b0" font-size="10">행3</text>
@@ -639,7 +654,7 @@
           <text x="256" y="80" font-family="'Pretendard', sans-serif" font-size="14" font-weight="bold" fill="#22c55e">HOLEWDLOLR</text>
         </svg>
         <div class="cipher-example">
-          원본: <span style="color:var(--accent2)">HELLOWORLD</span> (행=3, 10글자 → 3×4 격자)<br>
+          원본: <span style="color:var(--accent2)">HELLOWORLD</span> (열=4, 10글자 → 4×3 격자)<br>
           격자: H E L L / O W O R / L D <span style="color:#7a95b0">_ _</span><br>
           세로 방향으로 읽기: <span class="arrow">→</span> HOL·EWD·LO·LR<br>
           <span style="color:#7a95b0;font-size:0.92em">▸ 빈 칸(_)은 건너뛰므로 암호문은 10글자 그대로</span><br>

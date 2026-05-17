@@ -10,6 +10,7 @@
   --text3: #8b95a1;
   --accent: #3182f6;
   --accent2: #1b64da;
+  --accent3: #ff2d50;
   --gold: #f0a918;
   --silver: #6b7684;
   --bronze: #b36b00;
@@ -821,7 +822,7 @@ body {
 .ann-mock-tbadge {
   margin-left: auto; font-size: 13px; font-weight: 700; letter-spacing: 1px;
   padding: 1px 5px; border-radius: 3px; white-space: nowrap; flex-shrink: 0;
-  background: var(--active-bg); color: var(--active); border: 1px solid rgba(26,127,212,0.2);
+  background: var(--active-bg); color: var(--accent3); border: 1px solid rgba(26,127,212,0.2);
 }
 .ann-mock-tbadge.guessing {
   background: rgba(245,200,66,0.1); color: var(--gold); border-color: rgba(245,200,66,0.2);
@@ -929,7 +930,7 @@ body {
   border-radius: var(--radius-lg); padding: 16px 14px;
   text-align: center; position: relative;
 }
-.flow-step.enc { border-top: 3px solid var(--accent); }
+.flow-step.enc { border-top: 3px solid var(--accent3); }
 .flow-step.guess { border-top: 3px solid var(--gold); }
 .flow-step.end { border-top: 3px solid #15803d; }
 .flow-step-icon { font-size: 28px; margin-bottom: 6px; display: block; }
