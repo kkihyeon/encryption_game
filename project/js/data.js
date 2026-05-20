@@ -62,15 +62,21 @@ function handleData(data, fromId) {
 
   // ── 호스트 전용 처리 ──
 
-  // 인게임(호스트): 새 플레이어 접속 — 닉네임 중복 확인 후 players·turnOrder에 추가
+  // 인게임(호스트): 새 플레이어 접속 — 닉네임 검증·중복 확인 후 players·turnOrder에 추가
   if (data.type === 'join') {
-    const nickTaken = Object.values(gameState.players).some(p => p.nick === data.nick && p.online !== false);
+    const nick = (typeof data.nick === 'string') ? data.nick.trim() : '';
+    if (!nick || nick.length > 20) {
+      const c = connections[fromId];
+      if (c) c.send({ type: 'nick_taken' });
+      return;
+    }
+    const nickTaken = Object.values(gameState.players).some(p => p.nick === nick && p.online !== false);
     if (nickTaken) {
       const c = connections[fromId];
       if (c) c.send({ type: 'nick_taken' });
       return;
     }
-    gameState.players[fromId] = { nick: data.nick, score: 0, online: true };
+    gameState.players[fromId] = { nick, score: 0, online: true };
     if (gameState.status === 'playing' && !gameState.turnOrder.includes(fromId)) {
       gameState.turnOrder.push(fromId);
     }
@@ -80,25 +86,44 @@ function handleData(data, fromId) {
     return;
   }
 
+  // 메서드 ID 화이트리스트 및 키값 허용 범위 (C-3, M-4)
+  const _VALID_METHOD_IDS = new Set([1, 2, 3, 4]);
+  const _KEY_VALID = {
+    1: v => /^[1-9]{2,8}$/.test(String(v ?? '')),              // 키 순서: 2~8자리 순열
+    2: v => Number.isInteger(+v) && +v >= 1 && +v <= 20,       // 애너그램: 단위 1~20
+    3: v => Number.isInteger(+v) && +v >= 1 && +v <= 25,       // 카이사르: 시프트 1~25
+    4: v => Number.isInteger(+v) && +v >= 2 && +v <= 10,       // 스키테일: 레일 2~10
+  };
+
   // 인게임(호스트): 출제자가 암호화 결과 제출 — 서버에서 재검증 후 해독 단계로 전환
   if (data.type === 'enc_submit') {
     if (gameState.phase !== 'encoding') return;
     const encoder = gameState.turnOrder[gameState.currentTurnIdx % gameState.turnOrder.length];
     if (fromId !== encoder) return;
     const { raw, methods, steps, keys } = data;
+
+    // 입력값 기본 검증
+    const sendInvalid = () => {
+      const c = connections[fromId];
+      if (c) c.send({ type: 'enc_invalid' });
+      else showEncError('❌ 암호화 결과가 올바르지 않습니다. 다시 확인해주세요.');
+    };
+    if (typeof raw !== 'string' || raw.trim().length < 1 || raw.length > 200) { sendInvalid(); return; }
+    if (!Array.isArray(methods) || methods.length < 1 || methods.length > 2) { sendInvalid(); return; }
+    if (!methods.every(m => _VALID_METHOD_IDS.has(m))) { sendInvalid(); return; }
+    if (!keys || !methods.every(m => _KEY_VALID[m](keys[m]))) { sendInvalid(); return; }
+
     let expectedResult = raw;
     let encOk = true;
     for (let i = 0; i < methods.length; i++) {
       const mId = methods[i];
-      const key = keys ? keys[mId] : undefined;
+      const key = keys[mId];
       expectedResult = applyEnc(expectedResult, mId, key);
       if (expectedResult !== steps[i].result) { encOk = false; break; }
     }
     if (!encOk) {
       broadcast();
-      const c = connections[fromId];
-      if (c) c.send({ type: 'enc_invalid' });
-      else showEncError('❌ 암호화 결과가 올바르지 않습니다. 다시 확인해주세요.');
+      sendInvalid();
       return;
     }
     gameState.currentRaw = raw;
@@ -156,8 +181,10 @@ function handleData(data, fromId) {
     return;
   }
 
-  // 인게임(호스트): 리액션 이모지 — 발신자 제외 전체 중계
+  // 인게임(호스트): 리액션 이모지 — 화이트리스트 검증 후 발신자 제외 전체 중계
   if (data.type === 'reaction') {
+    const _ALLOWED_EMOJIS = new Set(['🔥', '💡', '😤', '👀', '🤯', '⏳']);
+    if (typeof data.emoji !== 'string' || !_ALLOWED_EMOJIS.has(data.emoji)) return;
     Object.entries(connections).forEach(([id, c]) => { if (id !== fromId) c.send(data); });
     showFloatingReaction(data.emoji);
     return;
@@ -165,9 +192,14 @@ function handleData(data, fromId) {
 }
 
 // 호스트 → 전체 클라이언트에 gameState를 sync 메시지로 전송 후 자신도 renderAll
+// 해독 단계(guessing)에는 정답·중간 단계를 제거한 사본만 전송 (치팅 방지)
 function broadcast() {
   if (!isHost) return;
-  const msg = { type: 'sync', state: gameState };
+  let stateToSend = gameState;
+  if (gameState.phase === 'guessing') {
+    stateToSend = Object.assign({}, gameState, { currentRaw: null, currentEncSteps: null });
+  }
+  const msg = { type: 'sync', state: stateToSend };
   Object.values(connections).forEach(c => c.send(msg));
   if (gameState.pendingToast) gameState.pendingToast = null;
   renderAll();

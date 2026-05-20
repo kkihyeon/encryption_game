@@ -18,6 +18,7 @@ import sys
 sys.dont_write_bytecode = True
 
 import os
+import re
 import json
 import socket
 import struct
@@ -34,6 +35,12 @@ PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 9000
 
 # WebSocket 수신 메시지 최대 크기 (과도한 메시지로 인한 메모리 소진 방지)
 MAX_WS_MSG = 2 * 1024 * 1024  # 2 MB
+
+# H-1: WebSocket peer_id 허용 형식 (영문·숫자·하이픈, 최대 64자)
+_WS_ID_RE = re.compile(r'^[A-Za-z0-9\-]{1,64}$')
+
+# H-3: 연결별 초당 최대 메시지 수
+WS_RATE_LIMIT = 30
 
 def resource_path(filename):
     """
@@ -193,8 +200,11 @@ def handle_ws_client(conn, addr, path):
         qs = parse_qs(urlparse(path).query)
         requested = (qs.get('id', [None])[0] or '').strip()
         if not requested or requested == '__random__':
-            peer_id = 'py-' + uuid.uuid4().hex[:10]
+            peer_id = 'py-' + uuid.uuid4().hex  # M-3: 32자 전체 사용 (128비트 엔트로피)
         else:
+            if not _WS_ID_RE.match(requested):  # H-1: 형식 외 ID 거부
+                ws_send_json(conn, {'type': 'error', 'errType': 'invalid-id', 'message': '연결할 수 없습니다'})
+                return
             peer_id = requested
 
         # 중복 ID 체크
@@ -203,7 +213,7 @@ def handle_ws_client(conn, addr, path):
                 ws_send_json(conn, {
                     'type': 'error',
                     'errType': 'unavailable-id',
-                    'message': f'{peer_id} is taken'
+                    'message': '연결할 수 없습니다'  # L-1: ID 열거 방지 — 구체적 이유 숨김
                 })
                 return
             _ws_clients[peer_id] = conn
@@ -211,13 +221,25 @@ def handle_ws_client(conn, addr, path):
         print(f'  [WS+] {peer_id}  ({addr[0]})  접속: {len(_ws_clients)}명')
         ws_send_json(conn, {'type': 'open', 'id': peer_id})
 
-        # 메시지 루프
+        # 메시지 루프 — H-3: 연결별 슬라이딩 윈도우 속도 제한
+        _rate_count = 0
+        _rate_window = time.time()
         while True:
             raw = ws_recv_frame(conn)
             if raw is None:
                 break
             if not raw:
                 continue
+
+            # 속도 제한: 1초 윈도우에서 WS_RATE_LIMIT 초과 시 연결 차단
+            _now = time.time()
+            if _now - _rate_window >= 1.0:
+                _rate_count = 0
+                _rate_window = _now
+            _rate_count += 1
+            if _rate_count > WS_RATE_LIMIT:
+                print(f'  [WS!] 속도 제한 초과 ({peer_id}) — 연결 차단')
+                break
 
             try:
                 msg  = json.loads(raw)
@@ -279,11 +301,11 @@ def parse_http_request(raw: bytes):
         return 'GET', '/', {}
 
 def http_response(conn, status, content_type, body: bytes, extra_headers=''):
+    # M-2: CORS 와일드카드 제거 — 게임 파일과 서버가 동일 출처이므로 불필요
     header = (
         f'HTTP/1.1 {status}\r\n'
         f'Content-Type: {content_type}\r\n'
         f'Content-Length: {len(body)}\r\n'
-        'Access-Control-Allow-Origin: *\r\n'
         'Connection: close\r\n'
         f'{extra_headers}'
         '\r\n'

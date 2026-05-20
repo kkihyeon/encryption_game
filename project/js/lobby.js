@@ -25,6 +25,8 @@ function enterGame() {
   myNick = document.getElementById('user-nick').value.trim();
   const val = document.getElementById('room-id').value.trim().toUpperCase();
   if (!myNick || !val) { setLobbyStatus('닉네임과 방 코드를 입력하세요', 'error'); return; }
+  if (myNick.length > 20) { setLobbyStatus('닉네임은 20자 이하로 입력하세요', 'error'); return; }
+  if (!/^[A-Z0-9]{1,8}$/.test(val)) { setLobbyStatus('방 코드는 영문·숫자 1~8자로 입력하세요', 'error'); return; }
   roomId = 'CGv4-' + val;
 
   if (lobbyMode === 'host') {

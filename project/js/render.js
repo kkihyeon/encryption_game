@@ -42,6 +42,16 @@ function switchGuideTab(tab) {
 //  인게임: UI 전체 갱신 및 각 영역별 렌더 함수
 // ════════════════════════════════════════
 
+// XSS 방지: 사용자 입력 문자열을 innerHTML에 삽입하기 전 이스케이프
+function escHtml(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 // 로비 → 인게임 전환: 로비 숨기고 game-ui 표시, 캔버스·방식 셀렉터 초기화
 function showGameUI() {
   document.getElementById('lobby').style.display = 'none';
@@ -118,7 +128,7 @@ function renderPlayerList() {
     card.className = 'player-card';
     if (isEncoder) card.classList.add('current-turn');
 
-    const initials = p.nick.slice(0,2).toUpperCase();
+    const initials = escHtml(p.nick.slice(0,2).toUpperCase());
     const avClass = isEncoder ? 'is-turn' : (isGuesser && !alreadyGuessed ? 'is-guessing' : '');
 
     let badge = '';
@@ -134,7 +144,7 @@ function renderPlayerList() {
     card.innerHTML = `
       <div class="player-avatar ${avClass}">${initials}</div>
       <div class="player-info-block">
-        <div class="player-name">${p.nick}${isMe?`<span class="my-badge" style="font-size:16px;padding:1px 6px">나</span>`:''}</div>
+        <div class="player-name">${escHtml(p.nick)}${isMe?`<span class="my-badge" style="font-size:16px;padding:1px 6px">나</span>`:''}</div>
         <div class="player-score-line">${p.score}pt</div>
       </div>
       ${badge}
@@ -161,11 +171,11 @@ function renderRankList() {
     const nc = i===0?'gold':i===1?'silver':i===2?'bronze':'';
     const item = document.createElement('div');
     item.className = 'rank-item';
-    const initials = p.nick.slice(0,2).toUpperCase();
+    const initials = escHtml(p.nick.slice(0,2).toUpperCase());
     item.innerHTML = `
       <div class="rank-num ${nc}">${i+1}</div>
       <div class="player-avatar" style="width:26px;height:26px;font-size:17px">${initials}</div>
-      <div style="flex:1;font-size:19px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)">${p.nick}</div>
+      <div style="flex:1;font-size:19px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)">${escHtml(p.nick)}</div>
       <div style="font-family:'Pretendard',sans-serif;font-size:18px;color:var(--text3)">${p.score}</div>
     `;
     el.appendChild(item);
@@ -348,11 +358,11 @@ function showGameOver() {
   sorted.forEach(([id,p],i) => {
     const div = document.createElement('div');
     div.className = 'go-rank-item';
-    const initials = p.nick.slice(0,2).toUpperCase();
+    const initials = escHtml(p.nick.slice(0,2).toUpperCase());
     div.innerHTML = `
       <span style="font-size:26px">${medals[i]||`${i+1}.`}</span>
       <div class="player-avatar" style="width:32px;height:32px;font-size:19px">${initials}</div>
-      <span style="flex:1;font-size:21px;font-weight:700;color:var(--text)">${p.nick}</span>
+      <span style="flex:1;font-size:21px;font-weight:700;color:var(--text)">${escHtml(p.nick)}</span>
       <span style="font-family:'Pretendard',sans-serif;font-size:21px;color:var(--gold)">${p.score}pt</span>
     `;
     rl.appendChild(div);
