@@ -126,11 +126,11 @@ function resetLocalState() {
 
 // ════════════════════════════════════════
 //  ENCODING SUBMIT
-//  인게임(출제 UI): 암호화 방식 선택·키 입력·결과 제출
+//  인게임(암호화 UI): 암호화 방식 선택·키 입력·결과 제출
 // ════════════════════════════════════════
 let encStepMethods = [];
 
-// 인게임(출제 UI): 방식 선택 버튼 초기화 (최초 showGameUI 시 1회 호출)
+// 인게임(암호화 UI): 방식 선택 버튼 초기화 (최초 showGameUI 시 1회 호출)
 function initMethodSelector() {
   const el = document.getElementById('method-selector');
   el.innerHTML = '';
@@ -145,7 +145,7 @@ function initMethodSelector() {
   });
 }
 
-// 인게임(출제 UI): 방식 추가 (이미 선택된 방식이면 제거, 최대 2단계)
+// 인게임(암호화 UI): 방식 추가 (이미 선택된 방식이면 제거, 최대 2단계)
 function addEncStep(methodId) {
   if (encStepMethods.includes(methodId)) {
     removeEncStep(encStepMethods.indexOf(methodId));
@@ -158,7 +158,7 @@ function addEncStep(methodId) {
   checkEncReady();
 }
 
-// 인게임(출제 UI): 방식 제거 — 키 입력 필드도 함께 제거
+// 인게임(암호화 UI): 방식 제거 — 키 입력 필드도 함께 제거
 function removeEncStep(idx) {
   encStepMethods.splice(idx, 1);
   const ki = document.getElementById(`key-input-${idx}`);
@@ -172,7 +172,7 @@ function removeEncStep(idx) {
   checkEncReady();
 }
 
-// 인게임(출제 UI): 선택된 방식 버튼에 .selected 클래스 토글
+// 인게임(암호화 UI): 선택된 방식 버튼에 .selected 클래스 토글
 function updateMethodBtnSelected() {
   document.querySelectorAll('.method-btn').forEach(btn => {
     const id = parseInt(btn.dataset.id);
@@ -180,7 +180,7 @@ function updateMethodBtnSelected() {
   });
 }
 
-// 인게임(출제 UI): 현재 선택된 단계 수에 따라 입력 행 표시/숨김 및 placeholder 갱신
+// 인게임(암호화 UI): 현재 선택된 단계 수에 따라 입력 행 표시/숨김 및 placeholder 갱신
 function renderEncSteps() {
   const s1 = document.getElementById('step1-row');
   const s2 = document.getElementById('step2-row');
@@ -200,7 +200,7 @@ function renderEncSteps() {
   }
 }
 
-// 인게임(출제 UI): 방식별 키 입력 필드 동적 생성 (methodId가 같으면 재생성 안 함)
+// 인게임(암호화 UI): 방식별 키 입력 필드 동적 생성 (methodId가 같으면 재생성 안 함)
 function renderKeyInput(stepIdx, methodId) {
   const rowId = stepIdx === 0 ? 'step1-row' : 'step2-row';
   const keyInputId = `key-input-${stepIdx}`;
@@ -225,7 +225,7 @@ function renderKeyInput(stepIdx, methodId) {
   row.insertBefore(keyInput, encInput);
 }
 
-// 인게임(출제 UI): 키 입력 값 파싱 (키 순서=문자열, 나머지=정수)
+// 인게임(암호화 UI): 키 입력 값 파싱 (키 순서=문자열, 나머지=정수)
 function getEncKey(stepIdx) {
   const ki = document.getElementById(`key-input-${stepIdx}`);
   if (!ki) return undefined;
@@ -237,13 +237,41 @@ function getEncKey(stepIdx) {
   return isNaN(n) ? undefined : n;
 }
 
+// 알파벳 전용 입력 필터 (IME 조합 중 기존 텍스트 보호 · 커서 위치 보존)
+function makeAlphaOnly(el, extraFn) {
+  let beforeCompose = '';
+  let posBeforeCompose = 0;
+  el.addEventListener('compositionstart', function() {
+    beforeCompose = this.value;
+    posBeforeCompose = this.selectionStart;
+  });
+  el.addEventListener('compositionend', function() {
+    this.value = beforeCompose;
+    this.setSelectionRange(posBeforeCompose, posBeforeCompose);
+    if (extraFn) extraFn.call(this);
+  });
+  el.addEventListener('input', function(e) {
+    if (e.isComposing) return;
+    const start = this.selectionStart;
+    const before = this.value;
+    const filtered = before.replace(/[^a-zA-Z]/g, '');
+    if (before !== filtered) {
+      const newPos = before.substring(0, start).replace(/[^a-zA-Z]/g, '').length;
+      this.value = filtered;
+      this.setSelectionRange(newPos, newPos);
+    }
+    if (extraFn) extraFn.call(this);
+  });
+}
+
 function onRawInput() { checkEncReady(); }
+makeAlphaOnly(document.getElementById('raw-input'), checkEncReady);
 
-// 인게임(출제 UI): 수동 입력 표시 (dataset.manual=1이면 자동 채우기 건너뜀)
-document.getElementById('enc-input-1').oninput = function() { this.dataset.manual='1'; checkEncReady(); };
-document.getElementById('enc-input-2').oninput = function() { this.dataset.manual='1'; checkEncReady(); };
+// 인게임(암호화 UI): 수동 입력 표시 (dataset.manual=1이면 자동 채우기 건너뜀)
+makeAlphaOnly(document.getElementById('enc-input-1'), function() { this.dataset.manual='1'; checkEncReady(); });
+makeAlphaOnly(document.getElementById('enc-input-2'), function() { this.dataset.manual='1'; checkEncReady(); });
 
-// 인게임(출제 UI): 제출 버튼 활성화 조건 — 원본·방식·모든 단계 결과 입력 여부 확인
+// 인게임(암호화 UI): 제출 버튼 활성화 조건 — 평문·방식·모든 단계 결과 입력 여부 확인
 function checkEncReady() {
   const raw = document.getElementById('raw-input').value.trim();
   const s1ok = encStepMethods.length===0 || document.getElementById('enc-input-1').value.trim();
@@ -252,7 +280,7 @@ function checkEncReady() {
   document.getElementById('btn-enc-submit').disabled = !ready;
 }
 
-// 인게임(출제 UI): 암호화 제출 — enc_submit 메시지 전송 후 입력 필드 초기화
+// 인게임(암호화 UI): 암호화 제출 — enc_submit 메시지 전송 후 입력 필드 초기화
 function submitEncoding() {
   const raw = document.getElementById('raw-input').value.trim();
   if (!raw || encStepMethods.length===0) return;
@@ -286,12 +314,12 @@ function submitEncoding() {
 
 // ════════════════════════════════════════
 //  GUESSING SUBMIT
-//  인게임(해독 UI): 복호화 순서 선택 및 원본 메시지 제출
+//  인게임(복호화 UI): 복호화 순서 선택 및 평문 메시지 제출
 // ════════════════════════════════════════
 let guessMethodOrder = [];
 let guessUIBuiltForTurn = -1; // 동일 턴에 UI 중복 빌드 방지용 인덱스
 
-// 인게임(해독 UI): 복호화 순서 선택 버튼 목록 빌드 (턴 변경 시에만 재빌드)
+// 인게임(복호화 UI): 복호화 순서 선택 버튼 목록 빌드 (턴 변경 시에만 재빌드)
 function renderGuessUI() {
   const steps = document.getElementById('guess-steps');
   if (guessUIBuiltForTurn === gameState.currentTurnIdx && steps.childElementCount > 0) return;
@@ -300,7 +328,7 @@ function renderGuessUI() {
 
   const label = document.getElementById('guess-ui-label');
   const num = gameState.clueSet.length;
-  if (label) label.textContent = num === 1 ? '암호화 방식 선택 및 원본 입력' : '복호화 순서 추측 및 원본 입력';
+  if (label) label.textContent = num === 1 ? '암호화 방식 선택 및 평문 입력' : '복호화 순서 추측 및 평문 입력';
   guessMethodOrder = new Array(num).fill(null);
   for (let i=0; i<num; i++) {
     const div = document.createElement('div');
@@ -327,10 +355,11 @@ function renderGuessUI() {
   }
 }
 
-// 인게임(해독 UI): 해독 제출 — 방식 순서·원본 메시지를 guess_submit으로 전송
+makeAlphaOnly(document.getElementById('guess-answer'), null);
+// 인게임(복호화 UI): 복호화 제출 — 방식 순서·평문 메시지를 guess_submit으로 전송
 function submitGuess() {
   const answer = document.getElementById('guess-answer').value.trim();
-  if (!answer) { showToast('원본 메시지를 입력하세요', 'error'); return; }
+  if (!answer) { showToast('평문 메시지를 입력하세요', 'error'); return; }
   if (guessMethodOrder.some(v => v===null)) { showToast('암호화 방식을 선택하세요', 'error'); return; }
   const btn = document.getElementById('btn-guess-submit');
   btn.disabled = true;

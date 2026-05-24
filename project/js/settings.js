@@ -46,26 +46,30 @@ async function fetchMyLanIp() {
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 2500);
-    const res = await fetch(`http://127.0.0.1:${port}/api/info`, { signal: controller.signal });
+    const res = await fetch(`http://${location.hostname}:${port}/api/info`, { signal: controller.signal });
     clearTimeout(timeoutId);
     if (!res.ok) throw new Error('status ' + res.status);
     const data = await res.json();
     if (data.ip) {
       ipEl.textContent = data.ip + ':' + (data.port || port);
       ipEl.style.color = 'var(--accent)';
-      if (hintEl) hintEl.textContent = '이 IP:포트를 팀원에게 알려주세요 (호스트라면)';
+      if (hintEl) hintEl.textContent = '이 IP:포트를 팀원에게 알려주세요 (팀장이라면)';
     } else {
       throw new Error('no ip');
     }
   } catch(e) {
     ipEl.textContent = '감지 실패';
     ipEl.style.color = 'var(--text3)';
-    if (hintEl) hintEl.textContent = 'server.py를 먼저 실행한 뒤 이 패널을 열어보세요';
+    if (hintEl) hintEl.textContent = 'server.py를 먼저 실행중인지 확인하세요';
   }
 }
 
 // 로비: 페이지 로드 시 localStorage 설정값을 패널 UI에 반영
 function initServerSettings() {
+  _srvPanelOpen = true;
+  document.getElementById('srv-panel').style.display = 'block';
+  document.getElementById('srv-arrow').textContent = '▲';
+
   const mode = localStorage.getItem('enc_server_mode') || 'wan';
   const isLan = mode === 'lan';
   document.getElementById('srv-lan-btn').classList.toggle('active', isLan);

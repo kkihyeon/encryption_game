@@ -132,8 +132,8 @@ function renderPlayerList() {
     const avClass = isEncoder ? 'is-turn' : (isGuesser && !alreadyGuessed ? 'is-guessing' : '');
 
     let badge = '';
-    if (isEncoder) badge = `<div class="player-turn-badge" style="background:rgba(255,60,60,0.18);color:#ff6060;border-color:rgba(255,60,60,0.4)">⚔ 출제 중</div>`;
-    else if (isGuesser && !alreadyGuessed) badge = `<div class="player-turn-badge guessing">🔍 해독 중</div>`;
+    if (isEncoder) badge = `<div class="player-turn-badge" style="background:rgba(255,60,60,0.18);color:#ff6060;border-color:rgba(255,60,60,0.4)">⚔ 암호화 중</div>`;
+    else if (isGuesser && !alreadyGuessed) badge = `<div class="player-turn-badge guessing">🔍 복호화 중</div>`;
     else if (isGuesser && alreadyGuessed) {
       const res = gameState.guessResults[id];
       badge = res?.correct
@@ -185,7 +185,7 @@ function renderRankList() {
 // 인게임 중앙: 페이즈 배너 + 암호문 + 힌트 칩 표시
 // - encoding: 출제 중 안내
 // - guessing: 암호문·힌트 공개 (1방식=키값, 2방식=방식명+키값)
-// - round_end: 원본·암호문 공개 및 정답자·출제자에게만 키값 공개
+// - round_end: 평문·암호문 공개 및 정답자·출제자에게만 키값 공개
 function renderCenter() {
   const banner = document.getElementById('center-phase-banner');
   const cBox = document.getElementById('cipher-box-main');
@@ -197,7 +197,7 @@ function renderCenter() {
   if (gameState.status==='lobby') {
     banner.className = 'phase-banner waiting';
     banner.textContent = `STANDBY — ${gameState.totalRounds || 0}라운드 게임 | 플레이어 접속 대기 중`;
-    cText.textContent = '메모장을 자유롭게 사용하거나 게임 시작을 기다리세요';
+    cText.textContent = '<약속>사전에 존재하는 단어나 이해가 가능한 문장을 사용하기';
     cText.className = 'cipher-text muted';
     cBox.className = 'cipher-box';
     cLabel.textContent = 'MEMO BOARD';
@@ -210,13 +210,13 @@ function renderCenter() {
   if (gameState.phase==='encoding') {
     banner.className = 'phase-banner encoding';
     banner.textContent = `⚔ 출제 단계 — ${encoderName}님이 암호화 중`;
-    cText.textContent = '출제자가 암호화 문제를 만들고 있습니다...';
+    cText.textContent = '출제자가 암호문을 만들고 있습니다...';
     cText.className = 'cipher-text muted';
     cBox.className = 'cipher-box';
     cLabel.textContent = 'ENCODING IN PROGRESS';
   } else if (gameState.phase==='guessing') {
     banner.className = 'phase-banner guessing';
-    banner.textContent = `🔍 해독 단계 — 암호문을 풀어보세요!`;
+    banner.textContent = `🔍 해독 단계 — 암호문을 복호화해보세요!`;
     cText.textContent = gameState.lastEncResult || '...';
     cText.className = 'cipher-text';
     cBox.className = 'cipher-box active';
@@ -249,9 +249,9 @@ function renderCenter() {
     let resultText = gameState.currentRaw || '';
     if (gameState.currentRaw && !gameState.currentRaw.startsWith('⏰')) {
       if (gameState.currentEncSteps && gameState.currentEncSteps.length >= 2) {
-        resultText = `최종: "${gameState.lastEncResult || '?'}" ← 1차: "${gameState.currentEncSteps[0].result}" ← 원본: "${gameState.currentRaw}"`;
+        resultText = `최종: "${gameState.lastEncResult || '?'}" ← 1차: "${gameState.currentEncSteps[0].result}" ← 평문: "${gameState.currentRaw}"`;
       } else {
-        resultText = `암호: "${gameState.lastEncResult || '?'}" → 원본: "${gameState.currentRaw}"`;
+        resultText = `암호: "${gameState.lastEncResult || '?'}" → 평문: "${gameState.currentRaw}"`;
       }
     }
     cText.textContent = resultText;
@@ -275,7 +275,7 @@ function renderCenter() {
   }
 }
 
-// 인게임 액션 영역: 페이즈·역할에 따라 출제 UI / 해독 UI / 대기 UI 토글
+// 인게임 액션 영역: 페이즈·역할에 따라 암호화 UI / 복호화 UI / 대기 UI 토글
 function renderActionArea() {
   const encUI = document.getElementById('enc-ui');
   const guessUI = document.getElementById('guess-ui');
@@ -321,14 +321,14 @@ function renderActionArea() {
         renderGuessUI();
         const btn = document.getElementById('btn-guess-submit');
         btn.disabled = false;
-        btn.textContent = '해독 완료 🛡';
+        btn.textContent = '복호화 완료 🛡';
         mgHide();
       }
     } else {
       waitUI.classList.add('visible');
       const submitted = Object.keys(gameState.guessResults||{}).filter(k=>k!=='_encoder_bonus').length;
       const total = gameState.turnOrder.filter(id=>id!==encoder && gameState.players[id]?.online!==false).length;
-      document.getElementById('wait-text').textContent = `⏳ 플레이어들이 해독 중입니다... (${submitted}/${total} 제출)`;
+      document.getElementById('wait-text').textContent = `⏳ 플레이어들이 복호화 중입니다... (${submitted}/${total} 제출)`;
       mgShow();
     }
   } else if (gameState.phase==='round_end') {
@@ -374,7 +374,7 @@ function showGameOver() {
 //  인게임: 에러 메시지 및 토스트 알림 표시
 // ════════════════════════════════════════
 
-// 인게임(출제 UI): 암호화 오류 메시지 (5초 후 자동 숨김)
+// 인게임(암호화 UI): 암호화 오류 메시지 (5초 후 자동 숨김)
 function showEncError(msg) {
   const el = document.getElementById('enc-error-msg');
   el.textContent = msg;
@@ -383,7 +383,7 @@ function showEncError(msg) {
   el._timer = setTimeout(() => { el.style.display = 'none'; }, 5000);
 }
 
-// 인게임(해독 UI): 오답 오류 메시지 (5초 후 자동 숨김)
+// 인게임(복호화 UI): 오답 오류 메시지 (5초 후 자동 숨김)
 function showGuessError(msg) {
   const el = document.getElementById('guess-error-msg');
   if (!el) return;

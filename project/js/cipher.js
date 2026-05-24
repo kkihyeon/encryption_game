@@ -24,6 +24,14 @@ function caesarEnc(s, shift) {
 // unit 크기 단위로 잘라 각 단위를 역순으로 뒤집기
 function anagramEnc(s, unit) {
   unit = Math.max(1, parseInt(unit) || 3);
+
+  // 나누어 떨어지지 않으면 z로 패딩
+  const remainder = s.length % unit;
+  if (remainder !== 0) {
+    s += 'z'.repeat(unit - remainder);
+  }
+
+  // 각 단위 역순 처리
   let result = '';
   for (let i = 0; i < s.length; i += unit) {
     result += s.slice(i, i + unit).split('').reverse().join('');
@@ -36,19 +44,21 @@ function _keyOrder(keyNum) {
   return String(keyNum).split('').map(Number).filter(n => n >= 1);
 }
 
-// 키 순열에 따라 n글자 단위로 위치를 재배열
 function keyEnc(s, keyNum) {
   const order = _keyOrder(keyNum);
   if (!order.length) return s;
   const n = order.length;
+
+  // 나누어 떨어지지 않으면 뒤에 z로 패딩
+  const remainder = s.length % n;
+  if (remainder !== 0) {
+    s += 'z'.repeat(n - remainder);
+  }
+
   let result = '';
   for (let i = 0; i < s.length; i += n) {
     const chunk = s.slice(i, i + n);
-    if (chunk.length === n) {
-      result += order.map(o => chunk[o - 1]).join('');
-    } else {
-      result += chunk; // 나머지 청크는 키 자릿수보다 짧으므로 순서 그대로
-    }
+    result += order.map(o => chunk[o - 1]).join('');
   }
   return result;
 }

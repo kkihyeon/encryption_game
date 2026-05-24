@@ -21,9 +21,9 @@ let gameState = {
   status: 'lobby',         // lobby | playing | finished
   phase: 'idle',           // idle | encoding | guessing | round_end
   players: {},             // { peerId: { nick, score, online } }
-  turnOrder: [],           // 출제 순서 (게임 시작 시 랜덤 셔플)
+  turnOrder: [],           // 암호화 순서 (게임 시작 시 랜덤 셔플)
   currentTurnIdx: 0,       // 현재 출제자 인덱스 (turnOrder 기준)
-  currentRaw: '',          // 출제자가 입력한 원본 메시지
+  currentRaw: '',          // 출제자가 입력한 평문 메시지
   currentMethods: [],      // 사용된 암호화 방식 ID 배열 (순서대로)
   currentEncSteps: [],     // 각 단계 암호화 결과 { methodId, result }
   currentKeys: {},         // 방식별 키값 { methodId: keyValue }
