@@ -524,6 +524,9 @@
           두번째 단위 [D E <strong>z</strong>] → 위치3=<strong>z</strong>, 위치1=D, 위치2=E → <span style="color:#22c55e"><strong>z</strong> D E</span> (빈 자리만큼 추가문자를 보충하여 암호화)<br>
           <span class="arrow">→</span> 암호문: <span style="color:#ff6b35">CABzDE</span>
         </div>
+        <div style="margin-top:14px;text-align:right">
+          <button onclick="openKeySeqModal()" style="background:rgba(255,107,53,0.08);border:1.5px solid #ff6b35;border-radius:var(--radius);color:#ff6b35;padding:8px 22px;font-size:17px;font-weight:700;cursor:pointer;font-family:'Pretendard',sans-serif;transition:all 0.15s" onmouseover="this.style.background='rgba(255,107,53,0.2)'" onmouseout="this.style.background='rgba(255,107,53,0.08)'">🔬 테스트하기</button>
+        </div>
       </div>
 
       <!-- 암호화 방식 2: 대칭 에너그램 (ANA) — unit 크기 단위로 역순 뒤집기 -->
@@ -577,6 +580,9 @@
           단위 2: [L O z] → 문자 추가 후 역순 → <span style="color:#4da6ff">z O L</span><br>
           <span class="arrow">→</span> 암호문: <span style="color:#a855f7">LEHzOL</span>
         </div>
+        <div style="margin-top:14px;text-align:right">
+          <button onclick="openAnaModal()" style="background:rgba(168,85,247,0.08);border:1.5px solid #a855f7;border-radius:var(--radius);color:#a855f7;padding:8px 22px;font-size:17px;font-weight:700;cursor:pointer;font-family:'Pretendard',sans-serif;transition:all 0.15s" onmouseover="this.style.background='rgba(168,85,247,0.2)'" onmouseout="this.style.background='rgba(168,85,247,0.08)'">🔬 테스트하기</button>
+        </div>
       </div>
 
       <!-- 암호화 방식 3: 카이사르 (CAE) — 알파벳을 shift 칸 오른쪽 이동 (Z→A 순환) -->
@@ -622,6 +628,9 @@
           평문: <span style="color:var(--accent2)">ATTACK</span> &nbsp; 키=<span style="color:#22c55e">3</span><br>
           A→D, T→W, T→W, A→D, C→F, K→N<br>
           <span class="arrow">→</span> 암호문: <span style="color:#22c55e">DWWDFN</span>
+        </div>
+        <div style="margin-top:14px;text-align:right">
+          <button onclick="openCaeModal()" style="background:rgba(34,197,94,0.08);border:1.5px solid #22c55e;border-radius:var(--radius);color:#16a34a;padding:8px 22px;font-size:17px;font-weight:700;cursor:pointer;font-family:'Pretendard',sans-serif;transition:all 0.15s" onmouseover="this.style.background='rgba(34,197,94,0.2)'" onmouseout="this.style.background='rgba(34,197,94,0.08)'">🔬 테스트하기</button>
         </div>
       </div>
 
@@ -690,6 +699,9 @@
           <span style="color:#7a95b0;font-size:0.92em">▸ 빈 칸(_)은 건너뛰므로 암호문은 10글자 그대로</span><br>
           <span class="arrow">→</span> 암호문: <span style="color:#4da6ff">HOLEWDLOLR</span>
         </div>
+        <div style="margin-top:14px;text-align:right">
+          <button onclick="openSkyModal()" style="background:rgba(14,165,233,0.08);border:1.5px solid #0ea5e9;border-radius:var(--radius);color:#0284c7;padding:8px 22px;font-size:17px;font-weight:700;cursor:pointer;font-family:'Pretendard',sans-serif;transition:all 0.15s" onmouseover="this.style.background='rgba(14,165,233,0.2)'" onmouseout="this.style.background='rgba(14,165,233,0.08)'">🔬 테스트하기</button>
+        </div>
       </div>
     </div>
 
@@ -707,5 +719,1135 @@
 <script src="js/game.js"></script>
 <script src="js/settings.js"></script>
 <script src="js/init.js"></script>
+
+<!-- ══ 키 순서 암호화 테스트 모달 ══ -->
+<div id="key-seq-modal">
+  <div class="key-seq-modal-box">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;border-bottom:1px solid var(--border);padding-bottom:16px">
+      <h2 style="font-size:22px;font-weight:700;color:var(--text);margin:0">🔐 키 순서 암호화 테스트</h2>
+      <button onclick="closeKeySeqModal()" class="guide-close-btn">✕</button>
+    </div>
+
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px 22px;margin-bottom:18px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:16px">
+        <div>
+          <label style="display:block;font-size:14px;font-weight:700;color:var(--text2);margin-bottom:8px">키 (숫자 순열)</label>
+          <input type="text" id="ks-key-input" placeholder="예: 312" value="312"
+            style="width:100%;box-sizing:border-box;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--radius);font-size:16px;font-family:'Pretendard',sans-serif;outline:none;background:var(--surface)">
+          <p id="ks-key-error" style="color:#ff5a5a;font-size:13px;margin:6px 0 0;display:none"></p>
+        </div>
+        <div>
+          <label style="display:block;font-size:14px;font-weight:700;color:var(--text2);margin-bottom:8px">평문</label>
+          <input type="text" id="ks-plaintext-input" placeholder="예: ABCDE" value="ABCDE"
+            style="width:100%;box-sizing:border-box;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--radius);font-size:16px;font-family:'Pretendard',sans-serif;outline:none;background:var(--surface)">
+        </div>
+      </div>
+      <div style="text-align:right">
+        <button id="ks-play-btn" onclick="ksStartAnimation()"
+          style="border:none;border-radius:var(--radius);color:#fff;padding:10px 24px;font-size:16px;font-weight:700;cursor:pointer;font-family:'Pretendard',sans-serif;display:inline-flex;align-items:center;gap:8px">
+          ▶ 애니메이션 재생
+        </button>
+      </div>
+    </div>
+
+    <div style="background:var(--surface);border:2px solid var(--border);border-radius:var(--radius-lg);margin-bottom:18px;overflow:hidden">
+      <div style="background:var(--surface2);padding:8px 16px;font-size:11px;font-weight:700;color:var(--text3);letter-spacing:2px;text-transform:uppercase;border-bottom:1px solid var(--border)">시각화 보드</div>
+      <div id="ks-scroll-container" style="width:100%;overflow-x:auto;position:relative;height:280px">
+        <div id="ks-stage" style="position:absolute;top:0;left:0;height:100%;padding:16px">
+          <div id="ks-placeholder" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:15px">&quot;애니메이션 재생&quot; 버튼을 눌러주세요</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="ks-result" style="padding:18px 22px;background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.3);border-radius:var(--radius-lg);opacity:0.5;transition:opacity 0.5s">
+      <div style="font-size:11px;font-weight:700;color:#16a34a;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px">최종 암호문</div>
+      <div id="ks-ciphertext" style="font-size:28px;font-weight:700;color:#15803d;font-family:'Pretendard',sans-serif;letter-spacing:4px;word-break:break-all">-</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 대칭 에너그램 암호화 테스트 모달 ══ -->
+<div id="ana-modal">
+  <div class="ana-modal-box">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;border-bottom:1px solid var(--border);padding-bottom:16px">
+      <h2 style="font-size:22px;font-weight:700;color:var(--text);margin:0">🔄 대칭 에너그램 암호화 테스트</h2>
+      <button onclick="closeAnaModal()" class="guide-close-btn">✕</button>
+    </div>
+
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px 22px;margin-bottom:18px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:16px">
+        <div>
+          <label style="display:block;font-size:14px;font-weight:700;color:var(--text2);margin-bottom:8px">키 (단위 크기, 2 이상 정수)</label>
+          <input type="number" id="ana-key-input" placeholder="예: 3" min="2" max="20" value="3"
+            style="width:100%;box-sizing:border-box;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--radius);font-size:16px;font-family:'Pretendard',sans-serif;outline:none;background:var(--surface)">
+          <p id="ana-key-error" style="color:#ff5a5a;font-size:13px;margin:6px 0 0;display:none"></p>
+        </div>
+        <div>
+          <label style="display:block;font-size:14px;font-weight:700;color:var(--text2);margin-bottom:8px">평문</label>
+          <input type="text" id="ana-plaintext-input" placeholder="예: HELLO" value="HELLO"
+            style="width:100%;box-sizing:border-box;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--radius);font-size:16px;font-family:'Pretendard',sans-serif;outline:none;background:var(--surface)">
+        </div>
+      </div>
+      <div style="text-align:right">
+        <button id="ana-play-btn" onclick="anaStartAnimation()"
+          style="border:none;border-radius:var(--radius);color:#fff;padding:10px 24px;font-size:16px;font-weight:700;cursor:pointer;font-family:'Pretendard',sans-serif;display:inline-flex;align-items:center;gap:8px">
+          ▶ 애니메이션 재생
+        </button>
+      </div>
+    </div>
+
+    <div style="background:var(--surface);border:2px solid var(--border);border-radius:var(--radius-lg);margin-bottom:18px;overflow:hidden">
+      <div style="background:var(--surface2);padding:8px 16px;font-size:11px;font-weight:700;color:var(--text3);letter-spacing:2px;text-transform:uppercase;border-bottom:1px solid var(--border)">시각화 보드</div>
+      <div id="ana-scroll-container" style="width:100%;overflow-x:auto;position:relative;height:300px">
+        <div id="ana-stage" style="position:absolute;top:0;left:0;height:100%;padding:16px">
+          <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:15px">&quot;애니메이션 재생&quot; 버튼을 눌러주세요</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="ana-result" style="padding:18px 22px;background:rgba(168,85,247,0.06);border:1px solid rgba(168,85,247,0.3);border-radius:var(--radius-lg);opacity:0.5;transition:opacity 0.5s">
+      <div style="font-size:11px;font-weight:700;color:#7e22ce;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px">최종 암호문</div>
+      <div id="ana-ciphertext" style="font-size:28px;font-weight:700;color:#6b21a8;font-family:'Pretendard',sans-serif;letter-spacing:4px;word-break:break-all">-</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 카이사르 암호화 테스트 모달 ══ -->
+<div id="cae-modal">
+  <div class="cae-modal-box">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;border-bottom:1px solid var(--border);padding-bottom:16px">
+      <h2 style="font-size:22px;font-weight:700;color:var(--text);margin:0">🔠 카이사르 암호화 테스트</h2>
+      <button onclick="closeCaeModal()" class="guide-close-btn">✕</button>
+    </div>
+
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px 22px;margin-bottom:18px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:16px">
+        <div>
+          <label style="display:block;font-size:14px;font-weight:700;color:var(--text2);margin-bottom:8px">키 (이동 칸 수, 1~25)</label>
+          <input type="number" id="cae-key-input" placeholder="예: 3" min="1" max="25" value="3"
+            style="width:100%;box-sizing:border-box;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--radius);font-size:16px;font-family:'Pretendard',sans-serif;outline:none;background:var(--surface)">
+          <p id="cae-key-error" style="color:#ff5a5a;font-size:13px;margin:6px 0 0;display:none"></p>
+        </div>
+        <div>
+          <label style="display:block;font-size:14px;font-weight:700;color:var(--text2);margin-bottom:8px">평문 (알파벳)</label>
+          <input type="text" id="cae-plaintext-input" placeholder="예: ATTACK" value="ATTACK"
+            style="width:100%;box-sizing:border-box;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--radius);font-size:16px;font-family:'Pretendard',sans-serif;outline:none;background:var(--surface)">
+        </div>
+      </div>
+      <div style="text-align:right">
+        <button id="cae-play-btn" onclick="caeStartAnimation()"
+          style="border:none;border-radius:var(--radius);color:#fff;padding:10px 24px;font-size:16px;font-weight:700;cursor:pointer;font-family:'Pretendard',sans-serif;display:inline-flex;align-items:center;gap:8px">
+          ▶ 애니메이션 재생
+        </button>
+      </div>
+    </div>
+
+    <div style="background:var(--surface);border:2px solid var(--border);border-radius:var(--radius-lg);margin-bottom:18px;overflow:hidden">
+      <div style="background:var(--surface2);padding:8px 16px;font-size:11px;font-weight:700;color:var(--text3);letter-spacing:2px;text-transform:uppercase;border-bottom:1px solid var(--border)">시각화 보드</div>
+      <div id="cae-scroll-container" style="width:100%;overflow-x:auto;position:relative;height:380px">
+        <div id="cae-stage" style="position:absolute;top:0;left:0;height:100%;padding:16px;min-width:900px">
+          <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:15px">&quot;애니메이션 재생&quot; 버튼을 눌러주세요</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="cae-result" style="padding:18px 22px;background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.3);border-radius:var(--radius-lg);opacity:0.5;transition:opacity 0.5s">
+      <div style="font-size:11px;font-weight:700;color:#16a34a;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px">최종 암호문</div>
+      <div id="cae-ciphertext" style="font-size:28px;font-weight:700;color:#15803d;font-family:'Pretendard',sans-serif;letter-spacing:4px;word-break:break-all">-</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── 키 순서 암호화 테스트 모달 ──
+let ksIsAnimating = false;
+
+function openKeySeqModal() {
+  document.getElementById('key-seq-modal').classList.add('visible');
+}
+
+function closeKeySeqModal() {
+  document.getElementById('key-seq-modal').classList.remove('visible');
+  if (!ksIsAnimating) ksResetStage();
+}
+
+function ksResetStage() {
+  const stage = document.getElementById('ks-stage');
+  stage.innerHTML = '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:15px">&quot;애니메이션 재생&quot; 버튼을 눌러주세요</div>';
+  stage.style.width = '';
+  document.getElementById('ks-result').style.opacity = '0.5';
+  document.getElementById('ks-ciphertext').textContent = '-';
+  const btn = document.getElementById('ks-play-btn');
+  btn.textContent = '▶ 애니메이션 재생';
+  btn.disabled = false;
+}
+
+async function ksStartAnimation() {
+  if (ksIsAnimating) return;
+
+  const keyInput       = document.getElementById('ks-key-input');
+  const plaintextInput = document.getElementById('ks-plaintext-input');
+  const keyError       = document.getElementById('ks-key-error');
+  const playBtn        = document.getElementById('ks-play-btn');
+  const stage          = document.getElementById('ks-stage');
+  const scrollCont     = document.getElementById('ks-scroll-container');
+  const resultEl       = document.getElementById('ks-result');
+  const ciphertextEl   = document.getElementById('ks-ciphertext');
+
+  const keyStr    = keyInput.value.trim();
+  const plaintext = plaintextInput.value.trim();
+  if (!keyStr || !plaintext) return;
+
+  const key = keyStr.split('').map(Number);
+  const n   = key.length;
+
+  if (key.some(isNaN) || new Set(key).size !== n || key.some(function(k){ return k < 1 || k > n; })) {
+    keyError.textContent = '유효하지 않은 키입니다. 1부터 ' + n + '까지의 숫자가 중복 없이 포함되어야 합니다.';
+    keyError.style.display = 'block';
+    return;
+  }
+  keyError.style.display = 'none';
+
+  ksIsAnimating    = true;
+  playBtn.disabled = true;
+  playBtn.textContent = '⏳ 실행 중...';
+
+  stage.innerHTML          = '';
+  resultEl.style.opacity   = '0.5';
+  ciphertextEl.textContent = '-';
+
+  function ksSleep(ms) { return new Promise(function(r){ setTimeout(r, ms); }); }
+
+  // 청크 분할 (패딩 포함)
+  var chunks = [], originalLengths = [];
+  for (var ci = 0; ci < plaintext.length; ci += n) {
+    var chunk = plaintext.substring(ci, ci + n);
+    originalLengths.push(chunk.length);
+    while (chunk.length < n) chunk += 'z';
+    chunks.push(chunk);
+  }
+
+  var boxSize = 44, gap = 12, blockGap = 40, startY = 60, targetY = 180;
+  var currentX = 20;
+  var charElements = [], targetPositions = [];
+  var finalCiphertext = '';
+
+  // 1. 원본 글자 박스 생성
+  for (var i = 0; i < chunks.length; i++) {
+    var chunkTargetX = [];
+    var isLast  = (i === chunks.length - 1);
+    var origLen = originalLengths[i];
+
+    for (var j = 0; j < n; j++) {
+      var ch        = chunks[i][j];
+      var isPadding = isLast && j >= origLen;
+
+      var lbl = document.createElement('div');
+      lbl.textContent = isPadding ? (j+1) + '(추가)' : j + 1;
+      lbl.style.cssText = 'position:absolute;font-size:11px;font-weight:700;width:44px;text-align:center;' +
+        'left:' + currentX + 'px;top:' + (startY - 25) + 'px;color:' + (isPadding ? '#94a3b8' : '#3182f6');
+      stage.appendChild(lbl);
+
+      var box = document.createElement('div');
+      box.textContent    = ch;
+      box.className      = 'ks-char-box';
+      box.style.left     = currentX + 'px';
+      box.style.top      = startY + 'px';
+      box.style.background  = isPadding ? 'rgba(200,214,229,0.15)' : '#fff';
+      box.style.borderColor = '#ff6b35';
+      box.style.borderStyle = isPadding ? 'dashed' : 'solid';
+      box.style.color       = isPadding ? '#fb923c' : '#ea580c';
+      if (isPadding) { box.style.opacity = '0'; box.style.transform = 'scale(0.8)'; }
+      stage.appendChild(box);
+
+      charElements.push({ el: box, char: ch, chunkIdx: i, origPos: j, isPadding: isPadding });
+      chunkTargetX.push(currentX);
+      currentX += boxSize + gap;
+    }
+    targetPositions.push(chunkTargetX);
+    currentX += blockGap;
+  }
+  stage.style.width = currentX + 'px';
+
+  await ksSleep(800);
+
+  // 2. 패딩 문자 등장
+  var paddingAdded = false;
+  charElements.forEach(function(item) {
+    if (!item.isPadding) return;
+    item.el.style.opacity   = '1';
+    item.el.style.transform = 'scale(1)';
+    paddingAdded = true;
+  });
+  if (paddingAdded) await ksSleep(1000);
+
+  // 3. 하단 목표 슬롯 렌더링
+  for (var i2 = 0; i2 < chunks.length; i2++) {
+    var isLast2  = (i2 === chunks.length - 1);
+    var origLen2 = originalLengths[i2];
+    for (var j2 = 0; j2 < n; j2++) {
+      var tk           = key[j2];
+      var srcIsPadding = isLast2 && (tk - 1) >= origLen2;
+
+      var slot = document.createElement('div');
+      slot.style.cssText = 'position:absolute;width:44px;height:44px;border:2px dashed #cbd5e1;border-radius:8px;' +
+        'background:#f8fafc;left:' + targetPositions[i2][j2] + 'px;top:' + targetY + 'px;opacity:0;transition:opacity 0.5s';
+      stage.appendChild(slot);
+
+      var lbl2 = document.createElement('div');
+      lbl2.textContent = srcIsPadding ? tk + '(추가)' : tk;
+      lbl2.style.cssText = 'position:absolute;font-size:11px;font-weight:700;width:44px;text-align:center;' +
+        'left:' + targetPositions[i2][j2] + 'px;top:' + (targetY - 25) + 'px;' +
+        'color:' + (srcIsPadding ? '#94a3b8' : '#16a34a') + ';opacity:0;transition:opacity 0.5s';
+      stage.appendChild(lbl2);
+
+      (function(s, l) {
+        setTimeout(function() { s.style.opacity = '1'; l.style.opacity = '1'; }, 100);
+      })(slot, lbl2);
+    }
+  }
+  await ksSleep(1000);
+
+  // 4. 글자 이동 애니메이션
+  for (var i3 = 0; i3 < chunks.length; i3++) {
+    var chunkEls = charElements.filter(function(c) { return c.chunkIdx === i3; });
+
+    for (var j3 = 0; j3 < n; j3++) {
+      var srcPos    = key[j3] - 1;
+      var targetX   = targetPositions[i3][j3];
+      var movingItem = chunkEls.find(function(c) { return c.origPos === srcPos; });
+      if (!movingItem) continue;
+
+      finalCiphertext           += movingItem.char;
+      movingItem.el.style.left   = targetX + 'px';
+      movingItem.el.style.top    = targetY + 'px';
+      movingItem.el.style.borderStyle  = 'solid';
+      movingItem.el.style.borderColor  = movingItem.isPadding ? '#4ade80' : '#16a34a';
+      movingItem.el.style.background   = movingItem.isPadding ? '#f0fdf4' : '#dcfce7';
+      movingItem.el.style.color        = movingItem.isPadding ? '#22c55e' : '#15803d';
+    }
+    await ksSleep(800);
+  }
+  await ksSleep(600);
+
+  // 5. 완료
+  ciphertextEl.textContent = finalCiphertext;
+  resultEl.style.opacity   = '1';
+  ksIsAnimating    = false;
+  playBtn.disabled = false;
+  playBtn.textContent = '▶ 다시 재생';
+}
+
+document.getElementById('ks-key-input').addEventListener('input', function() { if (!ksIsAnimating) ksResetStage(); });
+document.getElementById('ks-plaintext-input').addEventListener('input', function() { if (!ksIsAnimating) ksResetStage(); });
+</script>
+
+<script>
+// ── 대칭 에너그램 암호화 테스트 모달 ──
+var anaIsAnimating = false;
+
+function openAnaModal() {
+  document.getElementById('ana-modal').classList.add('visible');
+}
+
+function closeAnaModal() {
+  document.getElementById('ana-modal').classList.remove('visible');
+  if (!anaIsAnimating) anaResetStage();
+}
+
+function anaResetStage() {
+  var stage = document.getElementById('ana-stage');
+  stage.innerHTML = '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:15px">&quot;애니메이션 재생&quot; 버튼을 눌러주세요</div>';
+  stage.style.width = '';
+  document.getElementById('ana-result').style.opacity = '0.5';
+  document.getElementById('ana-ciphertext').textContent = '-';
+  var btn = document.getElementById('ana-play-btn');
+  btn.textContent = '▶ 애니메이션 재생';
+  btn.disabled = false;
+}
+
+async function anaStartAnimation() {
+  if (anaIsAnimating) return;
+
+  var keyInput       = document.getElementById('ana-key-input');
+  var plaintextInput = document.getElementById('ana-plaintext-input');
+  var keyError       = document.getElementById('ana-key-error');
+  var playBtn        = document.getElementById('ana-play-btn');
+  var stage          = document.getElementById('ana-stage');
+  var scrollCont     = document.getElementById('ana-scroll-container');
+  var resultEl       = document.getElementById('ana-result');
+  var ciphertextEl   = document.getElementById('ana-ciphertext');
+
+  var keyVal    = parseInt(keyInput.value, 10);
+  var plaintext = plaintextInput.value.trim();
+
+  if (!plaintext) return;
+
+  if (isNaN(keyVal) || keyVal < 2) {
+    keyError.textContent = '유효하지 않은 키입니다. 2 이상의 정수를 입력해주세요.';
+    keyError.style.display = 'block';
+    return;
+  }
+  keyError.style.display = 'none';
+
+  var n = keyVal;
+  anaIsAnimating   = true;
+  playBtn.disabled = true;
+  playBtn.textContent = '⏳ 실행 중...';
+
+  stage.innerHTML          = '';
+  resultEl.style.opacity   = '0.5';
+  ciphertextEl.textContent = '-';
+
+  function anaSleep(ms) { return new Promise(function(r){ setTimeout(r, ms); }); }
+
+  // 청크 분할 (패딩 포함)
+  var chunks = [], originalLengths = [];
+  for (var ci = 0; ci < plaintext.length; ci += n) {
+    var chunk = plaintext.substring(ci, ci + n);
+    originalLengths.push(chunk.length);
+    while (chunk.length < n) chunk += 'z';
+    chunks.push(chunk);
+  }
+
+  var boxSize = 44, gap = 12, blockGap = 50, startY = 60, targetY = 190;
+  var currentX = 20;
+  var charElements = [], targetPositions = [];
+  var finalCiphertext = '';
+
+  // 1. 원본 글자 박스 생성
+  for (var i = 0; i < chunks.length; i++) {
+    var chunkTargetX = [];
+    var isLast  = (i === chunks.length - 1);
+    var origLen = originalLengths[i];
+    var chunkWidth = (n * boxSize) + ((n - 1) * gap);
+
+    var bgBox = document.createElement('div');
+    bgBox.style.cssText = 'position:absolute;background:rgba(168,85,247,0.04);border:1px solid rgba(168,85,247,0.15);' +
+      'border-radius:10px;z-index:1;' +
+      'left:' + (currentX - 10) + 'px;top:' + (startY - 40) + 'px;' +
+      'width:' + (chunkWidth + 20) + 'px;height:' + (targetY - startY + 100) + 'px';
+    stage.appendChild(bgBox);
+
+    var chunkLabel = document.createElement('div');
+    chunkLabel.textContent = '단위 ' + (i + 1);
+    chunkLabel.style.cssText = 'position:absolute;font-size:11px;font-weight:700;color:#a855f7;z-index:2;' +
+      'left:' + currentX + 'px;top:' + (startY - 30) + 'px';
+    stage.appendChild(chunkLabel);
+
+    for (var j = 0; j < n; j++) {
+      var ch        = chunks[i][j];
+      var isPadding = isLast && j >= origLen;
+
+      var lbl = document.createElement('div');
+      lbl.textContent = isPadding ? (j + 1) + '(추가)' : j + 1;
+      lbl.style.cssText = 'position:absolute;font-size:11px;font-weight:700;width:44px;text-align:center;z-index:2;' +
+        'left:' + currentX + 'px;top:' + (startY - 18) + 'px;color:' + (isPadding ? '#94a3b8' : '#a855f7');
+      stage.appendChild(lbl);
+
+      var box = document.createElement('div');
+      box.textContent    = ch;
+      box.className      = 'ks-char-box';
+      box.style.left     = currentX + 'px';
+      box.style.top      = startY + 'px';
+      box.style.background  = isPadding ? 'rgba(200,214,229,0.15)' : '#fff';
+      box.style.borderColor = isPadding ? '#94a3b8' : '#a855f7';
+      box.style.borderStyle = isPadding ? 'dashed' : 'solid';
+      box.style.color       = isPadding ? '#94a3b8' : '#7e22ce';
+      box.style.boxShadow   = '0 1px 3px rgba(0,0,0,0.08)';
+      if (isPadding) { box.style.opacity = '0'; box.style.transform = 'scale(0.8)'; }
+      stage.appendChild(box);
+
+      charElements.push({ el: box, char: ch, chunkIdx: i, origPos: j, isPadding: isPadding });
+      chunkTargetX.push(currentX);
+      currentX += boxSize + gap;
+    }
+    targetPositions.push(chunkTargetX);
+    currentX += blockGap;
+  }
+  stage.style.width = Math.max(currentX, scrollCont.clientWidth) + 'px';
+
+  await anaSleep(600);
+
+  // 2. 패딩 문자 등장
+  var paddingAdded = false;
+  charElements.forEach(function(item) {
+    if (!item.isPadding) return;
+    item.el.style.opacity     = '1';
+    item.el.style.transform   = 'scale(1)';
+    item.el.style.borderColor = '#fb923c';
+    item.el.style.borderStyle = 'dashed';
+    item.el.style.color       = '#ea580c';
+    paddingAdded = true;
+  });
+  if (paddingAdded) await anaSleep(1000);
+
+  // 3. 하단 슬롯 + 교차 아이콘 렌더링
+  for (var i2 = 0; i2 < chunks.length; i2++) {
+    var isLast2  = (i2 === chunks.length - 1);
+    var origLen2 = originalLengths[i2];
+
+    for (var j2 = 0; j2 < n; j2++) {
+      var srcIdx       = n - 1 - j2;
+      var srcIsPadding = isLast2 && srcIdx >= origLen2;
+
+      var slot = document.createElement('div');
+      slot.style.cssText = 'position:absolute;width:44px;height:44px;border:2px dashed #cbd5e1;border-radius:8px;' +
+        'background:#f8fafc;z-index:2;' +
+        'left:' + targetPositions[i2][j2] + 'px;top:' + targetY + 'px;opacity:0;transition:opacity 0.5s';
+      stage.appendChild(slot);
+
+      var lbl2 = document.createElement('div');
+      lbl2.textContent = srcIsPadding ? (srcIdx + 1) + '(추가)' : srcIdx + 1;
+      lbl2.style.cssText = 'position:absolute;font-size:11px;font-weight:700;width:44px;text-align:center;z-index:2;' +
+        'left:' + targetPositions[i2][j2] + 'px;top:' + (targetY - 20) + 'px;' +
+        'color:' + (srcIsPadding ? '#94a3b8' : '#6366f1') + ';opacity:0;transition:opacity 0.5s';
+      stage.appendChild(lbl2);
+
+      (function(s, l) {
+        setTimeout(function() { s.style.opacity = '1'; l.style.opacity = '1'; }, 100);
+      })(slot, lbl2);
+    }
+
+    if (n > 1) {
+      var blockW    = (n * boxSize) + ((n - 1) * gap);
+      var crossIcon = document.createElement('div');
+      crossIcon.textContent  = '⇄';
+      crossIcon.style.cssText = 'position:absolute;font-size:22px;color:#d1d5db;z-index:1;text-align:center;' +
+        'width:' + blockW + 'px;left:' + targetPositions[i2][0] + 'px;' +
+        'top:' + ((startY + targetY) / 2 - 12) + 'px;opacity:0;transition:opacity 0.5s';
+      stage.appendChild(crossIcon);
+      (function(ic) { setTimeout(function() { ic.style.opacity = '1'; }, 300); })(crossIcon);
+    }
+  }
+  await anaSleep(1000);
+
+  // 4. 역순 교차 애니메이션
+  for (var i3 = 0; i3 < chunks.length; i3++) {
+    var chunkEls      = charElements.filter(function(c) { return c.chunkIdx === i3; });
+    var chunkFinalStr = [];
+    for (var fi = 0; fi < n; fi++) chunkFinalStr.push('');
+
+    for (var j3 = 0; j3 < n; j3++) {
+      var movingItem = chunkEls.find(function(c) { return c.origPos === j3; });
+      if (!movingItem) continue;
+
+      var targetIdx2 = n - 1 - j3;
+      var targetX    = targetPositions[i3][targetIdx2];
+      chunkFinalStr[targetIdx2] = movingItem.char;
+
+      movingItem.el.style.left        = targetX + 'px';
+      movingItem.el.style.top         = targetY + 'px';
+      movingItem.el.style.zIndex      = String(20 + j3);
+      movingItem.el.style.borderStyle = 'solid';
+      movingItem.el.style.borderColor = movingItem.isPadding ? '#818cf8' : '#6366f1';
+      movingItem.el.style.background  = movingItem.isPadding ? '#eef2ff' : '#e0e7ff';
+      movingItem.el.style.color       = movingItem.isPadding ? '#6366f1' : '#4338ca';
+      movingItem.el.style.boxShadow   = 'none';
+    }
+
+    finalCiphertext += chunkFinalStr.join('');
+    await anaSleep(1000);
+  }
+  await anaSleep(400);
+
+  // 5. 완료
+  ciphertextEl.textContent = finalCiphertext;
+  resultEl.style.opacity   = '1';
+  anaIsAnimating   = false;
+  playBtn.disabled = false;
+  playBtn.textContent = '▶ 다시 재생';
+}
+
+document.getElementById('ana-key-input').addEventListener('input', function() { if (!anaIsAnimating) anaResetStage(); });
+document.getElementById('ana-plaintext-input').addEventListener('input', function() { if (!anaIsAnimating) anaResetStage(); });
+</script>
+
+<script>
+// ── 카이사르 암호화 테스트 모달 ──
+var caeIsAnimating = false;
+
+function openCaeModal() {
+  document.getElementById('cae-modal').classList.add('visible');
+}
+
+function closeCaeModal() {
+  document.getElementById('cae-modal').classList.remove('visible');
+  if (!caeIsAnimating) caeResetStage();
+}
+
+function caeResetStage() {
+  var stage = document.getElementById('cae-stage');
+  stage.innerHTML = '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:15px">&quot;애니메이션 재생&quot; 버튼을 눌러주세요</div>';
+  stage.style.width = '';
+  document.getElementById('cae-result').style.opacity = '0.5';
+  document.getElementById('cae-ciphertext').textContent = '-';
+  var btn = document.getElementById('cae-play-btn');
+  btn.textContent = '▶ 애니메이션 재생';
+  btn.disabled = false;
+}
+
+async function caeStartAnimation() {
+  if (caeIsAnimating) return;
+
+  var keyInput       = document.getElementById('cae-key-input');
+  var plaintextInput = document.getElementById('cae-plaintext-input');
+  var keyError       = document.getElementById('cae-key-error');
+  var playBtn        = document.getElementById('cae-play-btn');
+  var stage          = document.getElementById('cae-stage');
+  var resultEl       = document.getElementById('cae-result');
+  var ciphertextEl   = document.getElementById('cae-ciphertext');
+
+  var keyVal    = parseInt(keyInput.value, 10);
+  var plaintext = plaintextInput.value.toUpperCase();
+
+  if (!plaintext) return;
+
+  if (isNaN(keyVal) || keyVal < 1 || keyVal > 25) {
+    keyError.textContent = '유효하지 않은 키입니다. 1에서 25 사이의 정수를 입력해주세요.';
+    keyError.style.display = 'block';
+    return;
+  }
+  keyError.style.display = 'none';
+
+  caeIsAnimating   = true;
+  playBtn.disabled = true;
+  playBtn.textContent = '⏳ 실행 중...';
+
+  stage.innerHTML          = '';
+  resultEl.style.opacity   = '0.5';
+  ciphertextEl.textContent = '-';
+
+  function caeSleep(ms) { return new Promise(function(r){ setTimeout(r, ms); }); }
+
+  // 레이아웃 상수
+  var rBoxSize = 28, rGap = 2, rUnit = 30;
+  var rulerX = 80, plainRulerY = 30, cipherRulerY = 66;
+  var textX = 80, tBoxSize = 44, tGap = 10;
+  var inputY = 160, targetY = 240;
+
+  var requiredWidth = Math.max(900, textX + (plaintext.length * (tBoxSize + tGap)) + 50);
+  stage.style.width = requiredWidth + 'px';
+
+  // 1. 알파벳 대응표(Ruler) 생성
+  var plainLabel = document.createElement('div');
+  plainLabel.textContent = '알파벳';
+  plainLabel.style.cssText = 'position:absolute;font-size:11px;font-weight:700;color:#2563eb;' +
+    'text-align:right;width:64px;left:10px;top:' + (plainRulerY + 6) + 'px';
+  stage.appendChild(plainLabel);
+
+  var cipherLabel = document.createElement('div');
+  cipherLabel.textContent = '암호문';
+  cipherLabel.style.cssText = 'position:absolute;font-size:11px;font-weight:700;color:#059669;' +
+    'text-align:right;width:64px;left:10px;top:' + (cipherRulerY + 6) + 'px';
+  stage.appendChild(cipherLabel);
+
+  // 고정 알파벳 줄 (A-Z)
+  var plainBoxes = [];
+  for (var pi = 0; pi < 26; pi++) {
+    var pBox = document.createElement('div');
+    pBox.textContent = String.fromCharCode(65 + pi);
+    pBox.style.cssText = 'position:absolute;display:flex;align-items:center;justify-content:center;' +
+      'width:' + rBoxSize + 'px;height:' + rBoxSize + 'px;font-size:13px;font-weight:700;' +
+      'border-radius:4px;border:1px solid #bfdbfe;background:#eff6ff;color:#1d4ed8;' +
+      'transition:background 0.3s,color 0.3s;' +
+      'left:' + (rulerX + pi * rUnit) + 'px;top:' + plainRulerY + 'px';
+    stage.appendChild(pBox);
+    plainBoxes.push(pBox);
+  }
+
+  // 슬라이딩 트랙 컨테이너
+  var trackContainer = document.createElement('div');
+  trackContainer.style.cssText = 'position:absolute;overflow:visible;' +
+    'left:' + rulerX + 'px;top:' + cipherRulerY + 'px;width:' + (26 * rUnit) + 'px';
+  stage.appendChild(trackContainer);
+
+  // 슬라이드 트랙 (A-Z 두 번 반복)
+  var slideTrack = document.createElement('div');
+  slideTrack.className = 'cae-slide-track';
+  trackContainer.appendChild(slideTrack);
+
+  var cipherBoxes = [];
+  for (var ci = 0; ci < 52; ci++) {
+    var cBox = document.createElement('div');
+    cBox.textContent = String.fromCharCode(65 + (ci % 26));
+    cBox.style.cssText = 'position:absolute;display:flex;align-items:center;justify-content:center;' +
+      'width:' + rBoxSize + 'px;height:' + rBoxSize + 'px;font-size:13px;font-weight:700;' +
+      'border-radius:4px;border:1px solid #a7f3d0;background:#ecfdf5;color:#047857;' +
+      'transition:background 0.3s,color 0.3s;' +
+      'left:' + (ci * rUnit) + 'px;top:0';
+    slideTrack.appendChild(cBox);
+    cipherBoxes.push(cBox);
+  }
+
+  // 2. 입력 평문 및 출력 슬롯 생성
+  var inputElements = [], targetElements = [];
+
+  for (var ti = 0; ti < plaintext.length; ti++) {
+    var tch   = plaintext[ti];
+    var xPos  = textX + (ti * (tBoxSize + tGap));
+    var isAl0 = /^[A-Z]$/.test(tch);
+
+    var inBox = document.createElement('div');
+    inBox.textContent = tch;
+    inBox.style.cssText = 'position:absolute;display:flex;align-items:center;justify-content:center;' +
+      'font-weight:700;font-size:18px;border-radius:8px;border-width:2px;z-index:10;' +
+      'width:' + tBoxSize + 'px;height:' + tBoxSize + 'px;' +
+      'left:' + xPos + 'px;top:' + inputY + 'px;' +
+      'transition:transform 0.2s,background 0.3s,border-color 0.3s,color 0.3s;' +
+      (isAl0
+        ? 'border-style:solid;border-color:#94a3b8;color:#374151;background:#fff;'
+        : 'border-style:dashed;border-color:#d1d5db;color:#9ca3af;background:#f9fafb;');
+    stage.appendChild(inBox);
+    inputElements.push(inBox);
+
+    var slot = document.createElement('div');
+    slot.style.cssText = 'position:absolute;border:2px dashed #e5e7eb;border-radius:8px;background:#f9fafb;' +
+      'opacity:0;transition:opacity 0.5s;' +
+      'width:' + tBoxSize + 'px;height:' + tBoxSize + 'px;' +
+      'left:' + xPos + 'px;top:' + targetY + 'px';
+    stage.appendChild(slot);
+    (function(s) { setTimeout(function() { s.style.opacity = '1'; }, 100); })(slot);
+    targetElements.push(slot);
+  }
+
+  await caeSleep(800);
+
+  // 3. 알파벳 자 슬라이드
+  slideTrack.style.transform = 'translateX(-' + (keyVal * rUnit) + 'px)';
+
+  var guideText = document.createElement('div');
+  guideText.textContent = '→ 오른쪽으로 ' + keyVal + '칸 슬라이드';
+  guideText.style.cssText = 'position:absolute;font-size:11px;font-weight:700;color:#f97316;' +
+    'left:' + (rulerX + 10) + 'px;top:' + (cipherRulerY + 35) + 'px;transition:opacity 0.5s';
+  stage.appendChild(guideText);
+
+  await caeSleep(1500);
+  guideText.style.opacity = '0.3';
+
+  // 4. 글자별 치환 애니메이션
+  var finalCiphertext = '';
+
+  for (var i = 0; i < plaintext.length; i++) {
+    var ch    = plaintext[i];
+    var isAl  = /^[A-Z]$/.test(ch);
+    var tX    = textX + (i * (tBoxSize + tGap));
+    var inEl  = inputElements[i];
+    var slotEl = targetElements[i];
+
+    if (isAl) {
+      var charIdx   = ch.charCodeAt(0) - 65;
+      var cIdx      = charIdx + keyVal;
+      var shiftedCh = cipherBoxes[cIdx].textContent;
+      finalCiphertext += shiftedCh;
+
+      // 입력 강조
+      inEl.style.borderColor = '#3b82f6';
+      inEl.style.color       = '#2563eb';
+      inEl.style.transform   = 'scale(1.15)';
+      inEl.style.boxShadow   = '0 4px 6px rgba(0,0,0,0.1)';
+
+      // 룰러 강조
+      plainBoxes[charIdx].style.background = '#3b82f6';
+      plainBoxes[charIdx].style.color      = '#fff';
+      cipherBoxes[cIdx].style.background   = '#10b981';
+      cipherBoxes[cIdx].style.color        = '#fff';
+      cipherBoxes[cIdx].style.transform    = 'scale(1.15)';
+      cipherBoxes[cIdx].style.boxShadow    = '0 4px 6px rgba(0,0,0,0.1)';
+
+      await caeSleep(500);
+
+      // fly box
+      var flyBox = document.createElement('div');
+      flyBox.textContent = shiftedCh;
+      flyBox.className   = 'cae-fly-box';
+      flyBox.style.cssText = 'position:absolute;display:flex;align-items:center;justify-content:center;' +
+        'font-weight:700;font-size:18px;border-radius:8px;border:2px solid #10b981;' +
+        'background:#d1fae5;color:#047857;z-index:40;' +
+        'width:' + tBoxSize + 'px;height:' + tBoxSize + 'px;' +
+        'left:' + (rulerX + charIdx * rUnit) + 'px;top:' + cipherRulerY + 'px';
+      stage.appendChild(flyBox);
+      flyBox.getBoundingClientRect(); // reflow
+      flyBox.style.left = tX + 'px';
+      flyBox.style.top  = targetY + 'px';
+
+      await caeSleep(380);
+
+      // 슬롯 정착
+      slotEl.textContent = shiftedCh;
+      slotEl.style.cssText = 'position:absolute;display:flex;align-items:center;justify-content:center;' +
+        'font-weight:700;font-size:18px;border-radius:8px;border:2px solid #10b981;' +
+        'background:#d1fae5;color:#047857;opacity:1;' +
+        'width:' + tBoxSize + 'px;height:' + tBoxSize + 'px;' +
+        'left:' + tX + 'px;top:' + targetY + 'px';
+      flyBox.remove();
+
+      // 강조 해제
+      inEl.style.transform = '';
+      inEl.style.boxShadow = '';
+      plainBoxes[charIdx].style.background  = '#eff6ff';
+      plainBoxes[charIdx].style.color       = '#1d4ed8';
+      cipherBoxes[cIdx].style.background    = '#ecfdf5';
+      cipherBoxes[cIdx].style.color         = '#047857';
+      cipherBoxes[cIdx].style.transform     = '';
+      cipherBoxes[cIdx].style.boxShadow     = '';
+
+    } else {
+      finalCiphertext += ch;
+      inEl.style.transform = 'scale(1.15)';
+      inEl.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
+      await caeSleep(300);
+
+      var flyBox2 = document.createElement('div');
+      flyBox2.textContent = ch;
+      flyBox2.className   = 'cae-fly-box';
+      flyBox2.style.cssText = 'position:absolute;display:flex;align-items:center;justify-content:center;' +
+        'font-weight:700;font-size:18px;border-radius:8px;border:2px dashed #94a3b8;' +
+        'background:#f3f4f6;color:#6b7280;z-index:40;' +
+        'width:' + tBoxSize + 'px;height:' + tBoxSize + 'px;' +
+        'left:' + tX + 'px;top:' + inputY + 'px';
+      stage.appendChild(flyBox2);
+      flyBox2.getBoundingClientRect();
+      flyBox2.style.top = targetY + 'px';
+
+      await caeSleep(380);
+
+      slotEl.textContent = ch;
+      slotEl.style.cssText = 'position:absolute;display:flex;align-items:center;justify-content:center;' +
+        'font-weight:700;font-size:18px;border-radius:8px;border:2px dashed #94a3b8;' +
+        'background:#f3f4f6;color:#6b7280;opacity:1;' +
+        'width:' + tBoxSize + 'px;height:' + tBoxSize + 'px;' +
+        'left:' + tX + 'px;top:' + targetY + 'px';
+      flyBox2.remove();
+      inEl.style.transform = '';
+      inEl.style.boxShadow = '';
+    }
+
+    await caeSleep(100);
+  }
+
+  await caeSleep(500);
+
+  // 5. 완료
+  ciphertextEl.textContent = finalCiphertext;
+  resultEl.style.opacity   = '1';
+  caeIsAnimating   = false;
+  playBtn.disabled = false;
+  playBtn.textContent = '▶ 다시 재생';
+}
+
+document.getElementById('cae-key-input').addEventListener('input', function() { if (!caeIsAnimating) caeResetStage(); });
+document.getElementById('cae-plaintext-input').addEventListener('input', function() { if (!caeIsAnimating) caeResetStage(); });
+</script>
+
+<!-- ══ 행렬 스키테일 암호화 테스트 모달 ══ -->
+<div id="sky-modal" onclick="if(event.target===this)closeSkyModal()">
+  <div class="sky-modal-box">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <h2 style="font-size:20px;font-weight:800;color:var(--text1);margin:0">🌀 행렬 스키테일 암호화 테스트</h2>
+      <button onclick="closeSkyModal()" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--text3);padding:4px 8px;border-radius:6px;line-height:1" onmouseover="this.style.background='var(--border)'" onmouseout="this.style.background='none'">✕</button>
+    </div>
+
+    <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:18px;align-items:flex-end">
+      <div>
+        <label style="display:block;font-size:13px;font-weight:700;color:var(--text2);margin-bottom:6px">🔑 열 수 (키)</label>
+        <input id="sky-key-input" type="number" min="2" max="20" value="4"
+          style="width:90px;padding:8px 10px;border:1.5px solid var(--border);border-radius:var(--radius);font-size:16px;font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--text1);outline:none">
+        <div id="sky-key-error" style="display:none;color:#ef4444;font-size:12px;margin-top:4px"></div>
+      </div>
+      <div style="flex:1;min-width:200px">
+        <label style="display:block;font-size:13px;font-weight:700;color:var(--text2);margin-bottom:6px">📝 평문 (공백 자동 제거, 대문자 변환)</label>
+        <input id="sky-plaintext-input" type="text" value="HELLOWORLD"
+          style="width:100%;box-sizing:border-box;padding:8px 12px;border:1.5px solid var(--border);border-radius:var(--radius);font-size:16px;font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--text1);outline:none">
+      </div>
+      <button id="sky-play-btn" onclick="skyStartAnimation()"
+        style="padding:8px 22px;border:none;border-radius:var(--radius);color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Pretendard',sans-serif;white-space:nowrap">
+        ▶ 애니메이션 재생
+      </button>
+    </div>
+
+    <div id="sky-scroll-container" style="width:100%;overflow:auto;position:relative;height:450px;background:var(--bg);border-radius:var(--radius);border:1px solid var(--border)">
+      <div id="sky-stage" style="position:absolute;top:0;left:0;min-width:100%;padding:16px;height:450px">
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:15px">&quot;애니메이션 재생&quot; 버튼을 눌러주세요</div>
+      </div>
+    </div>
+
+    <div id="sky-result" style="margin-top:16px;padding:16px 20px;background:rgba(14,165,233,0.06);border:1.5px solid rgba(14,165,233,0.3);border-radius:var(--radius);opacity:0.5;transition:opacity 0.5s">
+      <span style="font-size:14px;font-weight:700;color:var(--text2)">암호문: </span>
+      <span id="sky-ciphertext" style="font-size:18px;font-weight:800;color:#0369a1;letter-spacing:2px">-</span>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── 행렬 스키테일 암호화 테스트 모달 ──
+var skyIsAnimating = false;
+
+function openSkyModal() {
+  document.getElementById('sky-modal').classList.add('visible');
+}
+function closeSkyModal() {
+  document.getElementById('sky-modal').classList.remove('visible');
+  if (!skyIsAnimating) skyResetStage();
+}
+function skyResetStage() {
+  var stage = document.getElementById('sky-stage');
+  stage.innerHTML = '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:15px">&quot;애니메이션 재생&quot; 버튼을 눌러주세요</div>';
+  stage.style.width = '';
+  stage.style.height = '450px';
+  document.getElementById('sky-scroll-container').style.height = '450px';
+  document.getElementById('sky-result').style.opacity = '0.5';
+  document.getElementById('sky-ciphertext').textContent = '-';
+  var btn = document.getElementById('sky-play-btn');
+  btn.textContent = '▶ 애니메이션 재생';
+  btn.disabled = false;
+}
+
+async function skyStartAnimation() {
+  if (skyIsAnimating) return;
+
+  var keyInput       = document.getElementById('sky-key-input');
+  var plaintextInput = document.getElementById('sky-plaintext-input');
+  var keyError       = document.getElementById('sky-key-error');
+  var playBtn        = document.getElementById('sky-play-btn');
+  var stage          = document.getElementById('sky-stage');
+  var scrollCont     = document.getElementById('sky-scroll-container');
+  var resultEl       = document.getElementById('sky-result');
+  var ciphertextEl   = document.getElementById('sky-ciphertext');
+
+  var cols      = parseInt(keyInput.value, 10);
+  var plaintext = plaintextInput.value.replace(/\s+/g, '').toUpperCase();
+
+  if (!plaintext) return;
+  if (isNaN(cols) || cols < 2) {
+    keyError.textContent = '유효하지 않은 키입니다. 2 이상의 정수를 입력해주세요.';
+    keyError.style.display = 'block';
+    return;
+  }
+  keyError.style.display = 'none';
+
+  skyIsAnimating   = true;
+  playBtn.disabled = true;
+  playBtn.textContent = '⏳ 실행 중...';
+
+  stage.innerHTML          = '';
+  resultEl.style.opacity   = '0.5';
+  ciphertextEl.textContent = '-';
+
+  function skySleep(ms) { return new Promise(function(r) { setTimeout(r, ms); }); }
+
+  // ─ 레이아웃 상수 계산 ─
+  var rows      = Math.ceil(plaintext.length / cols);
+  var tBoxSize  = 40, tGap = 8;
+  var gridX     = 50, startY = 20, gridY = 110;
+  var gridWidth  = cols * tBoxSize + (cols - 1) * tGap + 24;
+  var gridHeight = rows * tBoxSize + (rows - 1) * tGap + 24;
+  var targetY   = gridY + gridHeight + 70;
+
+  var requiredWidth  = Math.max(800, gridX + plaintext.length * (tBoxSize + tGap) + 50);
+  var requiredHeight = targetY + 80;
+  stage.style.width  = requiredWidth + 'px';
+  stage.style.height = requiredHeight + 'px';
+  scrollCont.style.height = Math.min(500, requiredHeight + 20) + 'px';
+
+  // ─ Step 1: 막대기 생성 및 전개 ─
+  var bandagePattern = 'repeating-linear-gradient(75deg,rgba(248,250,252,0.95) 0px,rgba(248,250,252,0.95) 15px,rgba(203,213,225,0.95) 15px,rgba(203,213,225,0.95) 18px)';
+  var polyGradient   = 'linear-gradient(to bottom,#475569 0%,#475569 20%,#64748b 20%,#64748b 50%,#94a3b8 50%,#94a3b8 80%,#64748b 80%,#64748b 100%)';
+
+  var stick = document.createElement('div');
+  stick.className = 'sky-stick-anim';
+  stick.style.cssText = [
+    'position:absolute;display:flex;align-items:center;justify-content:center;overflow:hidden;z-index:0;',
+    'background:' + bandagePattern + ',' + polyGradient + ';',
+    'border-radius:3px;box-shadow:6px 6px 15px rgba(0,0,0,0.4);',
+    'width:' + gridWidth + 'px;height:32px;',
+    'left:' + (gridX - 12) + 'px;top:' + (gridY + gridHeight / 2 - 16) + 'px;',
+    'transform:rotate(-90deg) scale(0.9)'
+  ].join('');
+  stage.appendChild(stick);
+
+  var stickLabel = document.createElement('div');
+  stickLabel.textContent = '📜 다각형 막대기 눕히는 중...';
+  stickLabel.style.cssText = 'font-size:11px;font-weight:700;color:#1e293b;background:rgba(255,255,255,0.8);padding:2px 8px;border-radius:4px;transition:opacity 0.3s;white-space:nowrap;opacity:0;filter:drop-shadow(0 1px 2px rgba(0,0,0,0.15))';
+  stick.appendChild(stickLabel);
+
+  await skySleep(600);
+  stick.style.transform = 'rotate(0deg) scale(1)';
+  stickLabel.style.opacity = '1';
+
+  await skySleep(1000);
+  stickLabel.textContent = '🗺 감은 띠(종이) 푸는 중...';
+  await skySleep(300);
+  stickLabel.style.opacity = '0';
+  stick.style.background   = 'transparent';
+  stick.style.boxShadow    = 'none';
+  stick.style.height       = gridHeight + 'px';
+  stick.style.top          = (gridY - 12) + 'px';
+
+  await skySleep(1200);
+
+  // ─ Step 2: 격자 라벨·행 강조선·슬롯 표시 ─
+  var gridSlots = [];
+  var i, r, c;
+
+  for (c = 0; c < cols; c++) {
+    (function(col) {
+      var colLabel = document.createElement('div');
+      colLabel.textContent = '열' + (col + 1);
+      colLabel.style.cssText = 'position:absolute;font-size:10px;font-weight:700;color:#0ea5e9;text-align:center;opacity:0;transition:opacity 0.5s;width:' + tBoxSize + 'px;left:' + (gridX + col * (tBoxSize + tGap)) + 'px;top:' + (gridY - 22) + 'px';
+      stage.appendChild(colLabel);
+      setTimeout(function() { colLabel.style.opacity = '1'; }, col * 50);
+    })(c);
+  }
+
+  for (r = 0; r < rows; r++) {
+    (function(row) {
+      var rowLabel = document.createElement('div');
+      rowLabel.textContent = '행' + (row + 1);
+      rowLabel.style.cssText = 'position:absolute;font-size:10px;font-weight:700;color:#38bdf8;text-align:right;width:30px;opacity:0;transition:opacity 0.5s;left:' + (gridX - 38) + 'px;top:' + (gridY + row * (tBoxSize + tGap) + 12) + 'px';
+      stage.appendChild(rowLabel);
+      setTimeout(function() { rowLabel.style.opacity = '1'; }, row * 50);
+
+      var rowStrip = document.createElement('div');
+      rowStrip.style.cssText = 'position:absolute;background:#f0f9ff;border-top:2px solid #bae6fd;border-bottom:2px solid #bae6fd;opacity:0;transition:opacity 0.5s;z-index:-1;left:' + gridX + 'px;top:' + (gridY + row * (tBoxSize + tGap)) + 'px;width:' + (cols * tBoxSize + (cols - 1) * tGap) + 'px;height:' + tBoxSize + 'px';
+      stage.appendChild(rowStrip);
+      setTimeout(function() { rowStrip.style.opacity = '1'; }, 100 + row * 100);
+
+      for (var col2 = 0; col2 < cols; col2++) {
+        (function(colI) {
+          var idx = row * cols + colI;
+          var isDummy = idx >= plaintext.length;
+          var slot = document.createElement('div');
+          slot.style.cssText = 'position:absolute;border-radius:8px;opacity:0;transition:opacity 0.5s,background 0.3s;display:flex;align-items:center;justify-content:center;width:' + tBoxSize + 'px;height:' + tBoxSize + 'px;left:' + (gridX + colI * (tBoxSize + tGap)) + 'px;top:' + (gridY + row * (tBoxSize + tGap)) + 'px;' + (isDummy ? 'border:2px dashed #e5e7eb;background:#f9fafb;' : 'border:2px dashed #7dd3fc;background:rgba(240,249,255,0.5);');
+          if (isDummy) { slot.innerHTML = '<span style="color:#d1d5db;font-size:13px;">-</span>'; }
+          stage.appendChild(slot);
+          gridSlots.push({ r: row, c: colI, el: slot, isDummy: isDummy });
+          setTimeout(function() { slot.style.opacity = '1'; }, 200 + idx * 30);
+        })(col2);
+      }
+    })(r);
+  }
+
+  // ─ Step 3: 평문 자 나열 ─
+  var charElements = [];
+  for (i = 0; i < plaintext.length; i++) {
+    (function(idx2) {
+      var box = document.createElement('div');
+      box.textContent = plaintext[idx2];
+      box.className   = 'sky-fly-box';
+      box.style.cssText = 'position:absolute;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;border-radius:8px;border:2px solid #94a3b8;background:#fff;color:#374151;z-index:10;box-shadow:0 1px 3px rgba(0,0,0,0.08);width:' + tBoxSize + 'px;height:' + tBoxSize + 'px;left:' + (gridX + idx2 * (tBoxSize + tGap)) + 'px;top:' + startY + 'px';
+      stage.appendChild(box);
+      charElements.push({ el: box, char: plaintext[idx2], idx: idx2, r: Math.floor(idx2 / cols), c: idx2 % cols });
+    })(i);
+  }
+
+  await skySleep(1000);
+
+  // ─ Step 4: 격자로 비행 ─
+  for (i = 0; i < charElements.length; i++) {
+    (function(item) {
+      item.el.style.left        = (gridX + item.c * (tBoxSize + tGap)) + 'px';
+      item.el.style.top         = (gridY + item.r * (tBoxSize + tGap)) + 'px';
+      item.el.style.borderColor = '#0ea5e9';
+      item.el.style.color       = '#0369a1';
+    })(charElements[i]);
+    await skySleep(80);
+  }
+
+  await skySleep(600);
+
+  // ─ Step 5: 열 방향 캐스케이드 읽기 ─
+  var finalCipherX    = gridX;
+  var finalCiphertext = '';
+  var delayCounter    = 0;
+  var staggerDelay    = 200;
+
+  for (c = 0; c < cols; c++) {
+    (function(col, dc) {
+      setTimeout(function() {
+        var colHL = document.createElement('div');
+        colHL.style.cssText = 'position:absolute;background:rgba(186,230,253,0.4);border-radius:8px;opacity:0;transition:opacity 0.3s;z-index:0;pointer-events:none;width:' + (tBoxSize + 12) + 'px;height:' + (gridHeight - 12) + 'px;left:' + (gridX + col * (tBoxSize + tGap) - 6) + 'px;top:' + (gridY - 6) + 'px';
+        stage.appendChild(colHL);
+        requestAnimationFrame(function() { colHL.style.opacity = '1'; });
+        var hlDuration = rows * staggerDelay + 150;
+        setTimeout(function() {
+          colHL.style.opacity = '0';
+          setTimeout(function() { if (colHL.parentNode) colHL.parentNode.removeChild(colHL); }, 300);
+        }, hlDuration);
+      }, dc * staggerDelay);
+    })(c, delayCounter);
+
+    for (r = 0; r < rows; r++) {
+      var sidx = r * cols + c;
+      if (sidx < plaintext.length) {
+        finalCiphertext += charElements[sidx].char;
+        var sCurX = finalCipherX;
+        finalCipherX += tBoxSize + tGap;
+
+        (function(item, curX, dc2) {
+          setTimeout(function() {
+            item.el.style.transform  = 'scale(1.15)';
+            item.el.style.background = '#e0f2fe';
+            item.el.style.boxShadow  = '0 4px 6px rgba(0,0,0,0.1)';
+            setTimeout(function() {
+              item.el.style.left        = curX + 'px';
+              item.el.style.top         = targetY + 'px';
+              item.el.style.transform   = '';
+              item.el.style.background  = '#fff';
+              item.el.style.color       = '#111827';
+              item.el.style.borderColor = '#0ea5e9';
+              item.el.style.boxShadow   = '0 1px 3px rgba(0,0,0,0.08)';
+              var finalSlot = document.createElement('div');
+              finalSlot.style.cssText = 'position:absolute;border:2px dashed #bae6fd;border-radius:8px;background:#f0f9ff;opacity:0;transition:opacity 0.5s;z-index:-1;width:' + tBoxSize + 'px;height:' + tBoxSize + 'px;left:' + curX + 'px;top:' + targetY + 'px';
+              stage.appendChild(finalSlot);
+              requestAnimationFrame(function() { finalSlot.style.opacity = '1'; });
+            }, 150);
+          }, dc2 * staggerDelay);
+        })(charElements[sidx], sCurX, delayCounter);
+
+        delayCounter++;
+      } else {
+        (function(slotR, slotC, dc3) {
+          var emptySlot = null;
+          for (var gi = 0; gi < gridSlots.length; gi++) {
+            if (gridSlots[gi].r === slotR && gridSlots[gi].c === slotC) { emptySlot = gridSlots[gi]; break; }
+          }
+          if (!emptySlot) return;
+          setTimeout(function() {
+            var cross = document.createElement('div');
+            cross.textContent = '✕';
+            cross.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#f87171;font-size:18px;font-weight:700;opacity:0;transition:opacity 0.3s';
+            emptySlot.el.appendChild(cross);
+            emptySlot.el.style.background   = '#fef2f2';
+            emptySlot.el.style.borderColor  = '#fecaca';
+            requestAnimationFrame(function() { cross.style.opacity = '1'; });
+            setTimeout(function() {
+              cross.style.opacity = '0';
+              emptySlot.el.style.background  = '';
+              emptySlot.el.style.borderColor = '';
+              setTimeout(function() { if (cross.parentNode) cross.parentNode.removeChild(cross); }, 300);
+            }, 300);
+          }, dc3 * staggerDelay);
+        })(r, c, delayCounter);
+
+        delayCounter += 0.5;
+      }
+    }
+    delayCounter += 1;
+  }
+
+  await skySleep(delayCounter * staggerDelay + 800);
+
+  // ─ Step 6: 완료 ─
+  ciphertextEl.textContent = finalCiphertext;
+  resultEl.style.opacity   = '1';
+  skyIsAnimating           = false;
+  playBtn.disabled         = false;
+  playBtn.textContent      = '▶ 다시 재생';
+}
+
+document.getElementById('sky-key-input').addEventListener('input', function() { if (!skyIsAnimating) skyResetStage(); });
+document.getElementById('sky-plaintext-input').addEventListener('input', function() { if (!skyIsAnimating) skyResetStage(); });
+</script>
 </body>
 </html>
