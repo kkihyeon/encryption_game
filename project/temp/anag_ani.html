@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>대칭 애너그램 암호화 동적 애니메이션</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap');
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+        /* 애니메이션용 트랜지션 설정: 교차할 때 자연스럽게 보이도록 설정 */
+        .char-box {
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        /* 커스텀 스크롤바 */
+        .custom-scrollbar::-webkit-scrollbar {
+            height: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-4 md:p-8">
+    <div class="max-w-5xl mx-auto bg-white p-6 md:p-8 rounded-xl shadow-lg">
+        <h1 class="text-2xl font-bold mb-6 text-gray-800 border-b pb-4">🔄 대칭 애너그램 암호화 애니메이션</h1>
+
+        <!-- 입력 영역 -->
+        <div class="bg-gray-50 p-5 rounded-lg border border-gray-200 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="key-input" class="block text-sm font-bold text-gray-700 mb-2">키 (단위 크기, 숫자 2 이상)</label>
+                    <input type="number" id="key-input" placeholder="예: 3" min="2" max="10" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-shadow" value="3">
+                    <p id="key-error" class="text-red-500 text-xs mt-2 hidden"></p>
+                </div>
+                <div>
+                    <label for="plaintext-input" class="block text-sm font-bold text-gray-700 mb-2">평문</label>
+                    <input type="text" id="plaintext-input" placeholder="예: HELLO" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-shadow" value="HELLO">
+                </div>
+            </div>
+            
+            <div class="mt-6 flex justify-end">
+                <button id="play-btn" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-6 rounded-lg shadow transition-colors flex items-center">
+                    <i class="fa-solid fa-play mr-2"></i> 애니메이션 재생
+                </button>
+            </div>
+        </div>
+
+        <!-- 애니메이션 캔버스 -->
+        <div class="relative bg-white border-2 border-gray-100 rounded-xl mb-6 overflow-hidden">
+            <div class="bg-gray-100 px-4 py-2 text-xs font-bold text-gray-500 uppercase tracking-wider border-b border-gray-200 flex justify-between items-center">
+                <span>시각화 보드</span>
+                <span class="text-[10px] text-gray-400 font-normal">블록 내 역순 교차</span>
+            </div>
+            <!-- 스크롤 가능한 스테이지 -->
+            <div id="animation-scroll-container" class="w-full overflow-x-auto custom-scrollbar relative" style="height: 300px;">
+                <div id="animation-stage" class="absolute top-0 left-0 h-full p-4">
+                    <div id="placeholder-text" class="absolute inset-0 flex items-center justify-center text-gray-400 font-medium">
+                        "애니메이션 재생" 버튼을 눌러주세요
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 최종 결과 출력 -->
+        <div id="result-section" class="p-5 bg-purple-50 border border-purple-200 rounded-lg opacity-50 transition-opacity duration-500">
+            <h3 class="text-sm font-bold mb-1 text-purple-800 uppercase tracking-wider">최종 암호문</h3>
+            <p id="ciphertext-output" class="text-2xl font-mono font-bold text-purple-700 tracking-widest break-all">-</p>
+        </div>
+    </div>
+
+    <script>
+        const keyInput = document.getElementById('key-input');
+        const plaintextInput = document.getElementById('plaintext-input');
+        const keyError = document.getElementById('key-error');
+        const playBtn = document.getElementById('play-btn');
+        const stage = document.getElementById('animation-stage');
+        const scrollContainer = document.getElementById('animation-scroll-container');
+        const resultSection = document.getElementById('result-section');
+        const ciphertextOutput = document.getElementById('ciphertext-output');
+
+        let isAnimating = false;
+
+        const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+        async function startAnimation() {
+            if (isAnimating) return;
+            
+            const keyVal = parseInt(keyInput.value, 10);
+            const plaintext = plaintextInput.value.trim();
+
+            if (!keyVal || !plaintext) return;
+
+            if (isNaN(keyVal) || keyVal < 2) {
+                keyError.textContent = `유효하지 않은 키입니다. 2 이상의 정수를 입력해주세요.`;
+                keyError.classList.remove('hidden');
+                return;
+            }
+            keyError.classList.add('hidden');
+
+            const n = keyVal;
+
+            isAnimating = true;
+            playBtn.disabled = true;
+            playBtn.classList.replace('bg-purple-600', 'bg-gray-400');
+            playBtn.classList.replace('hover:bg-purple-700', 'hover:bg-gray-400');
+            playBtn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin mr-2"></i> 실행 중...`;
+            
+            stage.innerHTML = '';
+            resultSection.style.opacity = '0.5';
+            ciphertextOutput.textContent = '-';
+
+            // 데이터 준비 (패딩 추가)
+            let chunks = [];
+            let originalLengths = [];
+            let textIdx = 0;
+            
+            while (textIdx < plaintext.length) {
+                let chunk = plaintext.substring(textIdx, textIdx + n);
+                originalLengths.push(chunk.length);
+                while (chunk.length < n) {
+                    chunk += 'z';
+                }
+                chunks.push(chunk);
+                textIdx += n;
+            }
+
+            // 시각화 레이아웃
+            const boxSize = 44; 
+            const gap = 12;     
+            const blockGap = 50; 
+            const startY = 60;  
+            const targetY = 190; 
+            
+            let charElements = []; 
+            let targetPositions = []; 
+            let finalCiphertext = '';
+
+            // 1. 원본 텍스트 박스 렌더링
+            let currentX = 20;
+            for (let i = 0; i < chunks.length; i++) {
+                let chunkTargetX = [];
+                let isLastChunk = (i === chunks.length - 1);
+                let origLen = originalLengths[i];
+
+                // 단락별 배경 박스
+                const chunkWidth = (n * boxSize) + ((n - 1) * gap);
+                const bgBox = document.createElement('div');
+                bgBox.className = 'absolute bg-purple-50/50 border border-purple-100 rounded-lg -z-10';
+                bgBox.style.left = `${currentX - 10}px`;
+                bgBox.style.top = `${startY - 40}px`;
+                bgBox.style.width = `${chunkWidth + 20}px`;
+                bgBox.style.height = `${targetY - startY + 100}px`;
+                stage.appendChild(bgBox);
+
+                // 단락 라벨
+                const chunkLabel = document.createElement('div');
+                chunkLabel.textContent = `단위 ${i + 1}`;
+                chunkLabel.className = 'absolute text-xs font-bold text-purple-400';
+                chunkLabel.style.left = `${currentX}px`;
+                chunkLabel.style.top = `${startY - 30}px`;
+                stage.appendChild(chunkLabel);
+
+                for (let j = 0; j < n; j++) {
+                    const char = chunks[i][j];
+                    const isPadding = isLastChunk && j >= origLen;
+
+                    // 위쪽 라벨 (1, 2, 3...)
+                    const label = document.createElement('div');
+                    label.textContent = isPadding ? `${j+1}(추가)` : j+1;
+                    label.className = `absolute text-xs font-bold w-11 text-center ${isPadding ? 'text-gray-400' : 'text-purple-600'}`;
+                    label.style.left = `${currentX}px`;
+                    label.style.top = `${startY - 18}px`;
+                    stage.appendChild(label);
+
+                    // 글자 박스
+                    const box = document.createElement('div');
+                    box.textContent = char;
+                    box.className = `char-box absolute flex items-center justify-center w-11 h-11 font-bold text-lg rounded-lg border-2 z-10 bg-white shadow-sm`;
+                    
+                    if (isPadding) {
+                        box.classList.add('border-dashed', 'border-gray-400', 'text-gray-500');
+                        box.style.opacity = '0';
+                        box.style.transform = 'scale(0.8)';
+                    } else {
+                        box.classList.add('border-solid', 'border-purple-500', 'text-purple-700');
+                    }
+                    
+                    box.style.left = `${currentX}px`;
+                    box.style.top = `${startY}px`;
+                    stage.appendChild(box);
+
+                    charElements.push({
+                        el: box,
+                        char: char,
+                        chunkIdx: i,
+                        origPos: j,
+                        isPadding: isPadding
+                    });
+
+                    chunkTargetX.push(currentX);
+                    currentX += boxSize + gap;
+                }
+                targetPositions.push(chunkTargetX);
+                currentX += blockGap;
+            }
+
+            stage.style.width = `${Math.max(currentX, scrollContainer.clientWidth)}px`;
+            
+            await sleep(600);
+
+            // 2. 패딩 문자 나타나기
+            let paddingAdded = false;
+            charElements.forEach(item => {
+                if (item.isPadding) {
+                    item.el.style.opacity = '1';
+                    item.el.style.transform = 'scale(1)';
+                    item.el.classList.replace('border-gray-400', 'border-orange-400');
+                    item.el.classList.replace('text-gray-500', 'text-orange-500');
+                    paddingAdded = true;
+                }
+            });
+            if (paddingAdded) await sleep(1000);
+
+            // 3. 타겟 슬롯 및 교차 아이콘 렌더링
+            for (let i = 0; i < chunks.length; i++) {
+                let isLastChunk = (i === chunks.length - 1);
+                let origLen = originalLengths[i];
+
+                for (let j = 0; j < n; j++) {
+                    const sourceIndex = n - 1 - j;
+                    const sourceIsPadding = isLastChunk && sourceIndex >= origLen;
+
+                    // 빈 슬롯
+                    const slot = document.createElement('div');
+                    slot.className = 'absolute w-11 h-11 border-2 border-gray-200 border-dashed rounded-lg bg-gray-50 opacity-0 transition-opacity duration-500';
+                    slot.style.left = `${targetPositions[i][j]}px`;
+                    slot.style.top = `${targetY}px`;
+                    stage.appendChild(slot);
+
+                    // 타겟 라벨 (역순)
+                    const label = document.createElement('div');
+                    label.textContent = sourceIsPadding ? `${sourceIndex+1}(추가)` : sourceIndex+1;
+                    label.className = `absolute text-xs font-bold w-11 text-center opacity-0 transition-opacity duration-500 ${sourceIsPadding ? 'text-gray-400' : 'text-purple-600'}`;
+                    label.style.left = `${targetPositions[i][j]}px`;
+                    label.style.top = `${targetY - 20}px`;
+                    stage.appendChild(label);
+
+                    setTimeout(() => {
+                        slot.style.opacity = '1';
+                        label.style.opacity = '1';
+                    }, 100);
+                }
+
+                // 중앙 교차 아이콘 (블록 중앙)
+                const centerIdx = Math.floor(n / 2);
+                if (n > 1) {
+                    const crossIcon = document.createElement('div');
+                    crossIcon.innerHTML = `<i class="fa-solid fa-arrow-right-arrow-left text-gray-300 text-xl"></i>`;
+                    crossIcon.className = 'absolute w-full flex justify-center items-center opacity-0 transition-opacity duration-500 -z-10';
+                    crossIcon.style.left = `${targetPositions[i][0]}px`;
+                    crossIcon.style.width = `${(n * boxSize) + ((n - 1) * gap)}px`;
+                    crossIcon.style.top = `${(startY + targetY) / 2 - 10}px`;
+                    stage.appendChild(crossIcon);
+                    setTimeout(() => crossIcon.style.opacity = '1', 300);
+                }
+            }
+
+            await sleep(1000);
+
+            // 4. 역순 교차 애니메이션
+            for (let i = 0; i < chunks.length; i++) {
+                let chunkEls = charElements.filter(c => c.chunkIdx === i);
+                let chunkFinalStr = Array(n).fill(''); 
+                
+                const scrollTarget = Math.max(0, targetPositions[i][0] - 100);
+                scrollContainer.scrollTo({ left: scrollTarget, behavior: 'smooth' });
+
+                for (let j = 0; j < n; j++) {
+                    const movingItem = chunkEls.find(c => c.origPos === j);
+                    
+                    if (movingItem) {
+                        // 목표 위치는 뒤에서부터 계산
+                        const targetIdx = n - 1 - j;
+                        const targetX = targetPositions[i][targetIdx];
+
+                        chunkFinalStr[targetIdx] = movingItem.char;
+                        
+                        movingItem.el.style.left = `${targetX}px`;
+                        movingItem.el.style.top = `${targetY}px`;
+                        
+                        // 자연스럽게 엇갈리도록 z-index 부여
+                        movingItem.el.style.zIndex = `${20 + j}`;
+
+                        // 색상 변경
+                        movingItem.el.classList.remove('border-purple-500', 'text-purple-700', 'border-orange-400', 'text-orange-500');
+                        
+                        if (movingItem.isPadding) {
+                            movingItem.el.classList.add('border-indigo-400', 'text-indigo-500', 'bg-indigo-50');
+                        } else {
+                            movingItem.el.classList.add('border-indigo-600', 'text-indigo-700', 'bg-indigo-100');
+                        }
+                    }
+                }
+                
+                finalCiphertext += chunkFinalStr.join('');
+                await sleep(1000); 
+            }
+
+            await sleep(400);
+
+            // 5. 완료 처리
+            ciphertextOutput.textContent = finalCiphertext;
+            resultSection.style.opacity = '1';
+
+            isAnimating = false;
+            playBtn.disabled = false;
+            playBtn.classList.replace('bg-gray-400', 'bg-purple-600');
+            playBtn.classList.replace('hover:bg-gray-400', 'hover:bg-purple-700');
+            playBtn.innerHTML = `<i class="fa-solid fa-play mr-2"></i> 다시 재생`;
+        }
+
+        playBtn.addEventListener('click', startAnimation);
+        
+        const resetCanvas = () => {
+            if(!isAnimating) {
+                stage.innerHTML = '<div id="placeholder-text" class="absolute inset-0 flex items-center justify-center text-gray-400 font-medium">"애니메이션 재생" 버튼을 눌러 변경된 값으로 확인해보세요</div>';
+                resultSection.style.opacity = '0.5';
+                ciphertextOutput.textContent = '-';
+                playBtn.innerHTML = `<i class="fa-solid fa-play mr-2"></i> 애니메이션 재생`;
+            }
+        };
+
+        keyInput.addEventListener('input', resetCanvas);
+        plaintextInput.addEventListener('input', resetCanvas);
+    </script>
+</body>
+</html>
+```

@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>행렬 스키테일 암호화 동적 애니메이션</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap');
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+        /* 요소 이동 트랜지션 (글자 비행) */
+        .fly-box {
+            transition: all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        /* 막대기가 펴지는 부드러운 효과 */
+        .scytale-transform {
+            transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        /* 입체 막대기 변형 트랜지션 (서있기 -> 눕기 -> 펼쳐지기) */
+        .stick-animation {
+            transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), 
+                        height 1s cubic-bezier(0.4, 0, 0.2, 1) 0.2s,
+                        top 1s cubic-bezier(0.4, 0, 0.2, 1) 0.2s,
+                        background 1s ease 0.2s,
+                        border-radius 1s ease 0.2s,
+                        box-shadow 0.8s ease;
+        }
+        /* 강조 팝 효과 */
+        .pop-effect {
+            transform: scale(1.15);
+            transition: transform 0.2s;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            z-index: 50;
+        }
+        /* 커스텀 스크롤바 */
+        .custom-scrollbar::-webkit-scrollbar {
+            height: 8px;
+            width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-4 md:p-8">
+    <div class="max-w-5xl mx-auto bg-white p-6 md:p-8 rounded-xl shadow-lg">
+        <h1 class="text-2xl font-bold mb-6 text-gray-800 border-b pb-4">📜 행렬 스키테일 암호화 애니메이션</h1>
+
+        <!-- 입력 영역 -->
+        <div class="bg-gray-50 p-5 rounded-lg border border-gray-200 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="key-input" class="block text-sm font-bold text-gray-700 mb-2">키 (열 수, 2~10 권장)</label>
+                    <input type="number" id="key-input" placeholder="예: 4" min="2" max="20" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-shadow" value="4">
+                    <p id="key-error" class="text-red-500 text-xs mt-2 hidden"></p>
+                </div>
+                <div>
+                    <label for="plaintext-input" class="block text-sm font-bold text-gray-700 mb-2">평문 (띄어쓰기 없이)</label>
+                    <input type="text" id="plaintext-input" placeholder="예: HELLOWORLD" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-shadow" value="HELLOWORLD">
+                </div>
+            </div>
+            
+            <div class="mt-6 flex justify-end">
+                <button id="play-btn" class="bg-sky-500 hover:bg-sky-600 text-white font-bold py-2 px-6 rounded-lg shadow transition-colors flex items-center">
+                    <i class="fa-solid fa-play mr-2"></i> 애니메이션 재생
+                </button>
+            </div>
+        </div>
+
+        <!-- 애니메이션 캔버스 -->
+        <div class="relative bg-white border-2 border-gray-100 rounded-xl mb-6 overflow-hidden">
+            <div class="bg-gray-100 px-4 py-2 text-xs font-bold text-gray-500 uppercase tracking-wider border-b border-gray-200 flex justify-between items-center">
+                <span>시각화 보드</span>
+                <span class="text-[10px] text-gray-400 font-normal">행렬 전치(Transpose) 시각화</span>
+            </div>
+            <!-- 스크롤 가능한 스테이지 (상황에 따라 높이가 자동 갱신됨) -->
+            <div id="animation-scroll-container" class="w-full overflow-auto custom-scrollbar relative" style="height: 400px; scroll-behavior: smooth;">
+                <div id="animation-stage" class="absolute top-0 left-0 min-w-full p-4" style="height: 400px;">
+                    <div id="placeholder-text" class="absolute inset-0 flex items-center justify-center text-gray-400 font-medium z-0">
+                        "애니메이션 재생" 버튼을 눌러주세요
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 최종 결과 출력 -->
+        <div id="result-section" class="p-5 bg-sky-50 border border-sky-200 rounded-lg opacity-50 transition-opacity duration-500">
+            <h3 class="text-sm font-bold mb-1 text-sky-800 uppercase tracking-wider">최종 암호문</h3>
+            <p id="ciphertext-output" class="text-2xl font-mono font-bold text-sky-700 tracking-widest break-all">-</p>
+        </div>
+    </div>
+
+    <script>
+        const keyInput = document.getElementById('key-input');
+        const plaintextInput = document.getElementById('plaintext-input');
+        const keyError = document.getElementById('key-error');
+        const playBtn = document.getElementById('play-btn');
+        const stage = document.getElementById('animation-stage');
+        const scrollContainer = document.getElementById('animation-scroll-container');
+        const resultSection = document.getElementById('result-section');
+        const ciphertextOutput = document.getElementById('ciphertext-output');
+
+        let isAnimating = false;
+
+        const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+        async function startAnimation() {
+            if (isAnimating) return;
+            
+            const cols = parseInt(keyInput.value, 10);
+            // 공백을 제거하고 대문자로 변환하여 처리 (스키테일 특성상 연속된 문자열 취급)
+            let plaintext = plaintextInput.value.replace(/\s+/g, '').toUpperCase();
+
+            if (!cols || !plaintext) return;
+
+            if (isNaN(cols) || cols < 2) {
+                keyError.textContent = `유효하지 않은 키입니다. 2 이상의 정수를 입력해주세요.`;
+                keyError.classList.remove('hidden');
+                return;
+            }
+            keyError.classList.add('hidden');
+
+            isAnimating = true;
+            playBtn.disabled = true;
+            playBtn.classList.replace('bg-sky-500', 'bg-gray-400');
+            playBtn.classList.replace('hover:bg-sky-600', 'hover:bg-gray-400');
+            playBtn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin mr-2"></i> 실행 중...`;
+            
+            stage.innerHTML = '';
+            resultSection.style.opacity = '0.5';
+            ciphertextOutput.textContent = '-';
+
+            // --- 1. 레이아웃 및 상수 계산 ---
+            const rows = Math.ceil(plaintext.length / cols);
+            const tBoxSize = 40; // 박스 크기
+            const tGap = 8;      // 간격
+            
+            const gridX = 50;    // 행렬 시작 X
+            const startY = 20;   // 평문 대기줄 Y
+            const gridY = 110;   // 행렬 표 Y
+            
+            const gridWidth = cols * tBoxSize + (cols - 1) * tGap + 24;
+            const gridHeight = rows * tBoxSize + (rows - 1) * tGap + 24;
+            
+            const targetY = gridY + gridHeight + 70; // 최종 결과 Y
+
+            // 스테이지 크기 동적 조절 (잘림 방지)
+            const requiredWidth = Math.max(800, gridX + plaintext.length * (tBoxSize + tGap) + 50);
+            const requiredHeight = targetY + 80;
+            stage.style.width = `${requiredWidth}px`;
+            stage.style.height = `${requiredHeight}px`;
+            // 스크롤 컨테이너 높이 조절 (화면에 맞게 한도 설정)
+            scrollContainer.style.height = `${Math.min(500, requiredHeight + 20)}px`;
+
+            // --- 2. 막대기(실린더) 생성 및 전개 애니메이션 (세우기 -> 눕히기 -> 펼치기) ---
+            
+            // 막대기 컨테이너 생성
+            const stick = document.createElement('div');
+            stick.className = 'absolute stick-animation z-0 flex items-center justify-center overflow-hidden';
+            
+            // 초기 상태: 오각형(다각형) 명암과 감은 띠(붕대) 패턴을 결합한 입체 막대기
+            const polyGradient = 'linear-gradient(to bottom, #475569 0%, #475569 20%, #64748b 20%, #64748b 50%, #94a3b8 50%, #94a3b8 80%, #64748b 80%, #64748b 100%)';
+            const bandagePattern = 'repeating-linear-gradient(75deg, rgba(248, 250, 252, 0.95) 0px, rgba(248, 250, 252, 0.95) 15px, rgba(203, 213, 225, 0.95) 15px, rgba(203, 213, 225, 0.95) 18px)';
+            stick.style.background = `${bandagePattern}, ${polyGradient}`;
+            stick.style.borderRadius = '3px'; // 다각형의 각진 모서리 느낌
+            stick.style.boxShadow = '6px 6px 15px rgba(0, 0, 0, 0.4)';
+            stick.style.width = `${gridWidth}px`;
+            stick.style.height = `32px`;
+            stick.style.left = `${gridX - 12}px`;
+            stick.style.top = `${gridY + gridHeight / 2 - 16}px`;
+            
+            // -90도 회전하여 세워져 있는 것처럼 연출
+            stick.style.transform = 'rotate(-90deg) scale(0.9)';
+            stage.appendChild(stick);
+
+            const stickLabel = document.createElement('div');
+            stickLabel.innerHTML = '<i class="fa-solid fa-scroll mr-1"></i> 다각형 막대기 눕히는 중...';
+            stickLabel.className = 'text-xs font-bold text-slate-800 bg-white/80 px-2 py-1 rounded transition-opacity duration-300 whitespace-nowrap drop-shadow opacity-0';
+            stick.appendChild(stickLabel);
+
+            await sleep(600); // 세워진 상태 잠깐 보여주기
+
+            // 1단계: 바닥으로 눕히기
+            stick.style.transform = 'rotate(0deg) scale(1)';
+            stickLabel.style.opacity = '1';
+            
+            await sleep(1000); // 눕히는 애니메이션 대기
+
+            // 2단계: 종이(그리드)로 쫙 펼치기
+            stickLabel.innerHTML = '<i class="fa-solid fa-map"></i> 감은 띠(종이) 푸는 중...';
+            await sleep(300);
+
+            stickLabel.style.opacity = '0';
+            stick.style.background = 'transparent'; // 배경을 투명하게 하고 이후 줄 종이(띠)로 대체
+            stick.style.boxShadow = 'none';
+            stick.style.height = `${gridHeight}px`;
+            stick.style.top = `${gridY - 12}px`;
+
+            await sleep(1200); // 펼쳐지는 트랜지션 대기
+
+            // --- 3. 행렬 그리드 선 및 라벨 표시 ---
+            let gridSlots = [];
+            for (let c = 0; c < cols; c++) {
+                // 열 라벨
+                const colLabel = document.createElement('div');
+                colLabel.textContent = `열${c+1}`;
+                colLabel.className = 'absolute text-[10px] font-bold text-sky-500 text-center opacity-0 transition-opacity duration-500';
+                colLabel.style.width = `${tBoxSize}px`;
+                colLabel.style.left = `${gridX + c * (tBoxSize + tGap)}px`;
+                colLabel.style.top = `${gridY - 22}px`;
+                stage.appendChild(colLabel);
+                setTimeout(() => colLabel.style.opacity = '1', c * 50);
+            }
+
+            for (let r = 0; r < rows; r++) {
+                // 행 라벨
+                const rowLabel = document.createElement('div');
+                rowLabel.textContent = `행${r+1}`;
+                rowLabel.className = 'absolute text-[10px] font-bold text-sky-400 text-right opacity-0 transition-opacity duration-500';
+                rowLabel.style.width = `30px`;
+                rowLabel.style.left = `${gridX - 38}px`;
+                rowLabel.style.top = `${gridY + r * (tBoxSize + tGap) + 12}px`;
+                stage.appendChild(rowLabel);
+                setTimeout(() => rowLabel.style.opacity = '1', r * 50);
+
+                // 긴 띠(종이) 모양의 가로 배경 추가
+                const rowStrip = document.createElement('div');
+                rowStrip.className = 'absolute bg-sky-50 border-y-2 border-sky-200 opacity-0 transition-opacity duration-500 -z-10';
+                rowStrip.style.left = `${gridX}px`;
+                rowStrip.style.top = `${gridY + r * (tBoxSize + tGap)}px`;
+                rowStrip.style.width = `${cols * tBoxSize + (cols - 1) * tGap}px`;
+                rowStrip.style.height = `${tBoxSize}px`;
+                stage.appendChild(rowStrip);
+                setTimeout(() => rowStrip.style.opacity = '1', 100 + r * 100);
+
+                // 그리드 슬롯 (빈칸)
+                for (let c = 0; c < cols; c++) {
+                    const idx = r * cols + c;
+                    const slot = document.createElement('div');
+                    slot.className = 'absolute border-2 rounded-lg opacity-0 transition-all duration-500 flex items-center justify-center';
+                    slot.style.width = `${tBoxSize}px`;
+                    slot.style.height = `${tBoxSize}px`;
+                    slot.style.left = `${gridX + c * (tBoxSize + tGap)}px`;
+                    slot.style.top = `${gridY + r * (tBoxSize + tGap)}px`;
+                    
+                    if (idx < plaintext.length) {
+                        slot.classList.add('border-dashed', 'border-sky-300', 'bg-sky-50/50');
+                    } else {
+                        // 사용되지 않는 빈칸 표시
+                        slot.classList.add('border-dashed', 'border-gray-200', 'bg-gray-50');
+                        slot.innerHTML = '<span class="text-gray-300">-</span>';
+                    }
+                    
+                    stage.appendChild(slot);
+                    gridSlots.push({r, c, el: slot, isDummy: idx >= plaintext.length});
+                    setTimeout(() => slot.style.opacity = '1', 200 + (r * cols + c) * 30);
+                }
+            }
+
+            // --- 4. 평문 나열 및 가로(행) 채우기 애니메이션 ---
+            let charElements = [];
+            for (let i = 0; i < plaintext.length; i++) {
+                const char = plaintext[i];
+                const boxX = gridX + i * (tBoxSize + tGap);
+                
+                const box = document.createElement('div');
+                box.textContent = char;
+                box.className = `fly-box absolute flex items-center justify-center font-bold text-lg rounded-lg border-2 border-solid border-gray-400 bg-white text-gray-700 z-10 shadow-sm`;
+                box.style.width = `${tBoxSize}px`;
+                box.style.height = `${tBoxSize}px`;
+                box.style.left = `${boxX}px`;
+                box.style.top = `${startY}px`;
+                stage.appendChild(box);
+                
+                charElements.push({
+                    el: box,
+                    char: char,
+                    idx: i,
+                    r: Math.floor(i / cols),
+                    c: i % cols
+                });
+            }
+
+            await sleep(1000);
+
+            // 가로 방향으로 비행하여 격자 채우기
+            for (let i = 0; i < charElements.length; i++) {
+                const item = charElements[i];
+                const targetX = gridX + item.c * (tBoxSize + tGap);
+                const targetY = gridY + item.r * (tBoxSize + tGap);
+                
+                item.el.style.left = `${targetX}px`;
+                item.el.style.top = `${targetY}px`;
+                
+                // 스타일 변경 (행렬에 안착)
+                item.el.classList.replace('border-gray-400', 'border-sky-500');
+                item.el.classList.replace('text-gray-700', 'text-sky-700');
+                
+                // 자연스러운 순차 이동을 위한 짧은 대기
+                await sleep(80); 
+            }
+
+            await sleep(600);
+
+            // --- 5. 세로(열) 방향 읽어내기 애니메이션 (촤라락 캐스케이딩 효과) ---
+            let finalCipherX = gridX;
+            let finalCiphertext = '';
+            let delayCounter = 0;
+            const staggerDelay = 200; // 글자당 200ms 시차로 촤라락 이동 (기존 90ms에서 속도 늦춤)
+
+            for (let c = 0; c < cols; c++) {
+                // 열 단위 강조 하이라이트 (스캐너 효과)
+                setTimeout(() => {
+                    const colHighlight = document.createElement('div');
+                    colHighlight.className = 'absolute bg-sky-200/40 rounded-lg opacity-0 transition-opacity duration-300 z-0 pointer-events-none';
+                    colHighlight.style.width = `${tBoxSize + 12}px`;
+                    colHighlight.style.height = `${gridHeight - 12}px`;
+                    colHighlight.style.left = `${gridX + c * (tBoxSize + tGap) - 6}px`;
+                    colHighlight.style.top = `${gridY - 6}px`;
+                    stage.appendChild(colHighlight);
+                    
+                    // 브라우저 렌더링 프레임 보장
+                    requestAnimationFrame(() => colHighlight.style.opacity = '1');
+
+                    // 하이라이트 제거
+                    setTimeout(() => {
+                        colHighlight.style.opacity = '0';
+                        setTimeout(() => colHighlight.remove(), 300);
+                    }, rows * staggerDelay + 150);
+                }, delayCounter * staggerDelay);
+
+                for (let r = 0; r < rows; r++) {
+                    const idx = r * cols + c;
+                    
+                    if (idx < plaintext.length) {
+                        const item = charElements[idx];
+                        const currentTargetX = finalCipherX;
+                        
+                        finalCiphertext += item.char;
+                        finalCipherX += tBoxSize + tGap;
+
+                        // 비동기 시차 타이머 등록
+                        setTimeout(() => {
+                            // 읽기 전 팝업 강조
+                            item.el.classList.add('pop-effect', 'bg-sky-100');
+                            
+                            setTimeout(() => {
+                                // 최종 위치로 비행
+                                item.el.style.left = `${currentTargetX}px`;
+                                item.el.style.top = `${targetY}px`;
+                                
+                                // 배경은 흰색, 테두리는 스카이블루, 글자는 검은색으로 변경
+                                item.el.classList.remove('bg-sky-100', 'bg-sky-400', 'bg-sky-500', 'bg-sky-800', 'text-gray-700', 'text-sky-700', 'text-yellow-300', 'text-white', 'border-gray-400', 'border-sky-900');
+                                item.el.classList.add('bg-white', 'text-gray-900', 'border-sky-500', 'shadow-sm');
+                                
+                                // 결과 도착지 슬롯 렌더링
+                                const finalSlot = document.createElement('div');
+                                finalSlot.className = 'absolute border-2 border-sky-200 border-dashed rounded-lg bg-sky-50 opacity-0 transition-opacity duration-500 -z-10';
+                                finalSlot.style.width = `${tBoxSize}px`;
+                                finalSlot.style.height = `${tBoxSize}px`;
+                                finalSlot.style.left = `${currentTargetX}px`;
+                                finalSlot.style.top = `${targetY}px`;
+                                stage.appendChild(finalSlot);
+                                requestAnimationFrame(() => finalSlot.style.opacity = '1');
+
+                                // 자동 스크롤 추적
+                                scrollContainer.scrollTo({ left: Math.max(0, currentTargetX - 300), behavior: 'smooth' });
+                                
+                                setTimeout(() => item.el.classList.remove('pop-effect'), 200);
+                            }, 150);
+                        }, delayCounter * staggerDelay);
+                        
+                        delayCounter++;
+                    } else {
+                        // 빈칸(Dummy)인 경우 건너뛰는 X 이펙트
+                        const emptySlot = gridSlots.find(s => s.r === r && s.c === c);
+                        if (emptySlot) {
+                            setTimeout(() => {
+                                const cross = document.createElement('div');
+                                cross.innerHTML = '<i class="fa-solid fa-ban text-red-400 text-xl"></i>';
+                                cross.className = 'absolute flex items-center justify-center inset-0 opacity-0 transition-opacity duration-300';
+                                emptySlot.el.appendChild(cross);
+                                
+                                emptySlot.el.classList.add('bg-red-50', 'border-red-200');
+                                requestAnimationFrame(() => cross.style.opacity = '1');
+                                
+                                setTimeout(() => {
+                                    cross.style.opacity = '0';
+                                    emptySlot.el.classList.remove('bg-red-50', 'border-red-200');
+                                    setTimeout(() => cross.remove(), 300);
+                                }, 300);
+                            }, delayCounter * staggerDelay);
+                            
+                            delayCounter += 0.5; // 빈칸은 시차를 적게 주어 빠르게 건너뜀
+                        }
+                    }
+                }
+                delayCounter += 1; // 열이 바뀔 때 리듬감을 위해 약간의 텀 추가
+            }
+
+            // 모든 촤라락 애니메이션이 끝날 때까지 대기
+            await sleep(delayCounter * staggerDelay + 800);
+
+            // --- 6. 완료 처리 ---
+            ciphertextOutput.textContent = finalCiphertext;
+            resultSection.style.opacity = '1';
+
+            // 버튼 원상 복구
+            isAnimating = false;
+            playBtn.disabled = false;
+            playBtn.classList.replace('bg-gray-400', 'bg-sky-500');
+            playBtn.classList.replace('hover:bg-gray-400', 'hover:bg-sky-600');
+            playBtn.innerHTML = `<i class="fa-solid fa-play mr-2"></i> 다시 재생`;
+        }
+
+        playBtn.addEventListener('click', startAnimation);
+        
+        const resetCanvas = () => {
+            if(!isAnimating) {
+                stage.innerHTML = '<div id="placeholder-text" class="absolute inset-0 flex items-center justify-center text-gray-400 font-medium z-0">"애니메이션 재생" 버튼을 눌러 변경된 값으로 확인해보세요</div>';
+                resultSection.style.opacity = '0.5';
+                ciphertextOutput.textContent = '-';
+                playBtn.innerHTML = `<i class="fa-solid fa-play mr-2"></i> 애니메이션 재생`;
+            }
+        };
+
+        keyInput.addEventListener('input', resetCanvas);
+        plaintextInput.addEventListener('input', resetCanvas);
+    </script>
+</body>
+</html>

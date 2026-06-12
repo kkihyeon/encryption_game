@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>카이사르 암호화 동적 애니메이션</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap');
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+        /* 요소 이동 트랜지션 */
+        .fly-box {
+            transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        /* 알파벳 자 슬라이딩 효과 */
+        .slide-track {
+            transition: transform 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        /* 강조 팝 효과 */
+        .pop-effect {
+            transform: scale(1.15);
+            transition: transform 0.2s;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            z-index: 50;
+        }
+        /* 커스텀 스크롤바 */
+        .custom-scrollbar::-webkit-scrollbar {
+            height: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-4 md:p-8">
+    <div class="max-w-5xl mx-auto bg-white p-6 md:p-8 rounded-xl shadow-lg">
+        <h1 class="text-2xl font-bold mb-6 text-gray-800 border-b pb-4">🔠 카이사르 암호화 애니메이션</h1>
+
+        <!-- 입력 영역 -->
+        <div class="bg-gray-50 p-5 rounded-lg border border-gray-200 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="key-input" class="block text-sm font-bold text-gray-700 mb-2">키 (이동 칸 수, 1~25)</label>
+                    <input type="number" id="key-input" placeholder="예: 3" min="1" max="25" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-shadow" value="3">
+                    <p id="key-error" class="text-red-500 text-xs mt-2 hidden"></p>
+                </div>
+                <div>
+                    <label for="plaintext-input" class="block text-sm font-bold text-gray-700 mb-2">평문 (알파벳)</label>
+                    <input type="text" id="plaintext-input" placeholder="예: ATTACK" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-shadow" value="ATTACK">
+                </div>
+            </div>
+            
+            <div class="mt-6 flex justify-end">
+                <button id="play-btn" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-6 rounded-lg shadow transition-colors flex items-center">
+                    <i class="fa-solid fa-play mr-2"></i> 애니메이션 재생
+                </button>
+            </div>
+        </div>
+
+        <!-- 애니메이션 캔버스 -->
+        <div class="relative bg-white border-2 border-gray-100 rounded-xl mb-6 overflow-hidden">
+            <div class="bg-gray-100 px-4 py-2 text-xs font-bold text-gray-500 uppercase tracking-wider border-b border-gray-200 flex justify-between items-center">
+                <span>시각화 보드</span>
+                <span class="text-[10px] text-gray-400 font-normal">알파벳 배열 슬라이드 대응</span>
+            </div>
+            <!-- 스크롤 가능한 스테이지 (최소 너비를 길게 잡아 배열이 잘림 없이 보이도록 설정) -->
+            <div id="animation-scroll-container" class="w-full overflow-x-auto custom-scrollbar relative" style="height: 380px;">
+                <div id="animation-stage" class="absolute top-0 left-0 h-full p-4 min-w-[900px]">
+                    <div id="placeholder-text" class="absolute inset-0 flex items-center justify-center text-gray-400 font-medium z-0">
+                        "애니메이션 재생" 버튼을 눌러주세요
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 최종 결과 출력 -->
+        <div id="result-section" class="p-5 bg-emerald-50 border border-emerald-200 rounded-lg opacity-50 transition-opacity duration-500">
+            <h3 class="text-sm font-bold mb-1 text-emerald-800 uppercase tracking-wider">최종 암호문</h3>
+            <p id="ciphertext-output" class="text-2xl font-mono font-bold text-emerald-700 tracking-widest break-all">-</p>
+        </div>
+    </div>
+
+    <script>
+        const keyInput = document.getElementById('key-input');
+        const plaintextInput = document.getElementById('plaintext-input');
+        const keyError = document.getElementById('key-error');
+        const playBtn = document.getElementById('play-btn');
+        const stage = document.getElementById('animation-stage');
+        const scrollContainer = document.getElementById('animation-scroll-container');
+        const resultSection = document.getElementById('result-section');
+        const ciphertextOutput = document.getElementById('ciphertext-output');
+
+        let isAnimating = false;
+
+        const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+        async function startAnimation() {
+            if (isAnimating) return;
+            
+            const keyVal = parseInt(keyInput.value, 10);
+            let plaintext = plaintextInput.value.toUpperCase();
+
+            if (!keyVal || !plaintext) return;
+
+            // 키 유효성 검사 (1~25)
+            if (isNaN(keyVal) || keyVal < 1 || keyVal > 25) {
+                keyError.textContent = `유효하지 않은 키입니다. 1에서 25 사이의 정수를 입력해주세요.`;
+                keyError.classList.remove('hidden');
+                return;
+            }
+            keyError.classList.add('hidden');
+
+            isAnimating = true;
+            playBtn.disabled = true;
+            playBtn.classList.replace('bg-emerald-600', 'bg-gray-400');
+            playBtn.classList.replace('hover:bg-emerald-700', 'hover:bg-gray-400');
+            playBtn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin mr-2"></i> 실행 중...`;
+            
+            stage.innerHTML = '';
+            resultSection.style.opacity = '0.5';
+            ciphertextOutput.textContent = '-';
+
+            // --- 상수 및 레이아웃 설정 ---
+            const rBoxSize = 28; // 자(ruler) 글자 크기
+            const rGap = 2;      // 자 글자 간격
+            const rUnit = rBoxSize + rGap; // 자 1칸 이동 거리 (30px)
+            const rulerX = 80;   // 자 시작 X 좌표 (라벨 공간 확보)
+            const plainRulerY = 30; // 기준 알파벳 줄 Y
+            const cipherRulerY = 66; // 슬라이드 될 암호 알파벳 줄 Y
+            
+            const textX = 80;    // 텍스트 시작 X 좌표
+            const tBoxSize = 44; // 텍스트 박스 크기
+            const tGap = 10;     // 텍스트 박스 간격
+            const inputY = 160;  // 입력 평문 Y 좌표
+            const targetY = 280; // 최종 암호문 슬롯 Y 좌표
+
+            // 스테이지 너비 동적 조절 (평문 길이나 자 길이에 맞춰)
+            const requiredWidth = Math.max(900, textX + (plaintext.length * (tBoxSize + tGap)) + 50);
+            stage.style.width = `${requiredWidth}px`;
+            
+            // --- 1. 알파벳 대응표(Ruler) 생성 ---
+            
+            // 라벨 생성
+            const plainLabel = document.createElement('div');
+            plainLabel.className = 'absolute text-xs font-bold text-blue-600 text-right w-16';
+            plainLabel.style.left = '10px'; plainLabel.style.top = `${plainRulerY + 6}px`;
+            plainLabel.textContent = '알파벳';
+            stage.appendChild(plainLabel);
+
+            const cipherLabel = document.createElement('div');
+            cipherLabel.className = 'absolute text-xs font-bold text-emerald-600 text-right w-16';
+            cipherLabel.style.left = '10px'; cipherLabel.style.top = `${cipherRulerY + 6}px`;
+            cipherLabel.textContent = '암호문';
+            stage.appendChild(cipherLabel);
+
+            // 고정 알파벳 줄 (A-Z)
+            let plainBoxes = [];
+            for (let i = 0; i < 26; i++) {
+                const box = document.createElement('div');
+                box.textContent = String.fromCharCode(65 + i);
+                box.className = `absolute flex items-center justify-center w-7 h-7 text-sm font-bold rounded border border-blue-200 bg-blue-50 text-blue-700 transition-colors duration-300`;
+                box.style.left = `${rulerX + (i * rUnit)}px`;
+                box.style.top = `${plainRulerY}px`;
+                stage.appendChild(box);
+                plainBoxes.push(box);
+            }
+
+            // 슬라이드 될 알파벳 줄 컨테이너 (클리핑 처리용)
+            const trackContainer = document.createElement('div');
+            trackContainer.className = 'absolute overflow-hidden';
+            trackContainer.style.left = `${rulerX}px`;
+            trackContainer.style.top = `${cipherRulerY}px`;
+            trackContainer.style.width = `${26 * rUnit}px`; // 딱 26자 너비만 보이도록 (선택사항, 안가려도 됨. 일단 넉넉히 설정)
+            trackContainer.style.overflow = 'visible'; // 슬라이드 과정을 다 보여주기 위해 visible 처리
+            stage.appendChild(trackContainer);
+
+            // 움직이는 트랙 생성 (A-Z를 두 번 반복하여 슬라이드 시 빈 공간 없도록)
+            const slideTrack = document.createElement('div');
+            slideTrack.className = 'absolute slide-track';
+            slideTrack.style.left = '0px';
+            slideTrack.style.top = '0px';
+            trackContainer.appendChild(slideTrack);
+
+            let cipherBoxes = [];
+            for (let i = 0; i < 52; i++) {
+                const charCode = 65 + (i % 26);
+                const box = document.createElement('div');
+                box.textContent = String.fromCharCode(charCode);
+                box.className = `absolute flex items-center justify-center w-7 h-7 text-sm font-bold rounded border border-emerald-200 bg-emerald-50 text-emerald-700 transition-colors duration-300`;
+                box.style.left = `${i * rUnit}px`;
+                box.style.top = `0px`;
+                slideTrack.appendChild(box);
+                cipherBoxes.push(box);
+            }
+
+            // --- 2. 입력 평문 및 출력 슬롯 생성 ---
+            let inputElements = [];
+            let targetElements = [];
+            
+            for (let i = 0; i < plaintext.length; i++) {
+                const char = plaintext[i];
+                const xPos = textX + (i * (tBoxSize + tGap));
+
+                // 입력 박스
+                const inBox = document.createElement('div');
+                inBox.textContent = char;
+                inBox.className = `absolute flex items-center justify-center font-bold text-lg rounded-lg border-2 z-10 bg-white transition-colors duration-300`;
+                inBox.style.width = `${tBoxSize}px`;
+                inBox.style.height = `${tBoxSize}px`;
+                inBox.style.left = `${xPos}px`;
+                inBox.style.top = `${inputY}px`;
+                
+                const isAlpha = /^[A-Z]$/.test(char);
+                if (isAlpha) {
+                    inBox.classList.add('border-solid', 'border-gray-400', 'text-gray-700');
+                } else {
+                    inBox.classList.add('border-dashed', 'border-gray-300', 'text-gray-400', 'bg-gray-50');
+                }
+                stage.appendChild(inBox);
+                inputElements.push(inBox);
+
+                // 타겟 슬롯 (도착지)
+                const slot = document.createElement('div');
+                slot.className = 'absolute border-2 border-gray-200 border-dashed rounded-lg bg-gray-50 opacity-0 transition-opacity duration-500';
+                slot.style.width = `${tBoxSize}px`;
+                slot.style.height = `${tBoxSize}px`;
+                slot.style.left = `${xPos}px`;
+                slot.style.top = `${targetY}px`;
+                stage.appendChild(slot);
+                setTimeout(() => slot.style.opacity = '1', 100);
+                targetElements.push(slot);
+            }
+
+            await sleep(800);
+
+            // --- 3. 알파벳 자 슬라이드 애니메이션 ---
+            // keyVal 만큼 왼쪽으로 밀기
+            const shiftAmount = keyVal * rUnit;
+            slideTrack.style.transform = `translateX(-${shiftAmount}px)`;
+            
+            // 시각적 가이드(화살표 텍스트) 추가
+            const guideText = document.createElement('div');
+            guideText.className = 'absolute text-xs font-bold text-orange-500 animate-pulse';
+            guideText.style.left = `${rulerX + 10}px`;
+            guideText.style.top = `${cipherRulerY + 35}px`;
+            guideText.innerHTML = `<i class="fa-solid fa-arrow-left"></i> 왼쪽으로 ${keyVal}칸 슬라이드`;
+            stage.appendChild(guideText);
+
+            await sleep(1500); // 슬라이드 완료 대기
+            guideText.style.opacity = '0.3'; // 슬라이드 후 가이드 희미하게
+
+            // --- 4. 평문 글자별 치환 과정 애니메이션 ---
+            let finalCiphertext = '';
+
+            for (let i = 0; i < plaintext.length; i++) {
+                const char = plaintext[i];
+                const isAlpha = /^[A-Z]$/.test(char);
+                const targetX = textX + (i * (tBoxSize + tGap));
+
+                // 보기 편하도록 현재 처리중인 글자 쪽으로 스크롤 이동
+                scrollContainer.scrollTo({ left: Math.max(0, targetX - 200), behavior: 'smooth' });
+
+                if (isAlpha) {
+                    const charCodeIdx = char.charCodeAt(0) - 65; // A=0
+                    const targetCharIdx = charCodeIdx + keyVal; // 이동된 인덱스
+                    
+                    // 1) 입력 글자 강조
+                    inputElements[i].classList.replace('border-gray-400', 'border-blue-500');
+                    inputElements[i].classList.replace('text-gray-700', 'text-blue-600');
+                    inputElements[i].classList.add('pop-effect');
+                    
+                    // 2) 자(Ruler)의 해당 글자 강조
+                    plainBoxes[charCodeIdx].classList.replace('bg-blue-50', 'bg-blue-500');
+                    plainBoxes[charCodeIdx].classList.replace('text-blue-700', 'text-white');
+                    
+                    cipherBoxes[targetCharIdx].classList.replace('bg-emerald-50', 'bg-emerald-500');
+                    cipherBoxes[targetCharIdx].classList.replace('text-emerald-700', 'text-white');
+                    cipherBoxes[targetCharIdx].classList.add('pop-effect');
+
+                    const shiftedChar = cipherBoxes[targetCharIdx].textContent;
+                    finalCiphertext += shiftedChar;
+
+                    await sleep(500);
+
+                    // 3) 치환된 글자가 날아가는 애니메이션
+                    const flyBox = document.createElement('div');
+                    flyBox.textContent = shiftedChar;
+                    flyBox.className = `absolute flex items-center justify-center font-bold text-lg rounded-lg border-2 border-emerald-500 bg-emerald-100 text-emerald-700 fly-box z-40`;
+                    flyBox.style.width = `${tBoxSize}px`;
+                    flyBox.style.height = `${tBoxSize}px`;
+                    
+                    // 날아가는 시작점 좌표 계산 (슬라이드 트랙 내부 요소이므로 offset 고려)
+                    const startFlyX = rulerX + (charCodeIdx * rUnit); // 시각적으로 맞춰진 위치
+                    flyBox.style.left = `${startFlyX}px`;
+                    flyBox.style.top = `${cipherRulerY}px`;
+                    stage.appendChild(flyBox);
+
+                    // Reflow 강제 실행 (애니메이션 발동을 위해)
+                    flyBox.getBoundingClientRect();
+
+                    // 도착점 설정
+                    flyBox.style.left = `${targetX}px`;
+                    flyBox.style.top = `${targetY}px`;
+
+                    await sleep(600); // 비행 시간
+
+                    // 4) 타겟 슬롯에 정착 및 정리
+                    targetElements[i].textContent = shiftedChar;
+                    targetElements[i].className = `absolute flex items-center justify-center font-bold text-lg rounded-lg border-2 border-emerald-500 bg-emerald-100 text-emerald-700 transition-colors duration-300`;
+                    flyBox.remove();
+
+                    // 강조 해제
+                    inputElements[i].classList.remove('pop-effect');
+                    plainBoxes[charCodeIdx].classList.replace('bg-blue-500', 'bg-blue-50');
+                    plainBoxes[charCodeIdx].classList.replace('text-white', 'text-blue-700');
+                    
+                    cipherBoxes[targetCharIdx].classList.replace('bg-emerald-500', 'bg-emerald-50');
+                    cipherBoxes[targetCharIdx].classList.replace('text-white', 'text-emerald-700');
+                    cipherBoxes[targetCharIdx].classList.remove('pop-effect');
+
+                } else {
+                    // 알파벳이 아닌 경우 (그대로 떨어짐)
+                    finalCiphertext += char;
+                    
+                    inputElements[i].classList.add('pop-effect');
+                    await sleep(300);
+
+                    const flyBox = document.createElement('div');
+                    flyBox.textContent = char;
+                    flyBox.className = `absolute flex items-center justify-center font-bold text-lg rounded-lg border-2 border-dashed border-gray-400 bg-gray-100 text-gray-500 fly-box z-40`;
+                    flyBox.style.width = `${tBoxSize}px`;
+                    flyBox.style.height = `${tBoxSize}px`;
+                    flyBox.style.left = `${targetX}px`;
+                    flyBox.style.top = `${inputY}px`;
+                    stage.appendChild(flyBox);
+                    
+                    flyBox.getBoundingClientRect();
+                    flyBox.style.top = `${targetY}px`;
+
+                    await sleep(600);
+                    
+                    targetElements[i].textContent = char;
+                    targetElements[i].className = `absolute flex items-center justify-center font-bold text-lg rounded-lg border-2 border-dashed border-gray-400 bg-gray-100 text-gray-500 transition-colors duration-300`;
+                    flyBox.remove();
+                    inputElements[i].classList.remove('pop-effect');
+                }
+                
+                await sleep(100); // 글자 간 짧은 간격
+            }
+
+            await sleep(500);
+
+            // --- 5. 완료 처리 ---
+            ciphertextOutput.textContent = finalCiphertext;
+            resultSection.style.opacity = '1';
+
+            // 버튼 원상 복구
+            isAnimating = false;
+            playBtn.disabled = false;
+            playBtn.classList.replace('bg-gray-400', 'bg-emerald-600');
+            playBtn.classList.replace('hover:bg-gray-400', 'hover:bg-emerald-700');
+            playBtn.innerHTML = `<i class="fa-solid fa-play mr-2"></i> 다시 재생`;
+        }
+
+        playBtn.addEventListener('click', startAnimation);
+        
+        const resetCanvas = () => {
+            if(!isAnimating) {
+                stage.innerHTML = '<div id="placeholder-text" class="absolute inset-0 flex items-center justify-center text-gray-400 font-medium z-0">"애니메이션 재생" 버튼을 눌러 변경된 값으로 확인해보세요</div>';
+                resultSection.style.opacity = '0.5';
+                ciphertextOutput.textContent = '-';
+                playBtn.innerHTML = `<i class="fa-solid fa-play mr-2"></i> 애니메이션 재생`;
+            }
+        };
+
+        keyInput.addEventListener('input', resetCanvas);
+        plaintextInput.addEventListener('input', resetCanvas);
+    </script>
+</body>
+</html>

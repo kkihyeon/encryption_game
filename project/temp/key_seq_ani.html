@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>키 순서 암호화 동적 애니메이션</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap');
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+        /* 애니메이션용 트랜지션 설정 */
+        .char-box {
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        /* 커스텀 스크롤바 */
+        .custom-scrollbar::-webkit-scrollbar {
+            height: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-4 md:p-8">
+    <div class="max-w-5xl mx-auto bg-white p-6 md:p-8 rounded-xl shadow-lg">
+        <h1 class="text-2xl font-bold mb-6 text-gray-800 border-b pb-4">🔐 키 순서 암호화 애니메이션</h1>
+
+        <!-- 입력 영역 -->
+        <div class="bg-gray-50 p-5 rounded-lg border border-gray-200 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="key-input" class="block text-sm font-bold text-gray-700 mb-2">키 (숫자 순열)</label>
+                    <input type="text" id="key-input" placeholder="예: 312" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-shadow" value="312">
+                    <p id="key-error" class="text-red-500 text-xs mt-2 hidden"></p>
+                </div>
+                <div>
+                    <label for="plaintext-input" class="block text-sm font-bold text-gray-700 mb-2">평문</label>
+                    <input type="text" id="plaintext-input" placeholder="예: ABCDE" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-shadow" value="ABCDE">
+                </div>
+            </div>
+            
+            <div class="mt-6 flex justify-end">
+                <button id="play-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow transition-colors flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path></svg>
+                    애니메이션 재생
+                </button>
+            </div>
+        </div>
+
+        <!-- 애니메이션 캔버스 -->
+        <div class="relative bg-white border-2 border-gray-100 rounded-xl mb-6 overflow-hidden">
+            <div class="bg-gray-100 px-4 py-2 text-xs font-bold text-gray-500 uppercase tracking-wider border-b border-gray-200">
+                시각화 보드
+            </div>
+            <!-- 스크롤 가능한 스테이지 -->
+            <div id="animation-scroll-container" class="w-full overflow-x-auto custom-scrollbar relative" style="height: 280px;">
+                <div id="animation-stage" class="absolute top-0 left-0 h-full p-4">
+                    <!-- 자바스크립트로 요소들이 여기에 동적 생성됩니다 -->
+                    <div id="placeholder-text" class="absolute inset-0 flex items-center justify-center text-gray-400 font-medium">
+                        "애니메이션 재생" 버튼을 눌러주세요
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 최종 결과 출력 -->
+        <div id="result-section" class="p-5 bg-green-50 border border-green-200 rounded-lg opacity-50 transition-opacity duration-500">
+            <h3 class="text-sm font-bold mb-1 text-green-800 uppercase tracking-wider">최종 암호문</h3>
+            <p id="ciphertext-output" class="text-2xl font-mono font-bold text-green-700 tracking-widest break-all">-</p>
+        </div>
+    </div>
+
+    <script>
+        const keyInput = document.getElementById('key-input');
+        const plaintextInput = document.getElementById('plaintext-input');
+        const keyError = document.getElementById('key-error');
+        const playBtn = document.getElementById('play-btn');
+        const stage = document.getElementById('animation-stage');
+        const scrollContainer = document.getElementById('animation-scroll-container');
+        const resultSection = document.getElementById('result-section');
+        const ciphertextOutput = document.getElementById('ciphertext-output');
+
+        let isAnimating = false;
+
+        // 유틸리티: 지연 함수
+        const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+        async function startAnimation() {
+            if (isAnimating) return;
+            
+            const keyStr = keyInput.value.trim();
+            const plaintext = plaintextInput.value.trim();
+
+            if (!keyStr || !plaintext) return;
+
+            const key = keyStr.split('').map(Number);
+            const n = key.length;
+
+            // 키 유효성 검사
+            if (key.some(isNaN) || new Set(key).size !== n || key.some(k => k < 1 || k > n)) {
+                keyError.textContent = `유효하지 않은 키입니다. 1부터 ${n}까지의 숫자가 중복 없이 포함되어야 합니다.`;
+                keyError.classList.remove('hidden');
+                return;
+            }
+            keyError.classList.add('hidden');
+
+            // 상태 초기화
+            isAnimating = true;
+            playBtn.disabled = true;
+            playBtn.classList.replace('bg-blue-600', 'bg-gray-400');
+            playBtn.classList.replace('hover:bg-blue-700', 'hover:bg-gray-400');
+            playBtn.innerHTML = `<svg class="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> 실행 중...`;
+            
+            stage.innerHTML = '';
+            resultSection.style.opacity = '0.5';
+            ciphertextOutput.textContent = '-';
+
+            // 데이터 준비 (패딩 포함 청크 나누기)
+            let chunks = [];
+            let originalLengths = [];
+            let textIdx = 0;
+            
+            while (textIdx < plaintext.length) {
+                let chunk = plaintext.substring(textIdx, textIdx + n);
+                originalLengths.push(chunk.length);
+                while (chunk.length < n) {
+                    chunk += 'z';
+                }
+                chunks.push(chunk);
+                textIdx += n;
+            }
+
+            // 시각화 레이아웃 상수 설정
+            const boxSize = 44; // 박스 크기
+            const gap = 12;     // 박스 간 간격
+            const blockGap = 40; // 블록(단위) 간 간격
+            const startY = 60;  // 원본 박스 Y 위치
+            const targetY = 180; // 암호문 박스 Y 위치
+            
+            let stageWidth = 20; // 캔버스 너비 계산용
+            let charElements = []; // 애니메이션 제어용 요소 배열
+            let targetPositions = []; // 목표 X 좌표 배열
+            let finalCiphertext = '';
+
+            // 1. 원본 텍스트 박스 렌더링
+            let currentX = 20;
+            for (let i = 0; i < chunks.length; i++) {
+                let chunkTargetX = [];
+                let isLastChunk = (i === chunks.length - 1);
+                let origLen = originalLengths[i];
+
+                for (let j = 0; j < n; j++) {
+                    const char = chunks[i][j];
+                    const isPadding = isLastChunk && j >= origLen;
+
+                    // 위쪽 라벨 (1, 2, 3...)
+                    const label = document.createElement('div');
+                    label.textContent = isPadding ? `${j+1}(추가)` : j+1;
+                    label.className = `absolute text-xs font-bold w-11 text-center ${isPadding ? 'text-gray-400' : 'text-blue-500'}`;
+                    label.style.left = `${currentX}px`;
+                    label.style.top = `${startY - 25}px`;
+                    stage.appendChild(label);
+
+                    // 글자 박스
+                    const box = document.createElement('div');
+                    box.textContent = char;
+                    box.className = `char-box absolute flex items-center justify-center w-11 h-11 font-bold text-lg rounded-lg border-2 z-10 bg-white`;
+                    
+                    if (isPadding) {
+                        box.classList.add('border-dashed', 'border-orange-400', 'text-orange-500');
+                        box.style.opacity = '0'; // 처음에 패딩은 숨김
+                        box.style.transform = 'scale(0.8)';
+                    } else {
+                        box.classList.add('border-solid', 'border-orange-500', 'text-orange-600');
+                    }
+                    
+                    box.style.left = `${currentX}px`;
+                    box.style.top = `${startY}px`;
+                    stage.appendChild(box);
+
+                    charElements.push({
+                        el: box,
+                        char: char,
+                        chunkIdx: i,
+                        origPos: j, // 0 ~ n-1
+                        isPadding: isPadding
+                    });
+
+                    chunkTargetX.push(currentX); // 나중에 목표 X좌표로 사용
+                    currentX += boxSize + gap;
+                }
+                targetPositions.push(chunkTargetX);
+                currentX += blockGap;
+            }
+
+            // 스테이지 너비 조정 (스크롤용)
+            stage.style.width = `${currentX}px`;
+            
+            // 2. 초기 렌더링 후 잠시 대기
+            await sleep(800);
+
+            // 3. 패딩 문자 나타나기 효과
+            let paddingAdded = false;
+            charElements.forEach(item => {
+                if (item.isPadding) {
+                    item.el.style.opacity = '1';
+                    item.el.style.transform = 'scale(1)';
+                    paddingAdded = true;
+                }
+            });
+            if (paddingAdded) await sleep(1000);
+
+            // 4. 아래쪽 목표(Target) 라벨 및 가이드라인 렌더링
+            currentX = 20;
+            for (let i = 0; i < chunks.length; i++) {
+                let isLastChunk = (i === chunks.length - 1);
+                let origLen = originalLengths[i];
+
+                for (let j = 0; j < n; j++) {
+                    const targetKey = key[j]; // 1-based index (e.g., 3, 1, 2)
+                    // 해당 위치로 올 원본 문자가 패딩 문자였는지 확인
+                    const sourceIsPadding = isLastChunk && (targetKey - 1) >= origLen;
+
+                    // 화살표 가이드 (배경)
+                    const slot = document.createElement('div');
+                    slot.className = 'absolute w-11 h-11 border-2 border-gray-200 border-dashed rounded-lg bg-gray-50 opacity-0 transition-opacity duration-500';
+                    slot.style.left = `${targetPositions[i][j]}px`;
+                    slot.style.top = `${targetY}px`;
+                    stage.appendChild(slot);
+
+                    // 아래쪽 라벨 (3, 1, 2...)
+                    const label = document.createElement('div');
+                    label.textContent = sourceIsPadding ? `${targetKey}(추가)` : targetKey;
+                    label.className = `absolute text-xs font-bold w-11 text-center opacity-0 transition-opacity duration-500 ${sourceIsPadding ? 'text-gray-400' : 'text-green-600'}`;
+                    label.style.left = `${targetPositions[i][j]}px`;
+                    label.style.top = `${targetY - 25}px`;
+                    stage.appendChild(label);
+
+                    // Fade in
+                    setTimeout(() => {
+                        slot.style.opacity = '1';
+                        label.style.opacity = '1';
+                    }, 100);
+                }
+            }
+
+            await sleep(1000);
+
+            // 5. 글자 이동 애니메이션 (재배열)
+            for (let i = 0; i < chunks.length; i++) {
+                let chunkEls = charElements.filter(c => c.chunkIdx === i);
+                
+                // 스크롤이 필요한 경우 해당 블록으로 부드럽게 스크롤
+                const scrollTarget = Math.max(0, targetPositions[i][0] - 100);
+                scrollContainer.scrollTo({ left: scrollTarget, behavior: 'smooth' });
+
+                for (let j = 0; j < n; j++) {
+                    // 키 배열에 따른 타겟 위치 계산
+                    // 예: key[j] = 3 이면, 3번째 글자(index 2)가 현재 위치 j로 온다.
+                    const sourcePos = key[j] - 1; 
+                    const targetX = targetPositions[i][j];
+
+                    const movingItem = chunkEls.find(c => c.origPos === sourcePos);
+                    
+                    if (movingItem) {
+                        finalCiphertext += movingItem.char;
+                        
+                        // DOM 스타일 업데이트로 이동 (CSS 트랜지션 발동)
+                        movingItem.el.style.left = `${targetX}px`;
+                        movingItem.el.style.top = `${targetY}px`;
+                        
+                        // 색상 변경 (오렌지 -> 그린)
+                        movingItem.el.classList.remove('border-orange-500', 'text-orange-600', 'border-orange-400', 'text-orange-500');
+                        
+                        if (movingItem.isPadding) {
+                            movingItem.el.classList.add('border-green-400', 'text-green-500', 'bg-green-50');
+                        } else {
+                            movingItem.el.classList.add('border-green-600', 'text-green-700', 'bg-green-100');
+                        }
+                    }
+                }
+                // 각 블록 이동 후 약간 대기하여 순차적으로 보이게 함
+                await sleep(800); 
+            }
+
+            await sleep(600);
+
+            // 6. 완료 처리 및 최종 결과 표시
+            ciphertextOutput.textContent = finalCiphertext;
+            resultSection.style.opacity = '1';
+
+            // 버튼 원상 복구
+            isAnimating = false;
+            playBtn.disabled = false;
+            playBtn.classList.replace('bg-gray-400', 'bg-blue-600');
+            playBtn.classList.replace('hover:bg-gray-400', 'hover:bg-blue-700');
+            playBtn.innerHTML = `<svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path></svg> 다시 재생`;
+        }
+
+        // 이벤트 리스너
+        playBtn.addEventListener('click', startAnimation);
+        
+        // 입력값이 바뀌면 캔버스 초기화
+        const resetCanvas = () => {
+            if(!isAnimating) {
+                stage.innerHTML = '<div id="placeholder-text" class="absolute inset-0 flex items-center justify-center text-gray-400 font-medium">"애니메이션 재생" 버튼을 눌러 변경된 값으로 확인해보세요</div>';
+                resultSection.style.opacity = '0.5';
+                ciphertextOutput.textContent = '-';
+                playBtn.innerHTML = `<svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path></svg> 애니메이션 재생`;
+            }
+        };
+
+        keyInput.addEventListener('input', resetCanvas);
+        plaintextInput.addEventListener('input', resetCanvas);
+
+    </script>
+</body>
+</html>
